@@ -229,6 +229,136 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/" itemprop="url">使用Pandas读取数据文件，预处理后保存到EXCEL</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-04T10:02:02+08:00">
+                2018-05-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="1-读取数据文件，转化为DataFrame对象"><a href="#1-读取数据文件，转化为DataFrame对象" class="headerlink" title="1. 读取数据文件，转化为DataFrame对象"></a>1. 读取数据文件，转化为DataFrame对象</h2><h3 id="读取文件"><a href="#读取文件" class="headerlink" title="读取文件"></a>读取文件</h3><p>一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">06bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0</span><br></pre></td></tr></table></figure></p>
+<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3721049320  bcc0b2fc050b1e0e071a3f93c373182d    440100100012001042800209    91440101190660172H  广州证券股份有限公司  87377597    B0A \N  1   10  1   1   2013-07-03 00:00:00 2015-09-21 00:00:00 \N  54  0   0   0   0   \N  \N  486 32  903 15092   34142458    7764158 12949672    2094029 3   1</span><br></pre></td></tr></table></figure></p>
+<p>我们用Python的Pandas库处理读取这些数据，首先读取数据文件<br>    import pandas as pd<br>    data_frame = pd.read_table(文件路径, header=None, error_bad_lines=False, sep=’|’)<br>其中，</p>
+<ul>
+<li>header如果不设置为None，默认第一行会作为header（也就是列名）</li>
+<li>error_bad_lines设置为False，是为了有些不合规则的行不会导致整个导入工作终止</li>
+<li>sep就是设置分隔符，默认是\t</li>
+</ul>
+<h3 id="指定列名"><a href="#指定列名" class="headerlink" title="指定列名"></a>指定列名</h3><p>因为另外有一份专门的文件记录了这些数据对应的字段，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">columns = [&apos;serv_id&apos;, &apos;encrypt_serv_id&apos;, &apos;pripid&apos;, &apos;uniscid&apos;, &apos;entname&apos;, &apos;acc_nb&apos;, &apos;STATE&apos;, &apos;STOP_DATE&apos;, &apos;PROD_ID&apos;,</span><br><span class="line">               &apos;BRAND_ID&apos;, &apos;PAYMENT_TYPE&apos;, &apos;IS_MIX_PROD&apos;, &apos;OPEN_DATE&apos;, &apos;COMPLETE_DATE&apos;, &apos;CANCEL_DATE&apos;, &apos;ONLINE_TIME&apos;,</span><br><span class="line">               &apos;IS_NEW_USER&apos;, &apos;IS_CANCEL_USER&apos;, &apos;IS_ARREAR_USER&apos;, &apos;ARREAR_FEE&apos;, &apos;MAX_ARREAR_MONTHS&apos;, &apos;ARREAR_MONTHS&apos;,</span><br><span class="line">               &apos;CUST_GH&apos;, &apos;CUST_KD&apos;, &apos;CUST_YD&apos;, &apos;TOTAL_FEE&apos;, &apos;CUST_TOTAL_FEE&apos;, &apos;CUST_KD_FEE&apos;, &apos;CUST_YD_FEE&apos;,</span><br><span class="line">               &apos;CUST_GH_FEE&apos;, &apos;WORKDAY_CALL_TIMES&apos;, &apos;HOLIDAY_CALL_TIMES&apos;]</span><br></pre></td></tr></table></figure></p>
+<p>现在我们把这些字段名设置为DataFrame对象的列名。<br>    data_frame.columns = columns</p>
+<h2 id="2-保存到EXCEL，以我们惯常看到的格式。"><a href="#2-保存到EXCEL，以我们惯常看到的格式。" class="headerlink" title="2. 保存到EXCEL，以我们惯常看到的格式。"></a>2. 保存到EXCEL，以我们惯常看到的格式。</h2><pre><code>data_frame.to_excel(需要输出到的文件的全路径)
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/23/学习方法以及提高自学能力/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -658,7 +788,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -671,7 +801,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

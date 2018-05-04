@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Pandas," />
 
 
 
@@ -79,17 +79,18 @@
 
 
 
-<meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
+<meta name="keywords" content="Pandas">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yoursite.com/2018/03/22/hello-world/index.html">
+<meta property="og:title" content="使用Pandas读取数据文件，预处理后保存到EXCEL">
+<meta property="og:url" content="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/index.html">
 <meta property="og:site_name" content="量">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-03-22T14:52:33.000Z">
+<meta property="og:updated_time" content="2018-05-04T09:36:33.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="twitter:title" content="使用Pandas读取数据文件，预处理后保存到EXCEL">
+<meta name="twitter:description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
 
 
 
@@ -119,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/03/22/hello-world/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/"/>
 
 
 
 
 
-  <title>Hello World | 量</title>
+  <title>使用Pandas读取数据文件，预处理后保存到EXCEL | 量</title>
   
 
 
@@ -232,7 +233,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/22/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Sea Monster">
@@ -249,7 +250,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Hello World</h1>
+          <h1 class="post-title" itemprop="name headline">使用Pandas读取数据文件，预处理后保存到EXCEL</h1>
         
 
         <div class="post-meta">
@@ -261,8 +262,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-22T22:52:33+08:00">
-                2018-03-22
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-04T10:02:02+08:00">
+                2018-05-04
               </time>
             
 
@@ -299,16 +300,18 @@
       
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
+        <h2 id="1-读取数据文件，转化为DataFrame对象"><a href="#1-读取数据文件，转化为DataFrame对象" class="headerlink" title="1. 读取数据文件，转化为DataFrame对象"></a>1. 读取数据文件，转化为DataFrame对象</h2><h3 id="读取文件"><a href="#读取文件" class="headerlink" title="读取文件"></a>读取文件</h3><p>一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">06bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0</span><br></pre></td></tr></table></figure></p>
+<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3721049320  bcc0b2fc050b1e0e071a3f93c373182d    440100100012001042800209    91440101190660172H  广州证券股份有限公司  87377597    B0A \N  1   10  1   1   2013-07-03 00:00:00 2015-09-21 00:00:00 \N  54  0   0   0   0   \N  \N  486 32  903 15092   34142458    7764158 12949672    2094029 3   1</span><br></pre></td></tr></table></figure></p>
+<p>我们用Python的Pandas库处理读取这些数据，首先读取数据文件<br>    import pandas as pd<br>    data_frame = pd.read_table(文件路径, header=None, error_bad_lines=False, sep=’|’)<br>其中，</p>
+<ul>
+<li>header如果不设置为None，默认第一行会作为header（也就是列名）</li>
+<li>error_bad_lines设置为False，是为了有些不合规则的行不会导致整个导入工作终止</li>
+<li>sep就是设置分隔符，默认是\t</li>
+</ul>
+<h3 id="指定列名"><a href="#指定列名" class="headerlink" title="指定列名"></a>指定列名</h3><p>因为另外有一份专门的文件记录了这些数据对应的字段，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">columns = [&apos;serv_id&apos;, &apos;encrypt_serv_id&apos;, &apos;pripid&apos;, &apos;uniscid&apos;, &apos;entname&apos;, &apos;acc_nb&apos;, &apos;STATE&apos;, &apos;STOP_DATE&apos;, &apos;PROD_ID&apos;,</span><br><span class="line">               &apos;BRAND_ID&apos;, &apos;PAYMENT_TYPE&apos;, &apos;IS_MIX_PROD&apos;, &apos;OPEN_DATE&apos;, &apos;COMPLETE_DATE&apos;, &apos;CANCEL_DATE&apos;, &apos;ONLINE_TIME&apos;,</span><br><span class="line">               &apos;IS_NEW_USER&apos;, &apos;IS_CANCEL_USER&apos;, &apos;IS_ARREAR_USER&apos;, &apos;ARREAR_FEE&apos;, &apos;MAX_ARREAR_MONTHS&apos;, &apos;ARREAR_MONTHS&apos;,</span><br><span class="line">               &apos;CUST_GH&apos;, &apos;CUST_KD&apos;, &apos;CUST_YD&apos;, &apos;TOTAL_FEE&apos;, &apos;CUST_TOTAL_FEE&apos;, &apos;CUST_KD_FEE&apos;, &apos;CUST_YD_FEE&apos;,</span><br><span class="line">               &apos;CUST_GH_FEE&apos;, &apos;WORKDAY_CALL_TIMES&apos;, &apos;HOLIDAY_CALL_TIMES&apos;]</span><br></pre></td></tr></table></figure></p>
+<p>现在我们把这些字段名设置为DataFrame对象的列名。<br>    data_frame.columns = columns</p>
+<h2 id="2-保存到EXCEL，以我们惯常看到的格式。"><a href="#2-保存到EXCEL，以我们惯常看到的格式。" class="headerlink" title="2. 保存到EXCEL，以我们惯常看到的格式。"></a>2. 保存到EXCEL，以我们惯常看到的格式。</h2><pre><code>data_frame.to_excel(需要输出到的文件的全路径)
+</code></pre>
       
     </div>
     
@@ -323,6 +326,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/Pandas/" rel="tag"># Pandas</a>
+          
+        </div>
+      
 
       
       
@@ -332,15 +341,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2018/03/23/学习方法以及提高自学能力/" rel="next" title="学习方法以及提高自学能力">
+                <i class="fa fa-chevron-left"></i> 学习方法以及提高自学能力
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/03/22/test/" rel="prev" title="test">
-                test <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -463,7 +472,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-读取数据文件，转化为DataFrame对象"><span class="nav-number">1.</span> <span class="nav-text">1. 读取数据文件，转化为DataFrame对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#读取文件"><span class="nav-number">1.1.</span> <span class="nav-text">读取文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定列名"><span class="nav-number">1.2.</span> <span class="nav-text">指定列名</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-保存到EXCEL，以我们惯常看到的格式。"><span class="nav-number">2.</span> <span class="nav-text">2. 保存到EXCEL，以我们惯常看到的格式。</span></a></li></ol></div>
             
 
           </div>
