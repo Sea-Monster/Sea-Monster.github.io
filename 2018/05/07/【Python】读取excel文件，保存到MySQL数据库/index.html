@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Pandas," />
+  <meta name="keywords" content="Python - Pandas - pymysql," />
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
-<meta name="keywords" content="Pandas">
+<meta name="description" content="1. 使用Pandas读取Excel文件import pandas as pd excel_file = Excel文件路径 df = pd.read_excel(excel_file) read_excel方法的说明文档 2. 处理数据假设DataFrame对象df的内容是这样的：    12345678910111213141516171819202122	ID  CITY_CODE CITY">
+<meta name="keywords" content="Python - Pandas - pymysql">
 <meta property="og:type" content="article">
-<meta property="og:title" content="使用Pandas读取数据文件，预处理后保存到EXCEL">
-<meta property="og:url" content="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/index.html">
+<meta property="og:title" content="【Python】读取excel文件，保存到MySQL数据库">
+<meta property="og:url" content="http://yoursite.com/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/index.html">
 <meta property="og:site_name" content="量">
-<meta property="og:description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
+<meta property="og:description" content="1. 使用Pandas读取Excel文件import pandas as pd excel_file = Excel文件路径 df = pd.read_excel(excel_file) read_excel方法的说明文档 2. 处理数据假设DataFrame对象df的内容是这样的：    12345678910111213141516171819202122	ID  CITY_CODE CITY">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-05-04T09:36:33.000Z">
+<meta property="og:updated_time" content="2018-05-07T15:42:01.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="使用Pandas读取数据文件，预处理后保存到EXCEL">
-<meta name="twitter:description" content="1. 读取数据文件，转化为DataFrame对象读取文件一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如106bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0 或者13721049320  bcc0b">
+<meta name="twitter:title" content="【Python】读取excel文件，保存到MySQL数据库">
+<meta name="twitter:description" content="1. 使用Pandas读取Excel文件import pandas as pd excel_file = Excel文件路径 df = pd.read_excel(excel_file) read_excel方法的说明文档 2. 处理数据假设DataFrame对象df的内容是这样的：    12345678910111213141516171819202122	ID  CITY_CODE CITY">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/"/>
 
 
 
 
 
-  <title>使用Pandas读取数据文件，预处理后保存到EXCEL | 量</title>
+  <title>【Python】读取excel文件，保存到MySQL数据库 | 量</title>
   
 
 
@@ -233,7 +233,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Sea Monster">
@@ -250,7 +250,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">使用Pandas读取数据文件，预处理后保存到EXCEL</h1>
+          <h1 class="post-title" itemprop="name headline">【Python】读取excel文件，保存到MySQL数据库</h1>
         
 
         <div class="post-meta">
@@ -262,8 +262,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-04T10:02:02+08:00">
-                2018-05-04
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-07T23:07:37+08:00">
+                2018-05-07
               </time>
             
 
@@ -300,18 +300,15 @@
       
 
       
-        <h2 id="1-读取数据文件，转化为DataFrame对象"><a href="#1-读取数据文件，转化为DataFrame对象" class="headerlink" title="1. 读取数据文件，转化为DataFrame对象"></a>1. 读取数据文件，转化为DataFrame对象</h2><h3 id="读取文件"><a href="#读取文件" class="headerlink" title="读取文件"></a>读取文件</h3><p>一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">06bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0</span><br></pre></td></tr></table></figure></p>
-<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3721049320  bcc0b2fc050b1e0e071a3f93c373182d    440100100012001042800209    91440101190660172H  广州证券股份有限公司  87377597    B0A \N  1   10  1   1   2013-07-03 00:00:00 2015-09-21 00:00:00 \N  54  0   0   0   0   \N  \N  486 32  903 15092   34142458    7764158 12949672    2094029 3   1</span><br></pre></td></tr></table></figure></p>
-<p>我们用Python的Pandas库处理读取这些数据，首先读取数据文件<br>    import pandas as pd<br>    data_frame = pd.read_table(文件路径, header=None, error_bad_lines=False, sep=’|’)<br>其中，</p>
-<ul>
-<li>header如果不设置为None，默认第一行会作为header（也就是列名）</li>
-<li>error_bad_lines设置为False，是为了有些不合规则的行不会导致整个导入工作终止</li>
-<li>sep就是设置分隔符，默认是\t</li>
-</ul>
-<h3 id="指定列名"><a href="#指定列名" class="headerlink" title="指定列名"></a>指定列名</h3><p>因为另外有一份专门的文件记录了这些数据对应的字段，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">columns = [&apos;serv_id&apos;, &apos;encrypt_serv_id&apos;, &apos;pripid&apos;, &apos;uniscid&apos;, &apos;entname&apos;, &apos;acc_nb&apos;, &apos;STATE&apos;, &apos;STOP_DATE&apos;, &apos;PROD_ID&apos;,</span><br><span class="line">               &apos;BRAND_ID&apos;, &apos;PAYMENT_TYPE&apos;, &apos;IS_MIX_PROD&apos;, &apos;OPEN_DATE&apos;, &apos;COMPLETE_DATE&apos;, &apos;CANCEL_DATE&apos;, &apos;ONLINE_TIME&apos;,</span><br><span class="line">               &apos;IS_NEW_USER&apos;, &apos;IS_CANCEL_USER&apos;, &apos;IS_ARREAR_USER&apos;, &apos;ARREAR_FEE&apos;, &apos;MAX_ARREAR_MONTHS&apos;, &apos;ARREAR_MONTHS&apos;,</span><br><span class="line">               &apos;CUST_GH&apos;, &apos;CUST_KD&apos;, &apos;CUST_YD&apos;, &apos;TOTAL_FEE&apos;, &apos;CUST_TOTAL_FEE&apos;, &apos;CUST_KD_FEE&apos;, &apos;CUST_YD_FEE&apos;,</span><br><span class="line">               &apos;CUST_GH_FEE&apos;, &apos;WORKDAY_CALL_TIMES&apos;, &apos;HOLIDAY_CALL_TIMES&apos;]</span><br></pre></td></tr></table></figure></p>
-<p>现在我们把这些字段名设置为DataFrame对象的列名。<br>    data_frame.columns = columns</p>
-<h2 id="2-保存到EXCEL，以我们惯常看到的格式。"><a href="#2-保存到EXCEL，以我们惯常看到的格式。" class="headerlink" title="2. 保存到EXCEL，以我们惯常看到的格式。"></a>2. 保存到EXCEL，以我们惯常看到的格式。</h2><pre><code>data_frame.to_excel(需要输出到的文件的全路径)
-</code></pre>
+        <h1 id="1-使用Pandas读取Excel文件"><a href="#1-使用Pandas读取Excel文件" class="headerlink" title="1. 使用Pandas读取Excel文件"></a>1. 使用Pandas读取Excel文件</h1><pre><code>import pandas as pd
+excel_file = Excel文件路径
+df = pd.read_excel(excel_file)
+</code></pre><p><a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_excel.html" title="read_excel方法的说明文档" target="_blank" rel="noopener">read_excel方法的说明文档</a></p>
+<h1 id="2-处理数据"><a href="#2-处理数据" class="headerlink" title="2. 处理数据"></a>2. 处理数据</h1><p>假设DataFrame对象df的内容是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">	ID  CITY_CODE CITY_NAME  CITY_TEL_NO</span><br><span class="line">0    1        200        广州市          20</span><br><span class="line">1    2        755        深圳市         755</span><br><span class="line">2    3        756        珠海市         756</span><br><span class="line">3    4        754        汕头市         754</span><br><span class="line">4    5        751        韶关市         751</span><br><span class="line">5    6        762        河源市         762</span><br><span class="line">6    7        753        梅州市         753</span><br><span class="line">7    8        752        惠州市         752</span><br><span class="line">8    9        660        汕尾市         660</span><br><span class="line">9   10        769        东莞市         769</span><br><span class="line">10  11        760        中山市         760</span><br><span class="line">11  12        750        江门市         750</span><br><span class="line">12  13        757        佛山市         757</span><br><span class="line">13  14        662        阳江市         662</span><br><span class="line">14  15        759        湛江市         759</span><br><span class="line">15  16        668        茂名市         668</span><br><span class="line">16  17        758        肇庆市         758</span><br><span class="line">17  18        763        清远市         763</span><br><span class="line">18  19        768        潮州市         768</span><br><span class="line">19  20        663        揭阳市         663</span><br><span class="line">20  21        766        云浮市         766</span><br></pre></td></tr></table></figure></p>
+<p>我们只需要把CITY_CODE和CITY_NAME保存到数据库，我们可以这样做：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">param_list = zip([i for i in df[&apos;CITY_CODE&apos;]], </span><br><span class="line">			[i for i in df[&apos;CITY_NAME&apos;]])</span><br></pre></td></tr></table></figure></p>
+<p>param_list将会是这个样子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">`	[(200, &apos;广州市&apos;),</span><br><span class="line">	 (755, &apos;深圳市&apos;),</span><br><span class="line">	 (756, &apos;珠海市&apos;),</span><br><span class="line">	 (754, &apos;汕头市&apos;),</span><br><span class="line">	 (751, &apos;韶关市&apos;),</span><br><span class="line">	 (762, &apos;河源市&apos;),</span><br><span class="line">	 (753, &apos;梅州市&apos;),</span><br><span class="line">	 (752, &apos;惠州市&apos;),</span><br><span class="line">	 (660, &apos;汕尾市&apos;),</span><br><span class="line">	 (769, &apos;东莞市&apos;),</span><br><span class="line">	 (760, &apos;中山市&apos;),</span><br><span class="line">	 (750, &apos;江门市&apos;),</span><br><span class="line">	 (757, &apos;佛山市&apos;),</span><br><span class="line">	 (662, &apos;阳江市&apos;),</span><br><span class="line">	 (759, &apos;湛江市&apos;),</span><br><span class="line">	 (668, &apos;茂名市&apos;),</span><br><span class="line">	 (758, &apos;肇庆市&apos;),</span><br><span class="line">	 (763, &apos;清远市&apos;),</span><br><span class="line">	 (768, &apos;潮州市&apos;),</span><br><span class="line">	 (663, &apos;揭阳市&apos;),</span><br><span class="line">	 (766, &apos;云浮市&apos;)]</span><br></pre></td></tr></table></figure></p>
+<p>`# 3. 使用pymysql保存到数据库<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import pymysql</span><br><span class="line">#打开数据库连接</span><br><span class="line">conn = pymysql.connect(host=&apos;home_machine&apos;,user=&apos;root&apos;,password=&apos;password&apos;,port=3306,db=&apos;telecom_info&apos;, charset=&apos;utf8mb4&apos;)</span><br><span class="line">#操作游标</span><br><span class="line">cur = conn.cursor()</span><br><span class="line">#定义sql语句</span><br><span class="line">sql=&apos;insert into t_city_code (CITY_CODE,CITY_NAME) values (%s,%s)&apos;</span><br><span class="line">#代入参数，插入sql语句</span><br><span class="line">effect_row = cur.executemany(sql, param_list)</span><br><span class="line">#提交事务</span><br><span class="line">conn.commit()</span><br><span class="line">#关闭游标，关闭连接</span><br><span class="line">cur.close()</span><br><span class="line">conn.close()</span><br></pre></td></tr></table></figure></p>
+
       
     </div>
     
@@ -328,7 +325,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Pandas/" rel="tag"># Pandas</a>
+            <a href="/tags/Python-Pandas-pymysql/" rel="tag"># Python - Pandas - pymysql</a>
           
         </div>
       
@@ -341,8 +338,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/03/23/学习方法以及提高自学能力/" rel="next" title="学习方法以及提高自学能力">
-                <i class="fa fa-chevron-left"></i> 学习方法以及提高自学能力
+              <a href="/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/" rel="next" title="使用Pandas读取数据文件，预处理后保存到EXCEL">
+                <i class="fa fa-chevron-left"></i> 使用Pandas读取数据文件，预处理后保存到EXCEL
               </a>
             
           </div>
@@ -350,10 +347,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/" rel="prev" title="【Python】读取excel文件，保存到MySQL数据库">
-                【Python】读取excel文件，保存到MySQL数据库 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -476,7 +469,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-读取数据文件，转化为DataFrame对象"><span class="nav-number">1.</span> <span class="nav-text">1. 读取数据文件，转化为DataFrame对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#读取文件"><span class="nav-number">1.1.</span> <span class="nav-text">读取文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定列名"><span class="nav-number">1.2.</span> <span class="nav-text">指定列名</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-保存到EXCEL，以我们惯常看到的格式。"><span class="nav-number">2.</span> <span class="nav-text">2. 保存到EXCEL，以我们惯常看到的格式。</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-使用Pandas读取Excel文件"><span class="nav-number">1.</span> <span class="nav-text">1. 使用Pandas读取Excel文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-处理数据"><span class="nav-number">2.</span> <span class="nav-text">2. 处理数据</span></a></li></ol></div>
             
 
           </div>
