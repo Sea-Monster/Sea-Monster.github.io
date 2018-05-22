@@ -229,6 +229,403 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/22/一个Linux-Bash文件示例/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/22/一个Linux-Bash文件示例/" itemprop="url">一个Linux Bash文件示例</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-22T23:32:37+08:00">
+                2018-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>故事背景大概是这样：有一台生产环境的服务器，没办法直接给它上传文件，也就是往上边部署代码非常麻烦，但幸好那台服务器可以访问外网，所以想出一个歪招，把代码上传到码云，然后在那台服务器上下载码云上的代码。</p>
+<ol>
+<li>创建.sh文件，假设文件名为update-source.sh<br> <code>$ touch update-source.sh</code></li>
+<li>赋予执行权限<br> <code>$ chmod 777 update-source.sh</code></li>
+<li>编辑文件<br> <code>$ vi update-source.sh</code></li>
+<li><p>编写内容</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">rm -rf TelecomInfo</span><br><span class="line">wget https://gitee.com/Sea-Monster/repository/archive/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line">rm -f master.zip</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行<br> <code>$ ./update-source.sh</code></p>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/22/linux前后台任务的切换以及执行暂停/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/22/linux前后台任务的切换以及执行暂停/" itemprop="url">linux前后台任务的切换以及执行暂停</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-22T23:10:01+08:00">
+                2018-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>我们平常运行一条命令，系统将会等待命令执行完毕才让我们进行下一步操作。</p>
+<ol>
+<li>这时按CTRL+Z，会把当前运行的命令暂停（而不是停止！CTRL+C才是停止）</li>
+<li><p>这时候输入jobs，可以看到刚才暂停的进程（其实应该是job，不是进程pid），例如<br> <code>[1]+  Stopped                 ./a.out</code></p>
+</li>
+<li><p>我们可以让它在后台继续运行：bg 1</p>
+</li>
+<li>也可以让它在前台继续运行：fg 1</li>
+<li>甚至可以把进程杀掉，让它真正终止： kill %1 （注意前边有个百分号）</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/15/Linux上同时安装Python2和Python3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/15/Linux上同时安装Python2和Python3/" itemprop="url">Linux上同时安装Python2和Python3</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-15T11:35:13+08:00">
+                2018-05-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Linux和MacOS默认都是安装了Python2的。我们如何在操作系统中继续安装Python3但不覆盖系统自带的Python2呢？</p>
+</blockquote>
+<p>这里的小技巧就是，下载Python3的源码之后，使用 “make altinstall”安裝而不是“make install”安装。</p>
+<p>Python 的 make install 跟 make altinstall 有什么差別呢?<br>我们看下make的帮助文档：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">install:         altinstall bininstall maninstall</span><br></pre></td></tr></table></figure></p>
+<p>很明显 install 除了做 altinstall 还会做 bininstall , maninstall 共三个动作。<br>bininstall 就是在处理 Symbolic Link Chain 的事务, 而 maninstall 則是在产生 unversioned manual pages, 所以, 不使用 bininstall 可以避免 python install 时 update link的问题。说白了，就是这样安装不会自动创建softlink。保持python继续链接系统自带的python2。<br>所以我们的步骤如下：</p>
+<h1 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h1><p>假设我们要下载的是Python 3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tar.xz</span><br></pre></td></tr></table></figure></p>
+<h1 id="解压"><a href="#解压" class="headerlink" title="解压"></a>解压</h1><pre><code>tar xvJf Python-3.6.5.tar.xz
+</code></pre><h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>进入目录Python-3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./configure --prefix=/usr/local/python3 --with-ssl</span><br><span class="line">$ sudo make </span><br><span class="line">$ sudo make altinstall</span><br></pre></td></tr></table></figure></p>
+<h1 id="路径"><a href="#路径" class="headerlink" title="路径"></a>路径</h1><p>python程序的执行文件：/usr/local/python3/bin/python3.6<br>python应用程序目录：/usr/local/python3/lib/python3.6<br>pip的执行文件：/usr/local/python3/bin/pip3.6</p>
+<h1 id="设置环境变量"><a href="#设置环境变量" class="headerlink" title="设置环境变量"></a>设置环境变量</h1><p>配置文件有好几个：</p>
+<ul>
+<li>/etc/profile</li>
+<li>/etc/bashrc</li>
+<li>~/.bash_profile</li>
+<li>~/.bashrc</li>
+</ul>
+<p>一般是修改~/.bash_profile<br>添加<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=$PATH:/usr/local/python3/bin</span><br></pre></td></tr></table></figure></p>
+<p>让它生效，例如我修改的是~/.bash_profile<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bash_profile</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/10/【Python】使用pymysql，pandas把mysql数据导出到excel/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1097,7 +1494,7 @@ df = pd.read_excel(excel_file)
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1110,7 +1507,7 @@ df = pd.read_excel(excel_file)
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
