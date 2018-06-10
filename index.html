@@ -229,6 +229,1049 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/09/Windows安装MySQL5-7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/09/Windows安装MySQL5-7/" itemprop="url">Windows安装MySQL5.7</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-09T17:18:43+08:00">
+                2018-06-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>在一台Windows上安装MySQL5.7，用的是官网提供的压缩包而不是安装文件，过程中踩坑无数，特此记录。</p>
+</blockquote>
+<h1 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h1><p>我是去<a href="https://dev.mysql.com/downloads/mysql/" target="_blank" rel="noopener">官网</a>下载，下载版本为5.7.22，选择的是“Windows (x86, 64-bit), ZIP Archive”这个包。下载后，解压。假设我源码解压后的目录为C:\mysql</p>
+<h1 id="添加环境变量"><a href="#添加环境变量" class="headerlink" title="添加环境变量"></a>添加环境变量</h1><p>系统变量中添加名字为“MYSQL_HOME”，值为“C:\mysql”的变量，然后修改“Path”变量，在最后加入“%MYSQL_HOME%\bin”，保存。这样，就能在命令行模式任何目录下执行mysqld等操作。</p>
+<h1 id="安装-Net-Framework"><a href="#安装-Net-Framework" class="headerlink" title="安装.Net Framework"></a>安装.Net Framework</h1><p>这就是其中一个大坑。在命令行执行mysqld时报App Crash，错误模块为MSVCR120.dll。网上搜索了一下，好像没什么看上去靠谱的解决方案，都是让你升级操作系统，要不就是直接再下载一个MSVCR120.dll。眼看就要一直卡在这了，突然想起如果不是使用压缩包而是直接用MySQL的window安装包，安装后启动时它提示需要.Net Framework。果然，安装了.Net Framework后（我估计它要的其实是Visual C++的编译器），问题解决。</p>
+<h1 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h1><p>这个版本的MySQL竟然连默认的my.ini文件也没提供，真是坑！就不能提供个示例文件吗？还需要自己上网找，参考别人怎么配置！我只好自行新建一个my.ini文件，放到mysql根目录下。文件的示例如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line"># mysql服务端默认监听(listen on)的TCP/IP端口</span><br><span class="line">port=3306</span><br><span class="line"># 基准路径，其他路径都相对于这个路径</span><br><span class="line">basedir=&quot;C:/mysql/&quot;   </span><br><span class="line"># mysql数据库文件所在目录</span><br><span class="line">basedir=&quot;C:/mysql/data/&quot;</span><br><span class="line"># 服务端使用的字符集默，utf8mb4比utf8多了对文字中表情的支持</span><br><span class="line">character-set-server=utf8mb4</span><br><span class="line"># 创建新表时将使用的默认存储引擎</span><br><span class="line">default-storage-engine=INNODB</span><br><span class="line"># SQL模式为strict模式</span><br><span class="line">sql-mode=&quot;STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION&quot;</span><br><span class="line"># mysql服务器支持的最大并发连接数（用户数），但总会预留其中的一个连接给管理员使用超级权限登录，即使连接数目达到最大限制。如果设置得过小而用户比较多，会经常出现“Too many connections”错误。</span><br><span class="line">max_connections=100</span><br><span class="line"># 锁表操作的超时时间，默认长达1年！所以必须设置，否则锁表操作一执行就无法停止，除非重启数据库，影响巨大，这里设置为半小时</span><br><span class="line">lock_wait_timeout=1800</span><br><span class="line"># MySQL默认只能本地访问，如果需允许远程访问，必须设置（0.0.0.0就是允许全网访问）</span><br><span class="line">bind_address=0.0.0.0</span><br></pre></td></tr></table></figure></p>
+<p>注意配置文件是分“块”的：[client]，[mysqld]等，就像上边的配置都放在mysqld这个块下，如果放到client是不行的。<br>参考<a href="https://www.jb51.net/article/88731.htm" target="_blank" rel="noopener">MySQL 5.6 &amp; 5.7最优配置文件模板(my.ini)</a>，<a href="http://yrq205.blog.163.com/blog/static/476721402013226337767/" target="_blank" rel="noopener">MySQL配置文件mysql.ini参数详解</a></p>
+<h1 id="初始化数据库"><a href="#初始化数据库" class="headerlink" title="初始化数据库"></a>初始化数据库</h1><p>设置登录的用户名密码，以及把MySQL创建为一个服务，让它可以开机启动。<br>初始化（生成data目录）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld  --initialize</span><br></pre></td></tr></table></figure></p>
+<p>安装（创建为一个服务），install后边就是自行设置的服务名，例如我也可以设为MySQL5.7，注意后边有个大坑：default<strong>s</strong>-file而不是default-file！！！不知道是网上文章一大抄还是某个版本改了，网上很多文章写的都是default-file。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -install MySQL --defaults-file=C:/mysql/my.ini</span><br></pre></td></tr></table></figure></p>
+<p>初始化数据库data（这一步是否必要，有待验证，我当时好像是做了，但这部未必有必要）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --initialize-insecure --user=root</span><br></pre></td></tr></table></figure></p>
+<p>启动服务，也可以在服务菜单启动<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start MySQL</span><br></pre></td></tr></table></figure></p>
+<p>注意这时我们还没有设置用户名密码，虽然服务启动了，但是无法登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -u root -p</span><br></pre></td></tr></table></figure></p>
+<p>输入任意密码都会报Access Deny<br>我们需要在my.ini的mysqld块下增加一行<code>skip-grant-tables</code>，然后重启MySQL服务，输入以下指令，成功登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -u root -p</span><br></pre></td></tr></table></figure></p>
+<h1 id="设置root密码"><a href="#设置root密码" class="headerlink" title="设置root密码"></a>设置root密码</h1><p>假设我们要设置登录密码为“password”。这里有个坑，貌似MySQL5.6及以前，mysql.user这个表，放密码的字段就是password，5.7这个password改为了authentication_string。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; update mysql.user set authentication_string=password(&quot;password&quot;) where user=&quot;root&quot;;</span><br></pre></td></tr></table></figure></p>
+<p>然后输入exit回车，退出mysql。把之前在my.ini添加的<code>skip-grant-tables</code>删掉。重启服务，重新登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -u root -p</span><br></pre></td></tr></table></figure></p>
+<p>输入密码password，成功登录。然后又遇到一个坑，无论执行什么命令，都会报<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1820 (HY000): You must reset your password using ALTER USER statement before executing this statement.</span><br></pre></td></tr></table></figure></p>
+<p>明明用密码登录了，还要我重新设置！那我就重新设置呗。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET PASSWORD = PASSWORD(&apos;password&apos;);</span><br></pre></td></tr></table></figure></p>
+<p>注意有些人在设置密码时还会报以下错误，意思是密码太简单了，还好我没遇到<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1819 (HY000): Your password does NOT satisfy the CURRENT policy requirements</span><br></pre></td></tr></table></figure></p>
+<h1 id="允许远程登录"><a href="#允许远程登录" class="headerlink" title="允许远程登录"></a>允许远程登录</h1><p>我们为MySQL设置了用户root的账号密码，在该服务器上也能成功登录了，但是，现在用其他机器还是无法登录该MySQL服务的。因为mysql.user表的记录有个host字段，规定了从什么机器能用该账号登录，如果是localhost就是只能本机访问，如果是某ip就是指定ip方可访问，如果是%则所有ip均可访问。另外，让所有人使用root登录好像不太安全，那我们干脆创建一个用户给开发人员远程登录吧。<br>我们创建一个bigdataweb的用户，密码为big123!@#web，执行以下全部或某几条命令（抱歉我忘了）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; set password for &apos;bigdataweb&apos;@&apos;%&apos; = password(&apos;big123!@#web&apos;);</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure></p>
+<p>如果上边的不行，就试试这个吧，我记得这个是行的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create user bigdataweb identified by &apos;big123!@#web&apos;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>创建了的新用户是没有什么权限的，我们要给它分配权限：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; grant all privileges on *.* to &apos;bigdataweb&apos;@&apos;%&apos;identified by &apos;big123!@#web&apos; with grant option;</span><br><span class="line">mysql&gt; flush privileges ;</span><br></pre></td></tr></table></figure></p>
+<h1 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h1><p>99%的文章只教安装不提卸载，好吧能安装已是万事大吉了还想研究如何卸载？不过有时还真有这个需要，例如之前的install时我把defaults-file的路径设错了，服务死活启动不了，重新安装它又说服务已存在。网上搜索如何卸载干净，又说执行“sc delete MySQL”的，有说要在注册表删除的，我试过，毫无作用。唯一正解是执行这个（参考：<a href="https://www.jb51.net/article/105755.htm" target="_blank" rel="noopener">Windows下MySQL服务无法停止和删除的解决办法</a><br>）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld remove MySQL</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/" itemprop="url">Mac远程桌面连接Windows Server 2012R2</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-08T15:46:43+08:00">
+                2018-06-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>安装了Windows Server 2012 R2系统，控制面板开启了允许远程桌面，使用win7能顺利用远程桌面连上，但是用Mac的远程桌面却死活连不上，报“远程桌面无法验证您希望连接的计算机的身份”</p>
+</blockquote>
+<p>解决方案如下：</p>
+<ol>
+<li>在Windows Server系统，开始->运行，也可以进入命令行，输入gpedit.msc，打开组策略编辑器</li>
+<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面会话主机”->“安全”，打开“（RDP）连接要求使用指定的安全层”，设为“启用”，另外把安全层下拉框调成“RDP”。英文版：（进入Computer Configuration->Administrative Templates->Windows Components->Remote Desktop Services->Remote Desktop Session Host->Security，打开”Require use of specific security layer for remote desktop (RDP) connection”的设置，将其设置为Enabled，并且在Options中将Security Layer设置为RDP）。</li>
+<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面连接客户端”，把“在客户端计算机上提示提供凭据”设为启用。英文版：（Computer Configuration -> Administrative Templates -> Windows Components -> Remote Desktop Services -> Remote Desktop Connection Client 中允许”Prompt for credentials on the client computer”）</li>
+</ol>
+<p>至此，Mac终于能通过远程桌面连上Windows Server 2012了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/06/MySQL中把一个表的内容更新到另一个表/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/06/MySQL中把一个表的内容更新到另一个表/" itemprop="url">MySQL中把一个表的内容更新到另一个表</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T15:06:32+08:00">
+                2018-06-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>导数据时经常会遇到的情况：例如我想把两个表的内容合并，从表B的字段全部放到主表A</p>
+<h1 id="在主表A新增从表B的字段"><a href="#在主表A新增从表B的字段" class="headerlink" title="在主表A新增从表B的字段"></a>在主表A新增从表B的字段</h1><p>这个步骤很简单，直接按照从表B的结构，在主表A Add Column就是。当然我们可以谨慎一些，避免表A被锁:</p>
+<ol>
+<li>先创建一个临时表TempA，内容包含表A与表B的字段</li>
+<li>insert into TempA (字段列表，以逗号隔开) select 字段列表以逗号隔开 from A</li>
+<li>drop table A</li>
+<li>alter table TempA rename to A</li>
+</ol>
+<h1 id="根据表B更新表A"><a href="#根据表B更新表A" class="headerlink" title="根据表B更新表A"></a>根据表B更新表A</h1><p>假设A表B表根据ID一一对应，现在要把从表B的column1更新到A表的column2<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A,B set A.column2=B.column1 where A.ID=B.ID</span><br></pre></td></tr></table></figure></p>
+<p>另外，也可以写成子查询的形式<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A set column2=(select column1 from B where ID=A.ID)</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/Selenium使用cookie免登录示例（Python版）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/01/Selenium使用cookie免登录示例（Python版）/" itemprop="url">Selenium使用cookie免登录示例（Python版）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-01T20:55:54+08:00">
+                2018-06-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>业务需求，爬取某网站，该网站必须登录，而登录过程中包含拖动滑块与汉字坐标验证码，其中后者我暂时无法破解，只能手动处理。如何做到登录一次后，保存cookie，下次就让Selenium读取cookie，免去我手动登录呢</p>
+</blockquote>
+<h1 id="安装Selenium"><a href="#安装Selenium" class="headerlink" title="安装Selenium"></a>安装Selenium</h1><p>安装依赖<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install selenium</span><br></pre></td></tr></table></figure></p>
+<h1 id="下载webdriver"><a href="#下载webdriver" class="headerlink" title="下载webdriver"></a>下载webdriver</h1><p>由于我用最主流的Chrome，需要下载它的驱动：<a href="http://chromedriver.storage.googleapis.com/index.html" target="_blank" rel="noopener">（chrome各个版本的web driver）</a>，假设我放到<code>/Users/SeaMonster/Downloads/</code>目录下<br>注：有时我们更新了Chrome浏览器后，再使用原来的chrome web driver就有可能产生各种奇怪的报错，如果发生这种情况，可以试试下载最新版的web driver替换之前用的。</p>
+<h1 id="让Selenium登录一次"><a href="#让Selenium登录一次" class="headerlink" title="让Selenium登录一次"></a>让Selenium登录一次</h1><p>实例化一个Selenium的web drive（这里用的是Chrome的web drive）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">from selenium import webdrive</span><br><span class="line"># webdriver的路径</span><br><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
+<p>然后，手动完成验证码校验</p>
+<h1 id="获取cookie，保存到文件"><a href="#获取cookie，保存到文件" class="headerlink" title="获取cookie，保存到文件"></a>获取cookie，保存到文件</h1><p>登录完成后，可以获取到cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cookies = browser.get_cookies()</span><br></pre></td></tr></table></figure></p>
+<p>我们把它以json格式保存到文件中<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import json</span><br><span class="line"># 假设文件路径为/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt</span><br><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;,&apos;w&apos;) as fp:</span><br><span class="line">	json.dump(cookies,fp)</span><br></pre></td></tr></table></figure></p>
+<h1 id="让Selenium读取cookie"><a href="#让Selenium读取cookie" class="headerlink" title="让Selenium读取cookie"></a>让Selenium读取cookie</h1><p>我们初始化一个webdriver，注意这时无法直接给它设置cookie，否则会报错。我们要先请求一下那个网页<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
+<p>这时可以给它设置cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;, &apos;r&apos;) as fp:</span><br><span class="line">	cookies = json.load(fp)</span><br><span class="line"></span><br><span class="line">for cookie in cookies:</span><br><span class="line">	driver.add_cookie(cookie)</span><br></pre></td></tr></table></figure></p>
+<p>这时候再请求那个网址，就可发现已登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
+<p>参考文章：<br><a href="https://www.cnblogs.com/small-bud/p/9064674.html" target="_blank" rel="noopener">selenium+requests进行cookies保存读取操作</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/30/Mac系统下多网卡同时访问/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/30/Mac系统下多网卡同时访问/" itemprop="url">Mac系统下多网卡同时访问</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-30T10:52:53+08:00">
+                2018-05-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>背景：MacBook笔记本在某工作环境，通过Wifi访问外网，通过有线网络访问内网，在不做任何设置的情况下，要上外网就只能拔掉网线，无法同时上内网外网，影响工作，那么有没办法同时访问内外网呢？</p>
+</blockquote>
+<p>答案是肯定的。我们要做的就是为系统添加路由（Route）。</p>
+<h1 id="调整网络服务的顺序"><a href="#调整网络服务的顺序" class="headerlink" title="调整网络服务的顺序"></a>调整网络服务的顺序</h1><p>有线访问默认是排在Wifi访问之前的，但我们只需要访问某些特定网段（10，132，172）时用内网，其他时候用外网。那么我们需要把Wifi调整到有线之前：打开“系统偏好设置”->“网路”，点击左下角的“设定服务顺序”，调整顺序。</p>
+<h1 id="添加理由"><a href="#添加理由" class="headerlink" title="添加理由"></a>添加理由</h1><h2 id="查看路由状态"><a href="#查看路由状态" class="headerlink" title="查看路由状态"></a>查看路由状态</h2><p>打开终端，输入：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -r</span><br></pre></td></tr></table></figure></p>
+<p>可以看到类似下面的结果：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Routing tables</span><br><span class="line"></span><br><span class="line">Internet:</span><br><span class="line">Destination        Gateway            Flags        Refs      Use   Netif Expire</span><br><span class="line">default            1.160.136.219.broa UGSc           98        0     en0</span><br><span class="line">default            10.18.160.254      UGScI           5        0     en5</span><br><span class="line">10.18.160/24       link#4             UCS             7        0     en5</span><br><span class="line">10.18.160.52       0:f:1f:89:7:5d     UHLWIi          1        0     en5   1154</span><br><span class="line">10.18.160.88       54:ee:75:50:e4:f9  UHLWIi          1        0     en5   1195</span><br><span class="line">10.18.160.101/32   link#4             UCS             1        0     en5</span><br><span class="line">10.18.160.166      0:24:81:85:60:4e   UHLWIi          1        1     en5   1183</span><br><span class="line">10.18.160.222      6c:b:84:9:e3:cb    UHLWIi          1        2     en5   1167</span><br><span class="line">10.18.160.254/32   link#4             UCS             2        0     en5</span><br><span class="line">10.18.160.254      0:0:5e:0:1:3b      UHLWIir         6        0     en5   1122</span><br><span class="line">10.18.160.255      link#4             UHLWbI          1        9     en5</span><br><span class="line">127                localhost          UCS             1        0     lo0</span><br><span class="line">localhost          localhost          UH              3       42     lo0</span><br></pre></td></tr></table></figure></p>
+<p>我们看看Netif这一列，有en0，en5，lo0，其中lo0代表是localhost，en5是有线网卡，en0是无线网卡。当然，实际上其他机器可能会不同。<br>Destination 与 Gateway：如果我们要访问某个ip（Destination），需要走哪个Gateway。default就是没有作特定设置的所有ip。可以看到，列表中有2个default（分别对应无线网络与有线网络），它们分别走不同的Gateway</p>
+<h2 id="添加路由，让132和10网段走内网（有线）而不是外网（无线）"><a href="#添加路由，让132和10网段走内网（有线）而不是外网（无线）" class="headerlink" title="添加路由，让132和10网段走内网（有线）而不是外网（无线）"></a>添加路由，让132和10网段走内网（有线）而不是外网（无线）</h2><p>只需这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo route add -net 132.121.0.0 -netmask 255.255.0.0 10.18.160.254</span><br><span class="line">$ sudo route add -net 10.18.0.0 -netmask 255.255.0.0 10.18.160.254</span><br><span class="line">$ sudo route add -net 10.16.0.0 -netmask 255.255.0.0 10.18.160.254</span><br></pre></td></tr></table></figure></p>
+<p>其中，132.121.0.0，设置为0代表“所有”，可以理解为132.121.0~255.0~255。10.18.0.0同理。10.18.160.254就是我们希望访问这些ip时走的Gateway。我们再次查看路由会看到如下结果：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Destination        Gateway            Flags        Refs      Use   Netif Expire</span><br><span class="line">default            1.160.136.219.broa UGSc          496        0     en0</span><br><span class="line">10.16/16           10.18.160.254      UGSc            1        0     en5</span><br><span class="line">10.18/16           10.18.160.254      UGSc            4        0     en5</span><br><span class="line">127                localhost          UCS             1        0     lo0</span><br><span class="line">localhost          localhost          UH             32    81962     lo0</span><br><span class="line">132.121            10.18.160.254      UGSc            2        0     en5</span><br></pre></td></tr></table></figure></p>
+<p>可以看到那几个网段的ip将会走内网了</p>
+<h2 id="如果我们将来想删除了这些路由，让它走默认呢"><a href="#如果我们将来想删除了这些路由，让它走默认呢" class="headerlink" title="如果我们将来想删除了这些路由，让它走默认呢"></a>如果我们将来想删除了这些路由，让它走默认呢</h2><p>只需这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo route delete  -net 132.121.0.0</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/28/Mac系统下：无效的服务器地址-BasicIPv6ValidationError/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/28/Mac系统下：无效的服务器地址-BasicIPv6ValidationError/" itemprop="url">Mac系统下：无效的服务器地址 BasicIPv6ValidationError</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-28T11:07:07+08:00">
+                2018-05-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>背景：在某办公环境，没有wifi，只提供了网线，MacBook除了需要用到转接口，还需要进行网络设置。这个网络配置都是抄的其他人的，他们绝大部分是windows系统，而且他们的配置都是IPv4，没有配置IPv6。结果按照他们的配置却死活不成功，报“无效的服务器地址 BasicIPv6ValidationError”  </p>
+<p>解决办法是<br>1)列出所有网络服务信息<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -listallnetworkservices</span><br></pre></td></tr></table></figure></p>
+<p>结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">An asterisk (*) denotes that a network service is disabled.</span><br><span class="line">USB 10/100 LAN</span><br><span class="line">Wi-Fi</span><br><span class="line">iPhone USB</span><br><span class="line">Bluetooth PAN</span><br><span class="line">Thunderbolt Bridge</span><br><span class="line">TissonVPN</span><br></pre></td></tr></table></figure></p>
+<p>2)停止对应网卡的IPv6服务<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -setv6off &quot;USB 10/100 LAN&quot;</span><br></pre></td></tr></table></figure></p>
+<p>3)手动配置网卡的IP地址（地址部分自行调整，反正就是网址，掩码，网关3部分）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -setmanual &quot;USB 10/100 LAN&quot; 10.18.160.101 255.255.255.0 10.18.160.254</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/27/MySQL的DDL操作流程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/27/MySQL的DDL操作流程/" itemprop="url">MySQL的DDL操作流程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-27T12:06:29+08:00">
+                2018-05-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>mysql在做表的ddl维护时(如添加字段)，是要锁表的，不像oracle那样只更新字典表、巨快，这是因为mysql采用中间表的方式来实现<br>ddl操作流程：</p>
+<ol>
+<li>对表加锁(表此时只读)</li>
+<li>复制原表物理结构</li>
+<li>修改表的物理结构</li>
+<li>把原表数据导入中间表中，数据同步完后，锁定中间表，并删除原表</li>
+<li>rename中间表为原表</li>
+<li>刷新数据字典，并释放锁</li>
+</ol>
+<p>通过上面的过程可以了解到，表的数据量越大，这个ddl维护过程越耗时间（锁表时间越长）。</p>
+<p>附表<br><a href="https://dev.mysql.com/doc/refman/5.6/en/innodb-create-index-overview.html" title="Online DDL Overview" target="_blank" rel="noopener">官网：哪些操作会锁表</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/MySQL的Waiting-for-table-metadata-lock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/24/MySQL的Waiting-for-table-metadata-lock/" itemprop="url">MySQL的Waiting for table metadata lock</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T17:29:38+08:00">
+                2018-05-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <ol>
+<li>Waiting for table metadata lock的出现<br>我的理解就是锁住整张表啦，这时候，针对表记录的更新操作将全被阻塞，甚至某些（全部？不确定）查询也会被阻塞！<br>为什么会出现这个“table metadata lock”呢？一般就是alter table操作，例如改表名，增删改列（名字，类型等），增删改索引。<br>由于在生产环境上，整表锁住影响很可能比较致命， 尤其是MySQL它对于修改表结构这种操作，一执行就无法中断，kill都kill不了，直到超过锁超时时间，除非把整个数据库停掉。而MySQL默认的超时时间<code>lock_wait_timeout</code>竟然长达1年。我们这种不是很专业的公司，连dba也很可能没有，也就很大可能按默认值创建数据库。所以，在进行alter table操作之前，必须修改锁超时阈值</li>
+<li>调整锁超时阈值<br>查看锁超时时间<br><code>show variables like &#39;%timeout%&#39;;</code></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">connect_timeout	10</span><br><span class="line">delayed_insert_timeout	300</span><br><span class="line">innodb_flush_log_at_timeout	1</span><br><span class="line">innodb_lock_wait_timeout	50</span><br><span class="line">innodb_rollback_on_timeout	OFF</span><br><span class="line">interactive_timeout	28800</span><br><span class="line">lock_wait_timeout	1800</span><br><span class="line">net_read_timeout	30</span><br><span class="line">net_write_timeout	60</span><br><span class="line">rpl_stop_slave_timeout	31536000</span><br><span class="line">slave_net_timeout	3600</span><br><span class="line">wait_timeout	28800</span><br></pre></td></tr></table></figure>
+<p>修改超时时间，单位是秒<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set session lock_wait_timeout = 1800;</span><br><span class="line">set global lock_wait_timeout = 1800;</span><br><span class="line">set lock_wait_timeout = 1800;</span><br></pre></td></tr></table></figure></p>
+<p>session：对当前连接有效（注意是当前连接！例如在Navicat或者Sequel中，设置了该值，然后又新开一个窗口，设置对该新创建的窗口是无效的！）<br>global：对所有连接有效，数据库重启则失效<br>不写：默认就是session</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/22/一个Linux-Bash文件示例/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -475,982 +1518,13 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/15/Linux上同时安装Python2和Python3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/15/Linux上同时安装Python2和Python3/" itemprop="url">Linux上同时安装Python2和Python3</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-15T11:35:13+08:00">
-                2018-05-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>Linux和MacOS默认都是安装了Python2的。我们如何在操作系统中继续安装Python3但不覆盖系统自带的Python2呢？</p>
-</blockquote>
-<p>这里的小技巧就是，下载Python3的源码之后，使用 “make altinstall”安裝而不是“make install”安装。</p>
-<p>Python 的 make install 跟 make altinstall 有什么差別呢?<br>我们看下make的帮助文档：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">install:         altinstall bininstall maninstall</span><br></pre></td></tr></table></figure></p>
-<p>很明显 install 除了做 altinstall 还会做 bininstall , maninstall 共三个动作。<br>bininstall 就是在处理 Symbolic Link Chain 的事务, 而 maninstall 則是在产生 unversioned manual pages, 所以, 不使用 bininstall 可以避免 python install 时 update link的问题。说白了，就是这样安装不会自动创建softlink。保持python继续链接系统自带的python2。<br>所以我们的步骤如下：</p>
-<h1 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h1><p>假设我们要下载的是Python 3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tar.xz</span><br></pre></td></tr></table></figure></p>
-<h1 id="解压"><a href="#解压" class="headerlink" title="解压"></a>解压</h1><pre><code>tar xvJf Python-3.6.5.tar.xz
-</code></pre><h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>进入目录Python-3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./configure --prefix=/usr/local/python3 --with-ssl</span><br><span class="line">$ sudo make </span><br><span class="line">$ sudo make altinstall</span><br></pre></td></tr></table></figure></p>
-<h1 id="路径"><a href="#路径" class="headerlink" title="路径"></a>路径</h1><p>python程序的执行文件：/usr/local/python3/bin/python3.6<br>python应用程序目录：/usr/local/python3/lib/python3.6<br>pip的执行文件：/usr/local/python3/bin/pip3.6</p>
-<h1 id="设置环境变量"><a href="#设置环境变量" class="headerlink" title="设置环境变量"></a>设置环境变量</h1><p>配置文件有好几个：</p>
-<ul>
-<li>/etc/profile</li>
-<li>/etc/bashrc</li>
-<li>~/.bash_profile</li>
-<li>~/.bashrc</li>
-</ul>
-<p>一般是修改~/.bash_profile<br>添加<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=$PATH:/usr/local/python3/bin</span><br></pre></td></tr></table></figure></p>
-<p>让它生效，例如我修改的是~/.bash_profile<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bash_profile</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/10/【Python】使用pymysql，pandas把mysql数据导出到excel/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/10/【Python】使用pymysql，pandas把mysql数据导出到excel/" itemprop="url">【Python】使用pymysql，pandas把mysql数据导出到excel</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-10T09:48:17+08:00">
-                2018-05-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="导出表结构"><a href="#导出表结构" class="headerlink" title="导出表结构"></a>导出表结构</h1><p>假设我们要导出表结构，保存到文档，需要保存的内容有表名，表说明，列名，类型，列说明，查询这些内容的sql语句如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select table_name,table_comment from information_schema.tables </span><br><span class="line">where table_schema=【schema名】 and table_type=&apos;base table’;</span><br><span class="line"></span><br><span class="line">select column_name,column_type,column_comment</span><br><span class="line">from information_schema.columns where table_schema=【schema名】</span><br><span class="line">and table_name=【表名】</span><br></pre></td></tr></table></figure></p>
-<p>定义两个方法，分表获取表的资料和列的资料<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import pymysql</span><br><span class="line">from pymysql.cursors import Cursor</span><br><span class="line"># 数据库连接属性</span><br><span class="line">__db_config = &#123;</span><br><span class="line">    &apos;host&apos;: &apos;home_machine&apos;,</span><br><span class="line">    &apos;user&apos;: &apos;root&apos;,</span><br><span class="line">    &apos;password&apos;: &apos;password&apos;,</span><br><span class="line">    &apos;port&apos;: 3306,</span><br><span class="line">    &apos;db&apos;: &apos;telecom_info&apos;,</span><br><span class="line">    &apos;charset&apos;: &apos;utf8mb4&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def query_all_full_conn(sql_str, arg_list):</span><br><span class="line">    with pymysql.connect(**__db_config) as cur:</span><br><span class="line">        if isinstance(cur, Cursor):</span><br><span class="line">            cur.execute(sql_str, arg_list)</span><br><span class="line">            result = cur.fetchall()</span><br><span class="line">            return result</span><br><span class="line"></span><br><span class="line">def get_table_structure(table_name):</span><br><span class="line">    return query_all_full_conn(</span><br><span class="line">    &quot;select column_name,column_type,column_comment &quot; \</span><br><span class="line">    &quot;from information_schema.columns where table_schema&quot; \</span><br><span class="line">    &quot;=&apos;telecom_info&apos; and table_name=%s&quot;, [table_name])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_table_list():</span><br><span class="line">    return query_all_full_conn(</span><br><span class="line">    &quot;select table_name,table_comment from information_schema.tables &quot; \</span><br><span class="line">    &quot;where table_schema=&apos;telecom_info&apos; and table_type=&apos;base table&apos;&quot;, None)</span><br></pre></td></tr></table></figure></p>
-<p>看看查出来的数据什么样：<br><code>get_table_list()</code><br>结果如下（表说明）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">((&apos;t_access_token&apos;, &apos;Access Token表&apos;),</span><br><span class="line"> (&apos;t_area&apos;, &apos;区域码表&apos;),</span><br><span class="line"> (&apos;t_area_stat&apos;, &apos;区域企业统计信息表&apos;),</span><br><span class="line"> (&apos;t_city_code&apos;, &apos;城市码表&apos;),</span><br><span class="line"> (&apos;t_comp_analy&apos;, &apos;企业分析表&apos;),</span><br><span class="line"> (&apos;t_comp_area&apos;, &apos;企业地区表&apos;),</span><br><span class="line"> (&apos;t_comp_basic&apos;, &apos;企业基础信息表&apos;),</span><br><span class="line"> (&apos;t_comp_basic_changelog&apos;, &apos;企业基础信息更改记录表&apos;),</span><br><span class="line"> (&apos;t_comp_biz&apos;, &apos;企业业务信息表&apos;),</span><br><span class="line"> (&apos;t_comp_import&apos;, &apos;企业信息导入表&apos;),</span><br><span class="line"> (&apos;t_industry&apos;, &apos;行业基础表&apos;),</span><br><span class="line"> (&apos;t_industry_stat&apos;, &apos;行业统计表&apos;),</span><br><span class="line"> (&apos;t_user&apos;, &apos;用户信息表&apos;))</span><br></pre></td></tr></table></figure></p>
-<p>其中一个表的列说明会如何呢？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 以Access Token表为例</span><br><span class="line">get_table_structure(&apos;t_access_token&apos;)</span><br></pre></td></tr></table></figure></p>
-<p>结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">((&apos;USER_ID&apos;, &apos;int(11)&apos;, &apos;用户ID&apos;),</span><br><span class="line"> (&apos;TOKEN_CODE&apos;, &apos;varchar(32)&apos;, &apos;Access Token的Code&apos;),</span><br><span class="line"> (&apos;BEGIN_TIME&apos;, &apos;timestamp&apos;, &apos;生效时间&apos;),</span><br><span class="line"> (&apos;END_TIME&apos;, &apos;timestamp&apos;, &apos;失效时间&apos;))</span><br></pre></td></tr></table></figure></p>
-<h1 id="导出表数据"><a href="#导出表数据" class="headerlink" title="导出表数据"></a>导出表数据</h1><p>(1)可以用之前get_table_structure方法来组装sql语句，假设我们要导出T_CITY_CODE表的数据：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">structures = get_table_structure(table_name)</span><br><span class="line">structures</span><br></pre></td></tr></table></figure></p>
-<p>可以看到表的各个列</p>
-<pre><code>((&apos;CITY_ID&apos;, &apos;int(11)&apos;, &apos;城市ID&apos;),
- (&apos;CITY_CODE&apos;, &apos;varchar(10)&apos;, &apos;城市编码（电信）&apos;),
- (&apos;CITY_NAME&apos;, &apos;varchar(20)&apos;, &apos;城市名称&apos;))
-</code></pre><p>(2)“转置”一下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">structures_T = list(zip(*structures))</span><br><span class="line">structures_T</span><br></pre></td></tr></table></figure></p>
-<p>可以看到结果列表中的第一个元素就是由每个列名组成的元组，第二个元素是每个列的类型组成的元组，第3个元素就是每个列的注释组成的元组</p>
-<pre><code>[(&apos;CITY_ID&apos;, &apos;CITY_CODE&apos;, &apos;CITY_NAME&apos;),
- (&apos;int(11)&apos;, &apos;varchar(10)&apos;, &apos;varchar(20)&apos;),
- (&apos;城市ID&apos;, &apos;城市编码（电信）&apos;, &apos;城市名称&apos;)]
-</code></pre><p>(3) 查出表数据<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 取出列名组成的列表/元组</span><br><span class="line">column_list =structures_T[0]</span><br><span class="line"># 拼接查询的SQL语句</span><br><span class="line">sql_str = &apos;select &#123;0&#125; from &#123;1&#125; order by &#123;2&#125;&apos;.format(&apos;,&apos;.join(column_list),table_name, column_list[0])</span><br><span class="line"># 查询结果</span><br><span class="line">result_data = query_all_full_conn(sql_str, None)</span><br><span class="line">result_data</span><br></pre></td></tr></table></figure></p>
-<p>查询结果如下：</p>
-<pre><code>((1, &apos;200&apos;, &apos;广州市&apos;),
- (2, &apos;755&apos;, &apos;深圳市&apos;),
- (3, &apos;756&apos;, &apos;珠海市&apos;),
- (4, &apos;754&apos;, &apos;汕头市&apos;),
- (5, &apos;751&apos;, &apos;韶关市&apos;),
- (6, &apos;762&apos;, &apos;河源市&apos;),
- (7, &apos;753&apos;, &apos;梅州市&apos;),
- (8, &apos;752&apos;, &apos;惠州市&apos;),
- (9, &apos;660&apos;, &apos;汕尾市&apos;),
- (10, &apos;769&apos;, &apos;东莞市&apos;),
- (11, &apos;760&apos;, &apos;中山市&apos;),
- (12, &apos;750&apos;, &apos;江门市&apos;),
- (13, &apos;757&apos;, &apos;佛山市&apos;),
- (14, &apos;662&apos;, &apos;阳江市&apos;),
- (15, &apos;759&apos;, &apos;湛江市&apos;),
- (16, &apos;668&apos;, &apos;茂名市&apos;),
- (17, &apos;758&apos;, &apos;肇庆市&apos;),
- (18, &apos;763&apos;, &apos;清远市&apos;),
- (19, &apos;768&apos;, &apos;潮州市&apos;),
- (20, &apos;663&apos;, &apos;揭阳市&apos;),
- (21, &apos;766&apos;, &apos;云浮市&apos;))
-</code></pre><p>(4) 把查询结果转换为Pandas的DataFrame对象<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># DataFrame构造方法中不支持元组，只能转为列表</span><br><span class="line">df = pd.DataFrame(list(result_data))</span><br><span class="line"># 我们再为它指明列的名字（我们可以把列的注释作为列名而不是表原来的列名）</span><br><span class="line">df.columns=column_list</span><br></pre></td></tr></table></figure></p>
-<p>DataFrame对象会是这个样子：</p>
-<pre><code>    CITY_ID CITY_CODE CITY_NAME
-0         1       200       广州市
-1         2       755       深圳市
-2         3       756       珠海市
-3         4       754       汕头市
-4         5       751       韶关市
-5         6       762       河源市
-6         7       753       梅州市
-7         8       752       惠州市
-8         9       660       汕尾市
-9        10       769       东莞市
-10       11       760       中山市
-11       12       750       江门市
-12       13       757       佛山市
-13       14       662       阳江市
-14       15       759       湛江市
-15       16       668       茂名市
-16       17       758       肇庆市
-17       18       763       清远市
-18       19       768       潮州市
-19       20       663       揭阳市
-20       21       766       云浮市
-</code></pre><h1 id="保存到Excel文件"><a href="#保存到Excel文件" class="headerlink" title="保存到Excel文件"></a>保存到Excel文件</h1><p>如果我们要导出多个表的数据到同一份excel文件，每一个表放到一个sheet，而每一张表的数据我们已经分别生成一个DataFrame对象df1, df2…<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 假设有多张表（DataFrame）组成一个列表</span><br><span class="line">df_list = [df1, df2, df3, df4, df5]</span><br><span class="line"># 导出到Excel</span><br><span class="line">writer = pd.ExcelWriter(【导出目标excel文件含路径】)</span><br><span class="line">try:</span><br><span class="line">	for df in df_list:</span><br><span class="line">		# index为False，导出到excel时则不会有由0开始一直递增的那一列</span><br><span class="line">		df.to_excel(writer, 【sheet名，我们可以用表名】, index=False)</span><br><span class="line">	writer.save()</span><br><span class="line">except Exception as e:</span><br><span class="line">	print(e)</span><br><span class="line">finally:</span><br><span class="line">	writer.close()</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/" itemprop="url">【Python】读取excel文件，保存到MySQL数据库</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-07T23:07:37+08:00">
-                2018-05-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="1-使用Pandas读取Excel文件"><a href="#1-使用Pandas读取Excel文件" class="headerlink" title="1. 使用Pandas读取Excel文件"></a>1. 使用Pandas读取Excel文件</h1><pre><code>import pandas as pd
-excel_file = Excel文件路径
-df = pd.read_excel(excel_file)
-</code></pre><p><a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_excel.html" title="read_excel方法的说明文档" target="_blank" rel="noopener">read_excel方法的说明文档</a></p>
-<h1 id="2-处理数据"><a href="#2-处理数据" class="headerlink" title="2. 处理数据"></a>2. 处理数据</h1><p>假设DataFrame对象df的内容是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">    ID  CITY_CODE CITY_NAME  CITY_TEL_NO</span><br><span class="line">0    1        200        广州市          20</span><br><span class="line">1    2        755        深圳市         755</span><br><span class="line">2    3        756        珠海市         756</span><br><span class="line">3    4        754        汕头市         754</span><br><span class="line">4    5        751        韶关市         751</span><br><span class="line">5    6        762        河源市         762</span><br><span class="line">6    7        753        梅州市         753</span><br><span class="line">7    8        752        惠州市         752</span><br><span class="line">8    9        660        汕尾市         660</span><br><span class="line">9   10        769        东莞市         769</span><br><span class="line">10  11        760        中山市         760</span><br><span class="line">11  12        750        江门市         750</span><br><span class="line">12  13        757        佛山市         757</span><br><span class="line">13  14        662        阳江市         662</span><br><span class="line">14  15        759        湛江市         759</span><br><span class="line">15  16        668        茂名市         668</span><br><span class="line">16  17        758        肇庆市         758</span><br><span class="line">17  18        763        清远市         763</span><br><span class="line">18  19        768        潮州市         768</span><br><span class="line">19  20        663        揭阳市         663</span><br><span class="line">20  21        766        云浮市         766</span><br></pre></td></tr></table></figure></p>
-<p>我们只需要把CITY_CODE和CITY_NAME保存到数据库，我们可以这样做：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">param_list = zip([i for i in df[&apos;CITY_CODE&apos;]], </span><br><span class="line">            [i for i in df[&apos;CITY_NAME&apos;]])</span><br></pre></td></tr></table></figure></p>
-<p>param_list将会是这个样子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[(200, &apos;广州市&apos;),</span><br><span class="line">(755, &apos;深圳市&apos;),</span><br><span class="line">(756, &apos;珠海市&apos;),</span><br><span class="line">(754, &apos;汕头市&apos;),</span><br><span class="line">(751, &apos;韶关市&apos;),</span><br><span class="line">(762, &apos;河源市&apos;),</span><br><span class="line">(753, &apos;梅州市&apos;),</span><br><span class="line">(752, &apos;惠州市&apos;),</span><br><span class="line">(660, &apos;汕尾市&apos;),</span><br><span class="line">(769, &apos;东莞市&apos;),</span><br><span class="line">(760, &apos;中山市&apos;),</span><br><span class="line">(750, &apos;江门市&apos;),</span><br><span class="line">(757, &apos;佛山市&apos;),</span><br><span class="line">(662, &apos;阳江市&apos;),</span><br><span class="line">(759, &apos;湛江市&apos;),</span><br><span class="line">(668, &apos;茂名市&apos;),</span><br><span class="line">(758, &apos;肇庆市&apos;),</span><br><span class="line">(763, &apos;清远市&apos;),</span><br><span class="line">(768, &apos;潮州市&apos;),</span><br><span class="line">(663, &apos;揭阳市&apos;),</span><br><span class="line">(766, &apos;云浮市&apos;)]</span><br></pre></td></tr></table></figure></p>
-<h1 id="3-使用pymysql保存到数据库"><a href="#3-使用pymysql保存到数据库" class="headerlink" title="3. 使用pymysql保存到数据库"></a>3. 使用pymysql保存到数据库</h1><pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import pymysql</span><br><span class="line">#打开数据库连接</span><br><span class="line">conn = pymysql.connect(host=&apos;home_machine&apos;,user=&apos;root&apos;,password=&apos;password&apos;,port=3306,db=&apos;telecom_info&apos;, charset=&apos;utf8mb4&apos;)</span><br><span class="line">#操作游标</span><br><span class="line">cur = conn.cursor()</span><br><span class="line">#定义sql语句</span><br><span class="line">sql=&apos;insert into t_city_code (CITY_CODE,CITY_NAME) values (%s,%s)&apos;</span><br><span class="line">#代入参数，插入sql语句</span><br><span class="line">effect_row = cur.executemany(sql, param_list)</span><br><span class="line">#提交事务</span><br><span class="line">conn.commit()</span><br><span class="line">#关闭游标，关闭连接</span><br><span class="line">cur.close()</span><br><span class="line">conn.close()</span><br></pre></td></tr></table></figure>
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/" itemprop="url">使用Pandas读取数据文件，预处理后保存到EXCEL</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-04T10:02:02+08:00">
-                2018-05-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="1-读取数据文件，转化为DataFrame对象"><a href="#1-读取数据文件，转化为DataFrame对象" class="headerlink" title="1. 读取数据文件，转化为DataFrame对象"></a>1. 读取数据文件，转化为DataFrame对象</h2><h3 id="读取文件"><a href="#读取文件" class="headerlink" title="读取文件"></a>读取文件</h3><p>一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">06bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0</span><br></pre></td></tr></table></figure></p>
-<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3721049320  bcc0b2fc050b1e0e071a3f93c373182d    440100100012001042800209    91440101190660172H  广州证券股份有限公司  87377597    B0A \N  1   10  1   1   2013-07-03 00:00:00 2015-09-21 00:00:00 \N  54  0   0   0   0   \N  \N  486 32  903 15092   34142458    7764158 12949672    2094029 3   1</span><br></pre></td></tr></table></figure></p>
-<p>我们用Python的Pandas库处理读取这些数据，首先读取数据文件<br>    import pandas as pd<br>    data_frame = pd.read_table(文件路径, header=None, error_bad_lines=False, sep=’|’)<br>其中，</p>
-<ul>
-<li>header如果不设置为None，默认第一行会作为header（也就是列名）</li>
-<li>error_bad_lines设置为False，是为了有些不合规则的行不会导致整个导入工作终止</li>
-<li>sep就是设置分隔符，默认是\t</li>
-</ul>
-<h3 id="指定列名"><a href="#指定列名" class="headerlink" title="指定列名"></a>指定列名</h3><p>因为另外有一份专门的文件记录了这些数据对应的字段，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">columns = [&apos;serv_id&apos;, &apos;encrypt_serv_id&apos;, &apos;pripid&apos;, &apos;uniscid&apos;, &apos;entname&apos;, &apos;acc_nb&apos;, &apos;STATE&apos;, &apos;STOP_DATE&apos;, &apos;PROD_ID&apos;,</span><br><span class="line">               &apos;BRAND_ID&apos;, &apos;PAYMENT_TYPE&apos;, &apos;IS_MIX_PROD&apos;, &apos;OPEN_DATE&apos;, &apos;COMPLETE_DATE&apos;, &apos;CANCEL_DATE&apos;, &apos;ONLINE_TIME&apos;,</span><br><span class="line">               &apos;IS_NEW_USER&apos;, &apos;IS_CANCEL_USER&apos;, &apos;IS_ARREAR_USER&apos;, &apos;ARREAR_FEE&apos;, &apos;MAX_ARREAR_MONTHS&apos;, &apos;ARREAR_MONTHS&apos;,</span><br><span class="line">               &apos;CUST_GH&apos;, &apos;CUST_KD&apos;, &apos;CUST_YD&apos;, &apos;TOTAL_FEE&apos;, &apos;CUST_TOTAL_FEE&apos;, &apos;CUST_KD_FEE&apos;, &apos;CUST_YD_FEE&apos;,</span><br><span class="line">               &apos;CUST_GH_FEE&apos;, &apos;WORKDAY_CALL_TIMES&apos;, &apos;HOLIDAY_CALL_TIMES&apos;]</span><br></pre></td></tr></table></figure></p>
-<p>现在我们把这些字段名设置为DataFrame对象的列名。<br>    data_frame.columns = columns</p>
-<h2 id="2-保存到EXCEL，以我们惯常看到的格式。"><a href="#2-保存到EXCEL，以我们惯常看到的格式。" class="headerlink" title="2. 保存到EXCEL，以我们惯常看到的格式。"></a>2. 保存到EXCEL，以我们惯常看到的格式。</h2><pre><code>data_frame.to_excel(需要输出到的文件的全路径)
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/23/学习方法以及提高自学能力/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/23/学习方法以及提高自学能力/" itemprop="url">学习方法以及提高自学能力</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-23T15:55:51+08:00">
-                2018-03-23
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="学习方法以及提高自学能力"><a href="#学习方法以及提高自学能力" class="headerlink" title="学习方法以及提高自学能力"></a>学习方法以及提高自学能力</h1><p>一篇来自慕课网的问答<br><blockquote><p>波波老师你好！我现在是大三的学生，在慕课上看了你的算法面试课和玩转机器学习课程，收获非常大！我本专业就是人工智能上学期也上了机器学习专业课，虽然期末考试还可以但是说实话学校老师讲的不清楚自己看了一些资料感觉好像懂了但还是不知道怎么用，直到听了你的课！</p>
-<p>然后我就有一件事情想问一下，因为我觉得很强的学习能力是伴随一生的，这样才能在未来不断进步，那么该怎么锻炼学习能力呢？比如你当时是如何去学习机器学习才达到现在对这个领域的算法或应用理解得这么深刻呢？比如面对一个以前可能没有接触过的领域如何才能有效地学习和领悟呢？非常感谢！</p>
-</blockquote></p>
-<p>刘宇波老师的回答如下：<br><blockquote><p>感谢你的好问题：）</p>
-<p>由于我本人不是学习方法的专家，所以不敢轻易说自己的学习方法多么先进。更重要的是，我不认为有一种固定的“好”的学习方法是适合所有同学的。如果是那样的话，学习就太简单了：）由于每个人的背景不同，擅长不同，我坚信每个人都有适合自己的不同的学习方法；与此同时，不同的领域，由于其本质不同，学习方法也应该是不同的。我坚信：每个人去寻找适合于自己的学习方法，是每个人一生的话题。别人叙述的所谓的“学习方法”，只能作为参考用。</p>
-<p>不过我在慕课网做课程的过程中，确实接收到了很多同学的问题，很多问题在我看来，确实透露着学习方法的不得当。在这里，我简单总结一些我见过的，我认为可能不是那么得当的学习方法，仅供参考。但是，这些不是一套“如何学习”的理论，是一些零碎的，我的个人见解。更多关于如何学习的内容，可以参考学习方法领域的一些书籍，不管是泛泛而谈各个领域的通用学习方法，还是某个特殊领域的具体学习方法，市面上都有一些书籍（或者讲座）。虽然我不爱看这些介绍学习方法的材料，但是这些书籍所介绍的一些内容应该可以对很多同学有启发：）  </p>
-<ol>
-<li><p>我观察到的大多数同学犯得最最大的“错误”，就是在学习上犯“完美主义”的毛病。乃至后续很多其他的问题，在我看来都和这个问题是直接相关的。  举个最经典的例子，背英语单词（在这里我们先不聊背英语单词是不是好的英语学习方法，我们只看如果我们想要背英语单词的话，应该怎么背）。我发现很多同学拿着红宝书，第一个list都没翻过去就放弃了。这是因为每天背完第一个list以后，第二天会发现：第一个list还是有很多单词没掌握，然后就继续背第一个list。然后一周后，发现自己第一个list都搞不定，觉得英语好难，彻底放弃了。这就是“完美主义”：不把第一个list“彻底”掌握不肯继续前进。这样是不对的。背了一个list，能多记一个词，都是进步。就算一个词都没记住，模糊有了印象，也是一种进步。我们不应该过度着眼于我们还不够完美。学习不是要么0分，要么100分的。80分是收获；60分是收获；20分也是收获。有收获最重要。但是因为着眼于自己的不完美，最终放弃了，那就是彻底的0分了。<br>仔细想，这种“完美主义害死人”的例子特别多。我看到过很多同学，其实是在学习的路上，被自己的“完美主义”逼得“放弃了”——由于学习中有一点没有做好，遭受到了一点点挫折，最终就放弃了整个学习计划。每个人都一定要接受自己的不完美。想开一点：我们都不是小升初考了满分，才能上初中的；也不是中考考了满分，才能读高中的；更不是高考考了满分，才能念大学的；将来也不会是大学所有科目都是满分，才能出来工作。不完美其实是常态，根本不会影响我们学习更多更深入的内容。但是在自学过程中，很多同学却要求自己在自己制定的每一步计划中都达到“完美”，才进行下一步。最终结果，通常都是“放弃”：（<br>当然，什么是“完美主义”，什么又是“囫囵吞枣”，这是一个“度”，每个人不一样。不要“完美主义”，不代表学习可以草率前行。每个人都要找到适合自己的学习节奏。</p>
-</li>
-<li><p>不要过度“学习路径依赖”，学习要冲着自己的目标去。<br>什么意思？就是现在信息太发达了，对于大多数领域的知识，网上会有很多所谓的“学习路径”。我不是说这些学习路径没有用，但是不能“过度”依赖这些所谓的学习路径。<br>比如，很多同学想学机器学习，大多数学习路径都会告诉你，机器学习需要数学基础。于是，很多同学就转而学习数学去了，非要先把数学学好再去学机器学习。可是发现数学怎么也学不好（在这里，可能完美主义的毛病又犯了），而机器学习却一点儿都没学。最终放弃了机器学习，非常可惜。其实，如果真正去学习机器学习，就会发现，至少在入门阶段，对数学的要求没有那么高。正因为如此，我一直建议：只要你在本科接触过高数，线数，概率这些科目的基础概念，想学机器学习，就去直接学习机器学习。学习过程中发现自己的数学不够用，再回头补数学。在这种情况下，数学学习得也更有目标性，其实效果更好。<br>这样的例子非常多，很多同学想学习做ios app，就先去精通swift语言，或者想做android app，就先去精通java语言。在我看来大可不必。以我的经验，只要你有一门编译型语言基础，大概看一下这些语言的基础语法，就可以直接上手ios或者android app的开发了。先能做出一个最基本的app，在这个过程中，就会意识到语言特性的意义，再回头深入研究语言也不迟。此时还能结合真实的开发任务理解语言特性，比没有上手app开发，抽象地理解语言特性，有意义的多。<br>再比如，我的《算法与数据结构》（<a href="https://coding.imooc.com/class/71.html）课程和《玩转算法面试》（https://coding.imooc.com/class/82.html）课程，在视频中都是使用C++进行编码的。虽然我一再强调语言不重要，但还是有很多同学表示，要先把C++学透再回来把算法学好。这是完全没必要的。事实上，在我的这两门课程中，我看到的收获最大的同学，是那些能够把课程中的算法思想理解透，然后用自己熟悉的语言实现的同学：）" target="_blank" rel="noopener">https://coding.imooc.com/class/71.html）课程和《玩转算法面试》（https://coding.imooc.com/class/82.html）课程，在视频中都是使用C++进行编码的。虽然我一再强调语言不重要，但还是有很多同学表示，要先把C++学透再回来把算法学好。这是完全没必要的。事实上，在我的这两门课程中，我看到的收获最大的同学，是那些能够把课程中的算法思想理解透，然后用自己熟悉的语言实现的同学：）</a><br>依然是：不要过度学习路径依赖，什么叫“过度”，每个人的标准不一样。每个人都需要寻找自己的那个“度”。</p>
-</li>
-<li><p>不要迷信权威的“好”教材。不是说权威教材不好，而是每一本教材都有其预设的读者群，如果你不在这个预设的读者群的范畴里，教材再好也没用。最简单的例子：再好的高数教材，对于小学生来说，都是一堆废纸。<br>我经常举的一个例子是《算法导论》。我个人建议如果你是研究生或者博士生，已经有了一定的算法底子，才应该去阅读《算法导论》。但是对大多数本科同学，尤其是第一次接触算法的同学，《算法导论》实在不是一个好的教材。但很可惜，很多同学在学习中有上面的两个毛病，既过度路径依赖，别人说《算法导论》好，学习算法要走学《算法导论》这个路径，自己就不探索其他更适合自己的学习路径了，一头扎进《算法导论》里；同时还“完美主义”，对于《算法导论》的前几章，学习的事无巨细，但其实接触了很多在初学算法时没必要学习的内容。最后终于觉得自己学不下去了，放弃了对“算法”整个学科的学习。认为算法太难了。<br>诚然，算法不容易，但是，一上来就抱着《算法导论》啃，实在是选择了一条完全没必要的，更难的，甚至可能是根本走不通的路。对于一个领域的学习，了解市面上有什么好教材是必要的，单也不能迷信权威教材。要学习寻找适合自己的学习材料。</p>
-</li>
-<li><p>不要看不起“薄薄”的“傻”教材，这些你看不起的学习材料，可能是你入门某个领域的关键。<br>很多同学问我最初学习算法的是什么教材，我告诉他们是这本教材：算法设计与分析基础（<a href="https://book.douban.com/subject/1173877/）在这里，我完全没有推荐这本教材的意思。事实上，现在我有点儿“鄙视”这本教材。因为我在学习它的过程中，发现这本教材有很多错误（帮助它纠正错误其实也提高了我的水平：）现在的版本可能也和我当时学习的版本不同了，一些错误可能已经纠正了。），但它确实是我的很重要的算法启蒙教材。关键原因是，它够薄。" target="_blank" rel="noopener">https://book.douban.com/subject/1173877/）在这里，我完全没有推荐这本教材的意思。事实上，现在我有点儿“鄙视”这本教材。因为我在学习它的过程中，发现这本教材有很多错误（帮助它纠正错误其实也提高了我的水平：）现在的版本可能也和我当时学习的版本不同了，一些错误可能已经纠正了。），但它确实是我的很重要的算法启蒙教材。关键原因是，它够薄。</a><br>在大多数时候，如果有人问我教材推荐，基本上我的回答都是，如果是入门水平：随便找一本在京东，亚马逊，豆瓣上，评分不太差的“薄”的教材，就ok了。在这里，关键字是够“薄”。因为“薄”的教材能让你以最快的速度看完，对整个学科有一个全盘的认识：这个领域是做什么的？解决什么问题了？整体解决问题的思路是怎样？解决问题的方法大致是怎样划分的？一些最基础的方法具体是怎样的。这些在初学阶段是至关重要！是让你全盘把握整个领域脉络的。虽然通过这么一本薄薄的教材，你的脉络把握肯定不够全面细致，但比没有强太多！我看过不少同学，一上来学习《算法导论》，关于复杂度分析的笔记做了好几页，然后就放弃了，可是连什么是动态规划都不知道。这就是根本没有对“算法”这个领域有全面的认识。甚至可以说根本没有学过“算法”！先用薄教材入门，再找“厚”教材，细细体会其中的细节，是我百试不爽的学习方法。</p>
-</li>
-<li><p>不要迷信单一教材。<br>很多同学理解了要找“薄”教材入门的道理，却还是非要我推荐一本具体的“薄”教材，说实话，很多时候这让我有点儿哭笑不得。因为我随便推荐一本，我确实不敢保证它是“最好的”，“最适合你的”，但是各个领域那么多教材，我又不可能都一一看过，一一比较过。最最重要的是，我的学习经验告诉我，在大多数情况下，学习不是一本固定教材可以搞定的。非要找到一本“最适合自己的”教材，然后就一头扎进去，其实是不科学的。我印象很深刻，我读本科的时候，那会儿申请了一个项目，要做一个网站（那时候服务端都用ASP.NET），我一口气从图书馆借了10本ASP.NET的教材，然后以一本最薄的书为主干去看，发现这本书介绍不清楚的概念，马上就从其他书里找答案。通常不同的作者对同一个事物从不同的角度做解读，是能够帮助你更深刻的认识一个概念的。基本上一个月的时间，我就从一个完全的网站搭建小白，做出了这个项目需要的那个网站。<br>但是，大多数同学喜欢仅仅扎进一本书里，一旦选定了自己的学习材料，就对其他材料充耳不闻，甚至是排斥的心理。这种做法，一方面又是“完美主义”的表现——非要把这本教材学透；另一方面，其实也是“犯懒”的表现，不愿意多翻翻，多看看，自己多比较比较，自己去寻找最适合自己的材料，一味地盲目相信所谓“大神”的推荐，殊不知，这些推荐，不一定是更适合自己的材料；更何况，还有很多大神，明明是靠不出名的“薄”教材入的门，但给别人做推荐的时候，就突然变成自己是算法奇才，自幼阅读《算法导论》而所成的神话了：）</p>
-</li>
-<li><p>前面说了很多和教材选择相关的话题，但对于计算机领域的学习来说，教材的意义其实远远小于实践的意义。如果仅仅是看学习材料就是学习的话，那么慕课网的视频后期处理人员就是水平最高的工程师了。因为每段视频，他们都需要看一遍。但是，很显然，仅仅是看视频，是无法学到知识的。对于计算机领域的学习来说，真正动手实践去编程是异常重要的。怎么夸大其中的作用都不过分。这就好比学游泳，必去下水游；学开车，必须亲自上路。否则你说的再头头是道，一个小学生文化水平的司机或者会游泳的人，都能在这两个领域瞬间秒杀你。<br>很多同学都说我的算法讲得好，其实，我一直认为，这其中的一个最简单的秘诀就是：我带领大家把大多数算法都实现了一遍；或者对其中的应用进行了非常具体的实践。反观大多数高校教育，对于算法或者机器学习这种一定程度偏理论的学习，通常非常不强调实践。最终的结果是学习者只是接受了很多抽象的概念，但对其中具体的实现细节，确是云里雾里。我见过太多同学，都明白什么是O(n^2)复杂度，什么是O(nlogn)的复杂度，却问我对于100万的数据规模，为什么自己的选择排序运行起来就没反应了。答案很简单：O(n^2)的复杂度太慢了，100万的数据规模太大了，一般家用计算机转选择排序一时半会儿是转不完的。这些同学一定理解O(n^2)的算法比O(nlogn)的算法慢，却没有真正实践过，不知道这个差距到底是多少。<br>在我的课程中，经常遇到有些同学提出这样的问题：这个算法的某句话（或者某段逻辑），为什么要写成A的样子，而不是B的样子？这种问题其实很好，但我觉得解决方法也很简单，实际的去把算法改写成B的样子，实际的运行试试看，看会发生什么。如果发生了错误，仔细分析一下，为什么会有错误？如果没有错误，具体比较一下：A和B两种不同的写法，为什么都正确？又有什么区别？真正的学习上的提高，就发生在这个过程中。我当然可以告诉给同学们一个结果，但是自己亲自实践一遍，相比阅读别人给出的一个答案，自己对其中问题理解的深刻程度，是完全不可比拟的。</p>
-</li>
-<li><p>debug非常非常重要。<br>我看到的另一类“经典”问题就是：老师，这个代码为什么错了，然后贴一大段代码。这种问题背后，依然是，透露着学习方法的不对劲：提问的同学懒得debug。在计算机领域，debug近乎和实践是一个意思。如果只是把材料上的代码“抄”一遍，这不叫实践，这叫抄代码。小学生也能做。但是“抄”一遍，不小心没抄对，发生了错误，然后自己一点一点调试，找到错误的根源，这叫真的实践。小学生不能做。<br>不过很多同学不喜欢debug，我当然理解。其实谁都不喜欢debug，但是，debug才是最重要的能力。（通常在一个领域里，你最不喜欢做的事情，就是这个领域的核心竞争力：））是计算机领域异常重要的一项技能。我见过的所有计算机领域的“高手”，不管是在哪个细分领域，都无一例外，是个debug好手。我经常告诉大家，在实际工作中，其实debug的时间要占你真正编程时间的70%。如果你做一个项目，根本不需要debug，要么是你的项目对你来说太简单了，要么是你根本没有接触到这个项目的核心。<br>debug不仅仅是找到代码错误，解决错误的手段，其实更是一个重要的学习手段。通过debug，看看自己写的程序执行逻辑，哪里和自己设想的不一致？再回头看自己哪里想错了，或者想漏了，分析一下自己为什么想错了，或者想漏了，等等等等，依然是，进步就是发生在这个过程的。<br>在我的算法课程中，很多同学对递归想不明白，我的建议都是：用一个小数据量，一步步跟踪程序，看看程序到底是怎么运行的。通常这么做，1个小时的时间，就足以让你深刻理解递归程序的运转逻辑。可是，很多同学懒得花这1个小时的时间，最终的结果是，花了一个下午，对着代码生看，硬想，最终还是没有理解程序的运转逻辑。</p>
-</li>
-<li><p>量变到质变。<br>还有很多同学，对于算法的一些问题，会问：老师，你是怎么想到用这样的方法的？对于这类问题，我的回答一般都是：你见的还不够多。<br>不知道是不是高中阶段学习的影响，有一些同学特别执着于就这一个单一的问题，寻找其中的“解题路径”。但是我的经验是：与其把时间花在这里，不如去见更多问题。比如动态规划，是算法学习的一个难点，很多同学在学会了背包问题的解法之后，总是执着于追寻，是怎么想到这种状态定义的方法的。可能是我个人水平有限，我无法清楚地解释是如何想到这种状态定义的方法的。但是我的经验告诉我：再去看，去实践100个动态规划相关的问题，然后回头看背包问题，你会发现这种状态定义的方式非常自然。仅仅对着一个问题思考，很多时候都是死胡同。你见识的还不够多，就不足以帮助你总结出更加“普遍”的问题解决的规律。当你见得足够多的时候，一切就都变得很自然，所谓的“量变到质变”。<br>不过，大多数同学在这个环节都会“犯懒”，企图通过一个问题就理解问题的本质，这其实和企图通过一本教材就精通一个领域的想法是一样的，是不现实的，不可能的。同时，这里又包含着学习过程中的“完美主义”的思想，遇到一个问题一定要把它想的无比透彻。但是我的经验告诉我：大多数问题，其实都是需要“回头看”的。随着你对一个领域理解的越深入，回头再去看那些曾经的问题，都会产生新的视角，对于很多曾经想不明白的问题也豁然开朗。这也是“进步”的根源。如果卡在一个问题上不前进，不给自己“回头看”的机会，甚至最后是放弃了，就什么也没有学会了。<br>所以，很多时候，你发现对一些问题“百思不得其解”，或许不是因为“笨”，而是因为“还不够努力”：）</p>
-</li>
-<li><p>最后，一定要相信时间的力量。<br>昨天，在我的一个算法群里，有个滴滴的后端大神在群里发招聘，结果大家七嘴八舌的就议论开了，大致主题思想就是：自己什么时候能够成为滴滴的后端大神。这位滴滴的后端大神今年32岁；大多数议论的同学，其实连22岁都不到。我告诉他们，其实10年后，你们就是大神。<br>这其实很好理解，回想十年前，也就是12岁的你，和现在的你比较，是不是天壤之别？如果把你扔到一堆12岁的小朋友中间，22岁的你是不是就是个大神？同理，32岁的人，已经在社会摸爬滚打了那么多年，扔回到22岁的大学生中间，当然是大神：）<br>所以，很多时候，所谓的“大神”并不神秘，很多时候，仔细观察，会发现时间有着不可磨灭的作用。只要你没有虚度时间，每天都在进步，通常结果都不会太差的。如果再加上一点点好运，就是大神。</p>
-</li>
-</ol>
-</blockquote></p>
-<p>总的来说，这是比较适合我的回答。如果能在10年前看到就更好了。绝大部分的人都是并不擅长指导别人的，而只会把自己的那套推荐给别人，完全不考虑自己与他人的差异。这些人虽然不擅长指导，但他本身可能水平很高，我也被这些高人弄得走了好多年的弯路。</p>
-<p>找到最适合自己的学习路径，简直就是世上最难的事情之一，尤其是对于天赋一般的自己来说更是如此。当然，我的运气还不算太坏，30有5的时候，勉强找到了其中一条。  </p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/22/test/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/22/test/" itemprop="url">test</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-22T23:11:14+08:00">
-                2018-03-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><h2 id="测试1"><a href="#测试1" class="headerlink" title="测试1"></a>测试1</h2><h3 id="测试1-1"><a href="#测试1-1" class="headerlink" title="测试1.1"></a>测试1.1</h3><p>啦啦啦啦</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/22/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/22/hello-world/" itemprop="url">Hello World</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-22T22:52:33+08:00">
-                2018-03-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
+
 
 
           </div>
@@ -1494,7 +1568,7 @@ df = pd.read_excel(excel_file)
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">17</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1507,7 +1581,7 @@ df = pd.read_excel(excel_file)
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
