@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Python,理论,爬虫,Docker,实战," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="我用Scrapy开发了若干爬虫（若干Spider），但每次运行需要在命令行输入指令运行，假如我需要让若干个Spider同时运行，而且监控它们运行状态，而且再进一步考虑，如果Spider的数目非常多，如何管理？  安装工具/库安装scrapyd安装scrapyd-clientScrapyd-Client为了方便Scrapy项目的部署，提供如下两个功能：  将项目打包成Egg文件 将打包生成的Egg">
+<meta name="keywords" content="Python,理论,爬虫,Docker,实战">
+<meta property="og:type" content="article">
+<meta property="og:title" content="部署Scrapy爬虫">
+<meta property="og:url" content="http://yoursite.com/2019/01/30/部署Scrapy爬虫/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="我用Scrapy开发了若干爬虫（若干Spider），但每次运行需要在命令行输入指令运行，假如我需要让若干个Spider同时运行，而且监控它们运行状态，而且再进一步考虑，如果Spider的数目非常多，如何管理？  安装工具/库安装scrapyd安装scrapyd-clientScrapyd-Client为了方便Scrapy项目的部署，提供如下两个功能：  将项目打包成Egg文件 将打包生成的Egg">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-01-30T03:33:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="部署Scrapy爬虫">
+<meta name="twitter:description" content="我用Scrapy开发了若干爬虫（若干Spider），但每次运行需要在命令行输入指令运行，假如我需要让若干个Spider同时运行，而且监控它们运行状态，而且再进一步考虑，如果Spider的数目非常多，如何管理？  安装工具/库安装scrapyd安装scrapyd-clientScrapyd-Client为了方便Scrapy项目的部署，提供如下两个功能：  将项目打包成Egg文件 将打包生成的Egg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/01/30/部署Scrapy爬虫/"/>
+
+
+
+
+
+  <title>部署Scrapy爬虫 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/部署Scrapy爬虫/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">部署Scrapy爬虫</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:33:09+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>我用Scrapy开发了若干爬虫（若干Spider），但每次运行需要在命令行输入指令运行，假如我需要让若干个Spider同时运行，而且监控它们运行状态，而且再进一步考虑，如果Spider的数目非常多，如何管理？</p>
+</blockquote>
+<h1 id="安装工具-库"><a href="#安装工具-库" class="headerlink" title="安装工具/库"></a>安装工具/库</h1><h2 id="安装scrapyd"><a href="#安装scrapyd" class="headerlink" title="安装scrapyd"></a>安装scrapyd</h2><h2 id="安装scrapyd-client"><a href="#安装scrapyd-client" class="headerlink" title="安装scrapyd-client"></a>安装scrapyd-client</h2><p>Scrapyd-Client为了方便Scrapy项目的部署，提供如下两个功能：</p>
+<ul>
+<li>将项目打包成Egg文件</li>
+<li>将打包生成的Egg文件通过addversion.json接口部署到Scrapyd上<br>Scrapyd-Client帮我们把部署全部实现了，我们不需关心Egg是怎么生成的，要不需要再去读Egg文件并请求接口上传了，只需执行一个命令即可一键部署。<h2 id="requirements"><a href="#requirements" class="headerlink" title="requirements"></a>requirements</h2>这应该算惯例了，把需要用到的库的名字列表放到requirements.txt的文件中，部署的时候，让系统自动下载这些依赖库<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 在项目的根目录下运行：</span><br><span class="line">$ pip3 freeze &gt; requirements.txt</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="部署爬虫"><a href="#部署爬虫" class="headerlink" title="部署爬虫"></a>部署爬虫</h1><h2 id="运行scrapyd"><a href="#运行scrapyd" class="headerlink" title="运行scrapyd"></a>运行scrapyd</h2><p>执行后，默认在本机6800端口启动scrapyd服务，直接用浏览器访问可以看到服务上有哪些Job（爬虫），运行情况如何<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd</span><br></pre></td></tr></table></figure></p>
+<h2 id="发布工程到scrapyd"><a href="#发布工程到scrapyd" class="headerlink" title="发布工程到scrapyd"></a>发布工程到scrapyd</h2><h3 id="修改scapy-cfg文件"><a href="#修改scapy-cfg文件" class="headerlink" title="修改scapy.cfg文件"></a>修改scapy.cfg文件</h3><p>scapy.cfg文件位于工程根目录下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># Automatically created by: scrapy startproject</span><br><span class="line">#</span><br><span class="line"># For more information about the [deploy] section see:</span><br><span class="line"># https://scrapyd.readthedocs.io/en/latest/deploy.html</span><br><span class="line"></span><br><span class="line">[settings]</span><br><span class="line">default = DictSpider.settings</span><br><span class="line"></span><br><span class="line">[deploy]</span><br><span class="line">#url = http://localhost:6800/</span><br><span class="line">project = DictSpider</span><br><span class="line"></span><br><span class="line"># deploy:s1表示把爬虫发布到名为s1的爬虫服务器上。这个名字可以随意起，一般情况用在需要同时发布爬虫到多个目标服务器时，可以通过指定名字的方式发布到指定服务器。</span><br><span class="line">[deploy:s1]</span><br><span class="line"># 这个url就是你的scrapyd服务器的网址</span><br><span class="line">url = http://138.0.0.141:6800/</span><br><span class="line">project = DictSpider</span><br></pre></td></tr></table></figure></p>
+<h3 id="发布爬虫"><a href="#发布爬虫" class="headerlink" title="发布爬虫"></a>发布爬虫</h3><p>在工程的根目录下运行，命令格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd-deploy &lt;target&gt; -p &lt;project&gt; --version &lt;version&gt;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>target就是前面配置文件里deploy后面的的target名字。如果之前scapy.cfg中没有指定target名字，这里可以不写</li>
+<li>project 可以随意定义，跟爬虫的工程名字无关</li>
+<li>version自定义版本号，不写的话默认为当前时间戳。</li>
+</ul>
+<p>注意之前启动的scrapyd服务必须正在运行。运行成功会有类似如下结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 这一条是运行的命令，我们发布一个test1的工程</span><br><span class="line">$ scrapyd-deploy -p test1 </span><br><span class="line">Packing version 1545203675</span><br><span class="line">Deploying to project &quot;test1&quot; in http://localhost:6800/addversion.json</span><br><span class="line">2018-12-19T15:14:39+0800 [twisted.python.log#info] &quot;127.0.0.1&quot; - - [19/Dec/2018:07:14:35 +0000] &quot;POST /addversion.json HTTP/1.1&quot; 200 122 &quot;-&quot; &quot;Python-urllib/3.6&quot;</span><br><span class="line">Server response (200):</span><br><span class="line">&#123;&quot;node_name&quot;: &quot;SeaMonster-MacBook-Pro.local&quot;, &quot;status&quot;: &quot;ok&quot;, &quot;project&quot;: &quot;test1&quot;, &quot;version&quot;: &quot;1545203675&quot;, &quot;spiders&quot;: 12&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="启动爬虫"><a href="#启动爬虫" class="headerlink" title="启动爬虫"></a>启动爬虫</h3><p>我们可以通过直接访问API的方式调用启动、停止接口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 格式：curl http://localhost:6800/schedule.json -d project=default -d spider=somespider</span><br><span class="line">$ curl http://localhost:6800/schedule.json -d project=test1 -d spider=gdggzy_gov</span><br></pre></td></tr></table></figure></p>
+<p>如果我们要停止正在运行的爬虫，可以这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/cancel.json -d project=test1 -d job=jobid </span><br><span class="line"># jobid不要带&quot;&quot;</span><br></pre></td></tr></table></figure></p>
+<h4 id="scrapyd的日志乱码问题"><a href="#scrapyd的日志乱码问题" class="headerlink" title="scrapyd的日志乱码问题"></a>scrapyd的日志乱码问题</h4><p>用Chrome浏览器打开scrapyd服务端，可以看到爬虫运行的日志，但是中文内容有可能出现乱码，原因是“chrome 5.5 之后取消编码设置，采用自动识别编码,但是在部分设置不规范不正确的网站，新版浏览器无法准确判断其使用的编码，导致网站显示乱码”。我们可以通过安装Chrome插件解决。插件地址：<br><a href="https://chrome.google.com/webstore/detail/oenllhgkiiljibhfagbfogdbchhdchml" target="_blank" rel="noopener">https://chrome.google.com/webstore/detail/oenllhgkiiljibhfagbfogdbchhdchml</a><br>GitHub开源地址：<br><a href="https://github.com/jinliming2/Chrome-Charset" target="_blank" rel="noopener">https://github.com/jinliming2/Chrome-Charset</a></p>
+<h1 id="制作Docker镜像"><a href="#制作Docker镜像" class="headerlink" title="制作Docker镜像"></a>制作Docker镜像</h1><p>如果我们要把爬虫部署到多个服务器，或者经常要更换服务器，每次都重新配置环境实在太麻烦了，因此我选择用Docker，只要每个服务器都装上Docker，我只需一次搞好Docker镜像，然后就能随意在多个服务器上使用了。</p>
+<h2 id="构建基于Python3的镜像"><a href="#构建基于Python3的镜像" class="headerlink" title="构建基于Python3的镜像"></a>构建基于Python3的镜像</h2><h3 id="Scrapyd对接Docker"><a href="#Scrapyd对接Docker" class="headerlink" title="Scrapyd对接Docker"></a>Scrapyd对接Docker</h3><p>在工程根目录下新建一个scrapyd.conf，即Scrapyd的配置文件，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[scrapyd]</span><br><span class="line">eggs_dir    = eggs</span><br><span class="line">logs_dir    = logs</span><br><span class="line">items_dir   =</span><br><span class="line">jobs_to_keep = 5</span><br><span class="line">dbs_dir     = dbs</span><br><span class="line">max_proc    = 0</span><br><span class="line"># 这里指CPU单核最多运行4个Scrapy任务</span><br><span class="line">max_proc_per_cpu = 4</span><br><span class="line">finished_to_keep = 100</span><br><span class="line">poll_interval = 5.0</span><br><span class="line"># bind_address = 127.0.0.1 这样只能够从本地访问，因此改为0.0.0.0，允许其他地方公开访问</span><br><span class="line">bind_address = 0.0.0.0</span><br><span class="line">http_port   = 6800</span><br><span class="line">debug       = off</span><br><span class="line">runner      = scrapyd.runner</span><br><span class="line">application = scrapyd.app.application</span><br><span class="line">launcher    = scrapyd.launcher.Launcher</span><br><span class="line">webroot     = scrapyd.website.Root</span><br><span class="line"></span><br><span class="line">[services]</span><br><span class="line">schedule.json     = scrapyd.webservice.Schedule</span><br><span class="line">cancel.json       = scrapyd.webservice.Cancel</span><br><span class="line">addversion.json   = scrapyd.webservice.AddVersion</span><br><span class="line">listprojects.json = scrapyd.webservice.ListProjects</span><br><span class="line">listversions.json = scrapyd.webservice.ListVersions</span><br><span class="line">listspiders.json  = scrapyd.webservice.ListSpiders</span><br><span class="line">delproject.json   = scrapyd.webservice.DeleteProject</span><br><span class="line">delversion.json   = scrapyd.webservice.DeleteVersion</span><br><span class="line">listjobs.json     = scrapyd.webservice.ListJobs</span><br><span class="line">daemonstatus.json = scrapyd.webservice.DaemonStatus</span><br></pre></td></tr></table></figure></p>
+<p>基本就是<a href="https://scrapyd.readthedocs.io/en/latest/config.html#example-configuration-file" target="_blank" rel="noopener">https://scrapyd.readthedocs.io/en/latest/config.html#example-configuration-file</a>的内容。</p>
+<h3 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h3><p>新建一个Dockerfile，文件名字随意，例如mydockerfile，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">FROM python:3.6</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">CMD scrapyd</span><br></pre></td></tr></table></figure></p>
+<p>第一行的FROM是指在python:3.6这个镜像上构建，也就是说在构建时就已经有了Python 3.6的环境。<br>第二行的ADD是将本地的代码放置到虚拟容器中。它有两个参数：第一个参数是.，即代表本地当前路径；第二个参数/code代表虚拟容器中的路径，也就是将本地项目所有内容放置到虚拟容器的/code目录下。<br>第三行的WORKDIR是指定工作目录，这里将刚才添加的代码路径设成工作路径，这个路径下的目录结构和当前本地目录结构是相同的，所以在这个目录下可以直接执行库安装命令。<br>第四行的COPY是将当前目录下的scrapyd.conf文件复制到虚拟容器中/etc/scrapyd/目录下，Scrapyd在运行时会默认读取这个配置。<br>第五行的EXPOSE是声明运行时容器提供服务端口，注意这里只是一个声明，运行时不一定会在此端口开启服务。这个声明的作用，一是告诉使用者这个镜像服务的运行端口，以方便配置映射，二是在运行使用随机端口映射时，容器会自动随机映射EXPOSE的端口。<br>第六行的RUN是执行某些命令，一般做一些环节准备工作。由于Docker虚拟容器内只有Python3环境，没有Python库，所以我们运行此命令来在虚拟容器中安装相应的Python库，这样项目部署到Scrapyd中便可以正常运行。<br>第七行的CMD是容器启动命令，容器运行时，此命令会被执行。这里我们直接用scrapyd来启动Scrapyd服务。</p>
+<h3 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h3><p>格式如下（不要漏了最后的那一个点）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f dockerfile文件 -t 自定镜像名字:自定镜像标签（默认latest） .</span><br></pre></td></tr></table></figure></p>
+<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f mydockerfile -t tisson/scrapyd:latest .</span><br></pre></td></tr></table></figure></p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>构建成功后即可运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 6800:6800 tisson/scrapyd:latest</span><br></pre></td></tr></table></figure></p>
+<p>然后打开localhost:6800可以看到Scrapyd服务。</p>
+<h3 id="【重要】补充说明"><a href="#【重要】补充说明" class="headerlink" title="【重要】补充说明"></a>【重要】补充说明</h3><p>你也许留意到，我们使用Docker后只是启动了Scrapyd服务，实际上爬虫并没有部署上去。因此我们还需要修改一些地方</p>
+<h4 id="新建脚本文件"><a href="#新建脚本文件" class="headerlink" title="新建脚本文件"></a>新建脚本文件</h4><p>在工程根目录下新建start.sh文件（文件名可以随意），内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">scrapyd &amp;</span><br><span class="line">scrapyd-deploy -p DictSpider &gt;&gt; scrapy.log</span><br><span class="line">tail -f scrapy.log</span><br></pre></td></tr></table></figure></p>
+<p>首先我们启动Scrapyd服务，并让它在后台运行，然后才能部署爬虫。<code>scrapyd-deploy -p DictSpider &gt;&gt; scrapy.log</code>这句就是部署爬虫到Scrapyd服务，其中“DictSpider”是工程名，可任意指定，然后我们把结果输出到scrapy.log文件。留意最后的那句<code>tail -f scrapy.log</code>。其实scrapy.log这个文件没什么内容，我们这句不是为了观察其内容，而是为了让Docker容器一直运行，否则爬虫刚部署上去还没跑，整个Docker容器就停止了：<strong>Docker容器后台运行,就必须有一个前台进程.容器运行的命令如果不是那些一直挂起的命令（比如运行top，tail），就是会自动退出的。</strong>之前尝试过，后台运行Scrapyd服务，然后部署爬虫，再用fg命令尝试把后台的Scrapyd服务切换到前台，结果死活报no such job，只能用这种办法了。</p>
+<h4 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h4><p>修改mydockerfile，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FROM python:3.6</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">RUN chmod 755 start.sh</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;./start.sh&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>在之前docker file的基础上修改了最后两行。 </p>
+<h4 id="构建镜像、启动服务"><a href="#构建镜像、启动服务" class="headerlink" title="构建镜像、启动服务"></a>构建镜像、启动服务</h4><p>然后构建镜像的命令依旧是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f mydockerfile -t tisson/scrapyd:latest .</span><br></pre></td></tr></table></figure></p>
+<p>启动服务的语句同样不变：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 6800:6800 tisson/scrapyd:latest</span><br></pre></td></tr></table></figure></p>
+<p>最后是启动爬虫（DictSpider就是执行scrapyd-deploy时指定的名字）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://localhost:6800/schedule.json -d project=DictSpider -d spider=gdggzy_gov</span><br></pre></td></tr></table></figure></p>
+<h4 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h4><p>用docker logs看不到爬虫的日志，进去容器内，打开scrapy.log，同样没看到日志，它在哪里呢：<code>logs/project名/Spider名/</code>，以本项目为例，我们设置了容器内的工作目录为/code，工程名为DictSpider，spider名为gdggzy_gov，那么日志路径为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/code/logs/DictSpider/gdggzy_gov/</span><br></pre></td></tr></table></figure></p>
+<h2 id="整合Selenium所需的各种Web-Driver"><a href="#整合Selenium所需的各种Web-Driver" class="headerlink" title="整合Selenium所需的各种Web Driver"></a>整合Selenium所需的各种Web Driver</h2><p>很多时候，直接模拟网络请求并不容易，例如页面上某些内容是AJAX返回的，而这个AJAX请求需要带上n多不知道哪里冒出来的参数。这时我们一般就不想费心去摸索哪些参数怎么来的，直接用Selenium加上各种浏览器驱动，模拟各种点击啊输入啊等操作，剩下的事情，“浏览器”帮我们解决。<br>但是，这种方法在本机上跑没问题，但是如果部署到服务器上跑就难说了，浏览器要用到GUI，但服务器大多数没有GUI。因此，我们还需要在服务器上装一个名叫“xvfb”的东西。<br>这一整套东西自己装还是挺麻烦的，例如安装Chrome的话还需要找对应的chrome-drive包，版本不一致无法使用，还有各种奇怪的坑。幸好，早已有人帮我们把这些东西整合了，我们直接使用这个别人已经整合好的Docker镜像。  </p>
+<ul>
+<li>chromium-xvfb-py3：在Docker hub上能直接找到，下载即可，不过它的Python版本稍旧，现在是3.5的</li>
+<li>thsheep/chromium-xvfb-py3：这个和上边那个类似，而它的Python版本是3.6.3的，我们就选择它了</li>
+</ul>
+<p>那么，我们就在这个镜像的基础上构建我们的爬虫镜像吧，之前的dockerfile修改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FROM docker.io/thsheep/chromium-xvfb-py3:master</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">RUN chmod 755 start.sh</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;./start.sh&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>其实就是修改了第一行。<br>真正用的时候还有其他坑，例如：<br><a href="https://segmentfault.com/a/1190000016154179" target="_blank" rel="noopener">https://segmentfault.com/a/1190000016154179</a></p>
+<blockquote>
+<p>chrome和chromium都不能在root模式下运行，而且也不安全。所以最好是创建一个用户来运行。使用docker的时候，run时候需要加–privileged参数<br>还有：<a href="http://dockone.io/article/2232" target="_blank" rel="noopener">http://dockone.io/article/2232</a><br>在编译运行后，发现在这个Docker容器内单纯的去访问网页没有问题，如果去执行带有键盘的操作时，会报错。经过调查是需要在启动容器时执行Xvfb，申请一块Screen<br>这个等我遇到了再补充。</p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/理论/" rel="tag"># 理论</a>
+          
+            <a href="/tags/爬虫/" rel="tag"># 爬虫</a>
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+            <a href="/tags/实战/" rel="tag"># 实战</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/30/CentOS系统添加用户/" rel="next" title="CentOS系统添加用户">
+                <i class="fa fa-chevron-left"></i> CentOS系统添加用户
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/30/Docker进阶操作（一）/" rel="prev" title="Docker进阶操作（一）">
+                Docker进阶操作（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安装工具-库"><span class="nav-number">1.</span> <span class="nav-text">安装工具/库</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装scrapyd"><span class="nav-number">1.1.</span> <span class="nav-text">安装scrapyd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装scrapyd-client"><span class="nav-number">1.2.</span> <span class="nav-text">安装scrapyd-client</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#requirements"><span class="nav-number">1.3.</span> <span class="nav-text">requirements</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#部署爬虫"><span class="nav-number">2.</span> <span class="nav-text">部署爬虫</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#运行scrapyd"><span class="nav-number">2.1.</span> <span class="nav-text">运行scrapyd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发布工程到scrapyd"><span class="nav-number">2.2.</span> <span class="nav-text">发布工程到scrapyd</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#修改scapy-cfg文件"><span class="nav-number">2.2.1.</span> <span class="nav-text">修改scapy.cfg文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发布爬虫"><span class="nav-number">2.2.2.</span> <span class="nav-text">发布爬虫</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动爬虫"><span class="nav-number">2.2.3.</span> <span class="nav-text">启动爬虫</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#scrapyd的日志乱码问题"><span class="nav-number">2.2.3.1.</span> <span class="nav-text">scrapyd的日志乱码问题</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#制作Docker镜像"><span class="nav-number">3.</span> <span class="nav-text">制作Docker镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#构建基于Python3的镜像"><span class="nav-number">3.1.</span> <span class="nav-text">构建基于Python3的镜像</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Scrapyd对接Docker"><span class="nav-number">3.1.1.</span> <span class="nav-text">Scrapyd对接Docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编写Dockerfile"><span class="nav-number">3.1.2.</span> <span class="nav-text">编写Dockerfile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建镜像"><span class="nav-number">3.1.3.</span> <span class="nav-text">构建镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行"><span class="nav-number">3.1.4.</span> <span class="nav-text">运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#【重要】补充说明"><span class="nav-number">3.1.5.</span> <span class="nav-text">【重要】补充说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#新建脚本文件"><span class="nav-number">3.1.5.1.</span> <span class="nav-text">新建脚本文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dockerfile"><span class="nav-number">3.1.5.2.</span> <span class="nav-text">Dockerfile</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#构建镜像、启动服务"><span class="nav-number">3.1.5.3.</span> <span class="nav-text">构建镜像、启动服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#日志"><span class="nav-number">3.1.5.4.</span> <span class="nav-text">日志</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整合Selenium所需的各种Web-Driver"><span class="nav-number">3.2.</span> <span class="nav-text">整合Selenium所需的各种Web Driver</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

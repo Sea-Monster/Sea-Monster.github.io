@@ -229,6 +229,863 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Docker进阶操作（一）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/Docker进阶操作（一）/" itemprop="url">Docker进阶操作（一）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:33:26+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>之前介绍了Docker的一些基本操作，现在我们需要做一些稍微复杂一些的，例如Java Web容器的日志默认都打印在哪里了？ 如何限制每个容器使用的内存，如何实现各个Docker间相互通信，为什么容器内的时间与主机时间相差了8小时，如何解决</p>
+</blockquote>
+<h1 id="查看容器内日志"><a href="#查看容器内日志" class="headerlink" title="查看容器内日志"></a>查看容器内日志</h1><p>需要知道该容器的ID（不用全部输入，输前边几位就可以了）或名字：例如<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                                            NAMES</span><br><span class="line">b2c2d420d3f1        docker.io/mysql:5.7.23   &quot;docker-entrypoint...&quot;   2 days ago          Up 2 days           33060/tcp, 0.0.0.0:3308-&gt;3306/tcp                mysql57</span><br><span class="line"># 以下两条命令均可</span><br><span class="line">$ docker logs b2c </span><br><span class="line">$ docker logs mysql57</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看指定时间后的日志，只显示最后n行"><a href="#查看指定时间后的日志，只显示最后n行" class="headerlink" title="查看指定时间后的日志，只显示最后n行"></a>查看指定时间后的日志，只显示最后n行</h2><p>例如，我要看2018年12月7日至今的日志的最后100行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># -f ：跟踪实时日志；-t：显示时间戳</span><br><span class="line">$ docker logs -f -t --since=&quot;2018-12-07&quot; --tail=100 CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看某个相对时间之前-之后的日志"><a href="#查看某个相对时间之前-之后的日志" class="headerlink" title="查看某个相对时间之前/之后的日志"></a>查看某个相对时间之前/之后的日志</h2><p>例如我要看最近30分钟的日志<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs --since 30m CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间之后的日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间段日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; --until &quot;2018-02-09T12:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h1 id="限制Docker容器最大使用内存"><a href="#限制Docker容器最大使用内存" class="headerlink" title="限制Docker容器最大使用内存"></a>限制Docker容器最大使用内存</h1><p>在不设置的情况下，会使用主机所有的内存（大家共享，某个时刻这个容器用得多了，那个容器就用得少了）。如果我们想限制某个容器最大使用内存，可使用-m和–memory-swap参数</p>
+<ul>
+<li>-m：后边写限制内存数目，带单位，可以是k，m，G，例如-m 2G，则该容器最多能使用主机的2G内存</li>
+<li>–memory-swap：后边写限制内存数目，带单位，可以是k，m，G。注意这是内存+swap的值，假设我设了-m 2G，后边再加上–memory-swap 2G，那么这个容器不使用swap。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 例如</span><br><span class="line">$ docker run --name=dict-web-docker -m 2G --memory-swap=2G -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure>
+<h1 id="实现Docker容器间通信"><a href="#实现Docker容器间通信" class="headerlink" title="实现Docker容器间通信"></a>实现Docker容器间通信</h1><p>例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Docker容器之后，容器内部有独立于主机的一套IP，即使Java WEB与数据库容器都在同一个主机上，在JAVA WEB容器内访问127.0.0.1是找不到数据库容器的。怎么办？网上能搜到一堆答案，不过由于对网络这块我不是很熟悉，有很多从“网桥”这个方向的解决方案我是完全看不懂，我能看懂并实际应用的只有下边两种</p>
+<h2 id="link方式"><a href="#link方式" class="headerlink" title="link方式"></a>link方式</h2><p>我们启动Docker容器的时候可以指定容器的名字，例如我启动一个MySQL的容器，指定其名字为mysql57<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 MYSQL_ROOT_PASSWORD=123456 -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<p>现在，我们启动Java WEB容器，并允许其访问到mysql57这个容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run  --link mysql57:mysql57 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>容器内配置的数据源地址为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用mysql57这个地址可以访问到mysql57容器，注意mysql57容器内部使用的是3306端口，但是映射到主机是3308端口，我们使用link的方式访问，应该使用该容器内部的端口：3306</span><br><span class="line">spring.datasource.url=jdbc:mysql://mysql57:3306/dict?......</span><br></pre></td></tr></table></figure></p>
+<h2 id="add-host方式"><a href="#add-host方式" class="headerlink" title="add-host方式"></a>add-host方式</h2><p>link方式用了一阵，很快我就发现了一些问题：</p>
+<ol>
+<li>容器必须按次序启动，例如我启动Java WEB容器的时候，添加了使用mysql57的link，那么在mysql57容器成功启动之前，我启动Java WEB容器会报错。再考虑极端一些的情况，假如两个容器需要相互访问，要怎么办呢？</li>
+<li>曾经遇到：A容器需要link到B容器，而B容器因为某些原因需要删除，然后重新打包镜像，运行容器，名字也是B。然后A总是说连不上B了，只能把A也删掉，重新建一个A容器</li>
+<li>如果需要相互通信的容器不在同一台主机上，要怎么做</li>
+</ol>
+<p>最无脑的办法是不用“link”，直接写死外网IP。因为容器内也是可以访问到主机的外网IP。但是，如果我们要做服务迁移呢？每迁移一次就改一大堆地址？挺麻烦的样子。然后我又想到了使用hostname，直接让容器内的hosts文件挂载到主机的hosts文件，但是docker启动的时候某些参数也会修改容器内部的hosts，我不知道是否会影响到主机的hosts。如何为容器添加hostname又不影响主机hosts呢？还真有方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用--add-host参数，也不用管哪个容器先启动了，也可以跨主机访问</span><br><span class="line">$ docker run  --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116  -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>这样，在容器内可以通过ctyun1这个域名访问10.10.0.234</p>
+<h3 id="留意防火墙"><a href="#留意防火墙" class="headerlink" title="留意防火墙"></a>留意防火墙</h3><p>最近服务器迁移时遇到的问题，新部署的docker容器，无法访问宿主机的ip，表现为：</p>
+<ol>
+<li>容器内部可以ping得通宿主机的ip</li>
+<li>容器内部curl宿主机的ip缺报错：No route to host</li>
+<li>容器内可以访问同一主机上的其他容器</li>
+</ol>
+<p>经查，居然是防火墙的问题（系统是CentOS 7.5），比方说，我有个java web的docker容器服务，要访问主机上的mysql数据库，端口号为3306，那么需要在防火墙开放开放指定端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line">success</span><br><span class="line">$ sudo firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure></p>
+<h1 id="宿主机时间与Docker容器内时间不一致的问题"><a href="#宿主机时间与Docker容器内时间不一致的问题" class="headerlink" title="宿主机时间与Docker容器内时间不一致的问题"></a>宿主机时间与Docker容器内时间不一致的问题</h1><p>启动了Java WEB容器，看它打印的日志，发现比主机的时间慢了8个小时。上网搜了下发现docker容器默认用的是标准时间（伦敦那个时区），我们需要把主机上的时间同步到容器内，让容器内使用主机的时间，那么，启动Java WEB容器的命令需要改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run  -v /etc/localtime:/etc/localtime:ro --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>启动后观察打印的日志时间，还是慢了8小时。原来Java WEB还需要多一个步骤，Java的参数增加：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-Duser.timezone=GMT+8</span><br></pre></td></tr></table></figure></p>
+<p>因为我使用maven打包的一个springboot容器，我们加这个参数是加在dockerfile里边，Dockerfile内容如下（仅做参考）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD dict-web-0.0.1-SNAPSHOT.jar app.jar</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/部署Scrapy爬虫/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/部署Scrapy爬虫/" itemprop="url">部署Scrapy爬虫</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:33:09+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>我用Scrapy开发了若干爬虫（若干Spider），但每次运行需要在命令行输入指令运行，假如我需要让若干个Spider同时运行，而且监控它们运行状态，而且再进一步考虑，如果Spider的数目非常多，如何管理？</p>
+</blockquote>
+<h1 id="安装工具-库"><a href="#安装工具-库" class="headerlink" title="安装工具/库"></a>安装工具/库</h1><h2 id="安装scrapyd"><a href="#安装scrapyd" class="headerlink" title="安装scrapyd"></a>安装scrapyd</h2><h2 id="安装scrapyd-client"><a href="#安装scrapyd-client" class="headerlink" title="安装scrapyd-client"></a>安装scrapyd-client</h2><p>Scrapyd-Client为了方便Scrapy项目的部署，提供如下两个功能：</p>
+<ul>
+<li>将项目打包成Egg文件</li>
+<li>将打包生成的Egg文件通过addversion.json接口部署到Scrapyd上<br>Scrapyd-Client帮我们把部署全部实现了，我们不需关心Egg是怎么生成的，要不需要再去读Egg文件并请求接口上传了，只需执行一个命令即可一键部署。<h2 id="requirements"><a href="#requirements" class="headerlink" title="requirements"></a>requirements</h2>这应该算惯例了，把需要用到的库的名字列表放到requirements.txt的文件中，部署的时候，让系统自动下载这些依赖库<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 在项目的根目录下运行：</span><br><span class="line">$ pip3 freeze &gt; requirements.txt</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="部署爬虫"><a href="#部署爬虫" class="headerlink" title="部署爬虫"></a>部署爬虫</h1><h2 id="运行scrapyd"><a href="#运行scrapyd" class="headerlink" title="运行scrapyd"></a>运行scrapyd</h2><p>执行后，默认在本机6800端口启动scrapyd服务，直接用浏览器访问可以看到服务上有哪些Job（爬虫），运行情况如何<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd</span><br></pre></td></tr></table></figure></p>
+<h2 id="发布工程到scrapyd"><a href="#发布工程到scrapyd" class="headerlink" title="发布工程到scrapyd"></a>发布工程到scrapyd</h2><h3 id="修改scapy-cfg文件"><a href="#修改scapy-cfg文件" class="headerlink" title="修改scapy.cfg文件"></a>修改scapy.cfg文件</h3><p>scapy.cfg文件位于工程根目录下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># Automatically created by: scrapy startproject</span><br><span class="line">#</span><br><span class="line"># For more information about the [deploy] section see:</span><br><span class="line"># https://scrapyd.readthedocs.io/en/latest/deploy.html</span><br><span class="line"></span><br><span class="line">[settings]</span><br><span class="line">default = DictSpider.settings</span><br><span class="line"></span><br><span class="line">[deploy]</span><br><span class="line">#url = http://localhost:6800/</span><br><span class="line">project = DictSpider</span><br><span class="line"></span><br><span class="line"># deploy:s1表示把爬虫发布到名为s1的爬虫服务器上。这个名字可以随意起，一般情况用在需要同时发布爬虫到多个目标服务器时，可以通过指定名字的方式发布到指定服务器。</span><br><span class="line">[deploy:s1]</span><br><span class="line"># 这个url就是你的scrapyd服务器的网址</span><br><span class="line">url = http://138.0.0.141:6800/</span><br><span class="line">project = DictSpider</span><br></pre></td></tr></table></figure></p>
+<h3 id="发布爬虫"><a href="#发布爬虫" class="headerlink" title="发布爬虫"></a>发布爬虫</h3><p>在工程的根目录下运行，命令格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd-deploy &lt;target&gt; -p &lt;project&gt; --version &lt;version&gt;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>target就是前面配置文件里deploy后面的的target名字。如果之前scapy.cfg中没有指定target名字，这里可以不写</li>
+<li>project 可以随意定义，跟爬虫的工程名字无关</li>
+<li>version自定义版本号，不写的话默认为当前时间戳。</li>
+</ul>
+<p>注意之前启动的scrapyd服务必须正在运行。运行成功会有类似如下结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 这一条是运行的命令，我们发布一个test1的工程</span><br><span class="line">$ scrapyd-deploy -p test1 </span><br><span class="line">Packing version 1545203675</span><br><span class="line">Deploying to project &quot;test1&quot; in http://localhost:6800/addversion.json</span><br><span class="line">2018-12-19T15:14:39+0800 [twisted.python.log#info] &quot;127.0.0.1&quot; - - [19/Dec/2018:07:14:35 +0000] &quot;POST /addversion.json HTTP/1.1&quot; 200 122 &quot;-&quot; &quot;Python-urllib/3.6&quot;</span><br><span class="line">Server response (200):</span><br><span class="line">&#123;&quot;node_name&quot;: &quot;SeaMonster-MacBook-Pro.local&quot;, &quot;status&quot;: &quot;ok&quot;, &quot;project&quot;: &quot;test1&quot;, &quot;version&quot;: &quot;1545203675&quot;, &quot;spiders&quot;: 12&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="启动爬虫"><a href="#启动爬虫" class="headerlink" title="启动爬虫"></a>启动爬虫</h3><p>我们可以通过直接访问API的方式调用启动、停止接口。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 格式：curl http://localhost:6800/schedule.json -d project=default -d spider=somespider</span><br><span class="line">$ curl http://localhost:6800/schedule.json -d project=test1 -d spider=gdggzy_gov</span><br></pre></td></tr></table></figure></p>
+<p>如果我们要停止正在运行的爬虫，可以这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/cancel.json -d project=test1 -d job=jobid </span><br><span class="line"># jobid不要带&quot;&quot;</span><br></pre></td></tr></table></figure></p>
+<h4 id="scrapyd的日志乱码问题"><a href="#scrapyd的日志乱码问题" class="headerlink" title="scrapyd的日志乱码问题"></a>scrapyd的日志乱码问题</h4><p>用Chrome浏览器打开scrapyd服务端，可以看到爬虫运行的日志，但是中文内容有可能出现乱码，原因是“chrome 5.5 之后取消编码设置，采用自动识别编码,但是在部分设置不规范不正确的网站，新版浏览器无法准确判断其使用的编码，导致网站显示乱码”。我们可以通过安装Chrome插件解决。插件地址：<br><a href="https://chrome.google.com/webstore/detail/oenllhgkiiljibhfagbfogdbchhdchml" target="_blank" rel="noopener">https://chrome.google.com/webstore/detail/oenllhgkiiljibhfagbfogdbchhdchml</a><br>GitHub开源地址：<br><a href="https://github.com/jinliming2/Chrome-Charset" target="_blank" rel="noopener">https://github.com/jinliming2/Chrome-Charset</a></p>
+<h1 id="制作Docker镜像"><a href="#制作Docker镜像" class="headerlink" title="制作Docker镜像"></a>制作Docker镜像</h1><p>如果我们要把爬虫部署到多个服务器，或者经常要更换服务器，每次都重新配置环境实在太麻烦了，因此我选择用Docker，只要每个服务器都装上Docker，我只需一次搞好Docker镜像，然后就能随意在多个服务器上使用了。</p>
+<h2 id="构建基于Python3的镜像"><a href="#构建基于Python3的镜像" class="headerlink" title="构建基于Python3的镜像"></a>构建基于Python3的镜像</h2><h3 id="Scrapyd对接Docker"><a href="#Scrapyd对接Docker" class="headerlink" title="Scrapyd对接Docker"></a>Scrapyd对接Docker</h3><p>在工程根目录下新建一个scrapyd.conf，即Scrapyd的配置文件，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[scrapyd]</span><br><span class="line">eggs_dir    = eggs</span><br><span class="line">logs_dir    = logs</span><br><span class="line">items_dir   =</span><br><span class="line">jobs_to_keep = 5</span><br><span class="line">dbs_dir     = dbs</span><br><span class="line">max_proc    = 0</span><br><span class="line"># 这里指CPU单核最多运行4个Scrapy任务</span><br><span class="line">max_proc_per_cpu = 4</span><br><span class="line">finished_to_keep = 100</span><br><span class="line">poll_interval = 5.0</span><br><span class="line"># bind_address = 127.0.0.1 这样只能够从本地访问，因此改为0.0.0.0，允许其他地方公开访问</span><br><span class="line">bind_address = 0.0.0.0</span><br><span class="line">http_port   = 6800</span><br><span class="line">debug       = off</span><br><span class="line">runner      = scrapyd.runner</span><br><span class="line">application = scrapyd.app.application</span><br><span class="line">launcher    = scrapyd.launcher.Launcher</span><br><span class="line">webroot     = scrapyd.website.Root</span><br><span class="line"></span><br><span class="line">[services]</span><br><span class="line">schedule.json     = scrapyd.webservice.Schedule</span><br><span class="line">cancel.json       = scrapyd.webservice.Cancel</span><br><span class="line">addversion.json   = scrapyd.webservice.AddVersion</span><br><span class="line">listprojects.json = scrapyd.webservice.ListProjects</span><br><span class="line">listversions.json = scrapyd.webservice.ListVersions</span><br><span class="line">listspiders.json  = scrapyd.webservice.ListSpiders</span><br><span class="line">delproject.json   = scrapyd.webservice.DeleteProject</span><br><span class="line">delversion.json   = scrapyd.webservice.DeleteVersion</span><br><span class="line">listjobs.json     = scrapyd.webservice.ListJobs</span><br><span class="line">daemonstatus.json = scrapyd.webservice.DaemonStatus</span><br></pre></td></tr></table></figure></p>
+<p>基本就是<a href="https://scrapyd.readthedocs.io/en/latest/config.html#example-configuration-file" target="_blank" rel="noopener">https://scrapyd.readthedocs.io/en/latest/config.html#example-configuration-file</a>的内容。</p>
+<h3 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h3><p>新建一个Dockerfile，文件名字随意，例如mydockerfile，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">FROM python:3.6</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">CMD scrapyd</span><br></pre></td></tr></table></figure></p>
+<p>第一行的FROM是指在python:3.6这个镜像上构建，也就是说在构建时就已经有了Python 3.6的环境。<br>第二行的ADD是将本地的代码放置到虚拟容器中。它有两个参数：第一个参数是.，即代表本地当前路径；第二个参数/code代表虚拟容器中的路径，也就是将本地项目所有内容放置到虚拟容器的/code目录下。<br>第三行的WORKDIR是指定工作目录，这里将刚才添加的代码路径设成工作路径，这个路径下的目录结构和当前本地目录结构是相同的，所以在这个目录下可以直接执行库安装命令。<br>第四行的COPY是将当前目录下的scrapyd.conf文件复制到虚拟容器中/etc/scrapyd/目录下，Scrapyd在运行时会默认读取这个配置。<br>第五行的EXPOSE是声明运行时容器提供服务端口，注意这里只是一个声明，运行时不一定会在此端口开启服务。这个声明的作用，一是告诉使用者这个镜像服务的运行端口，以方便配置映射，二是在运行使用随机端口映射时，容器会自动随机映射EXPOSE的端口。<br>第六行的RUN是执行某些命令，一般做一些环节准备工作。由于Docker虚拟容器内只有Python3环境，没有Python库，所以我们运行此命令来在虚拟容器中安装相应的Python库，这样项目部署到Scrapyd中便可以正常运行。<br>第七行的CMD是容器启动命令，容器运行时，此命令会被执行。这里我们直接用scrapyd来启动Scrapyd服务。</p>
+<h3 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h3><p>格式如下（不要漏了最后的那一个点）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f dockerfile文件 -t 自定镜像名字:自定镜像标签（默认latest） .</span><br></pre></td></tr></table></figure></p>
+<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f mydockerfile -t tisson/scrapyd:latest .</span><br></pre></td></tr></table></figure></p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>构建成功后即可运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 6800:6800 tisson/scrapyd:latest</span><br></pre></td></tr></table></figure></p>
+<p>然后打开localhost:6800可以看到Scrapyd服务。</p>
+<h3 id="【重要】补充说明"><a href="#【重要】补充说明" class="headerlink" title="【重要】补充说明"></a>【重要】补充说明</h3><p>你也许留意到，我们使用Docker后只是启动了Scrapyd服务，实际上爬虫并没有部署上去。因此我们还需要修改一些地方</p>
+<h4 id="新建脚本文件"><a href="#新建脚本文件" class="headerlink" title="新建脚本文件"></a>新建脚本文件</h4><p>在工程根目录下新建start.sh文件（文件名可以随意），内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">scrapyd &amp;</span><br><span class="line">scrapyd-deploy -p DictSpider &gt;&gt; scrapy.log</span><br><span class="line">tail -f scrapy.log</span><br></pre></td></tr></table></figure></p>
+<p>首先我们启动Scrapyd服务，并让它在后台运行，然后才能部署爬虫。<code>scrapyd-deploy -p DictSpider &gt;&gt; scrapy.log</code>这句就是部署爬虫到Scrapyd服务，其中“DictSpider”是工程名，可任意指定，然后我们把结果输出到scrapy.log文件。留意最后的那句<code>tail -f scrapy.log</code>。其实scrapy.log这个文件没什么内容，我们这句不是为了观察其内容，而是为了让Docker容器一直运行，否则爬虫刚部署上去还没跑，整个Docker容器就停止了：<strong>Docker容器后台运行,就必须有一个前台进程.容器运行的命令如果不是那些一直挂起的命令（比如运行top，tail），就是会自动退出的。</strong>之前尝试过，后台运行Scrapyd服务，然后部署爬虫，再用fg命令尝试把后台的Scrapyd服务切换到前台，结果死活报no such job，只能用这种办法了。</p>
+<h4 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h4><p>修改mydockerfile，内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FROM python:3.6</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">RUN chmod 755 start.sh</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;./start.sh&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>在之前docker file的基础上修改了最后两行。 </p>
+<h4 id="构建镜像、启动服务"><a href="#构建镜像、启动服务" class="headerlink" title="构建镜像、启动服务"></a>构建镜像、启动服务</h4><p>然后构建镜像的命令依旧是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -f mydockerfile -t tisson/scrapyd:latest .</span><br></pre></td></tr></table></figure></p>
+<p>启动服务的语句同样不变：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d -p 6800:6800 tisson/scrapyd:latest</span><br></pre></td></tr></table></figure></p>
+<p>最后是启动爬虫（DictSpider就是执行scrapyd-deploy时指定的名字）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://localhost:6800/schedule.json -d project=DictSpider -d spider=gdggzy_gov</span><br></pre></td></tr></table></figure></p>
+<h4 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h4><p>用docker logs看不到爬虫的日志，进去容器内，打开scrapy.log，同样没看到日志，它在哪里呢：<code>logs/project名/Spider名/</code>，以本项目为例，我们设置了容器内的工作目录为/code，工程名为DictSpider，spider名为gdggzy_gov，那么日志路径为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/code/logs/DictSpider/gdggzy_gov/</span><br></pre></td></tr></table></figure></p>
+<h2 id="整合Selenium所需的各种Web-Driver"><a href="#整合Selenium所需的各种Web-Driver" class="headerlink" title="整合Selenium所需的各种Web Driver"></a>整合Selenium所需的各种Web Driver</h2><p>很多时候，直接模拟网络请求并不容易，例如页面上某些内容是AJAX返回的，而这个AJAX请求需要带上n多不知道哪里冒出来的参数。这时我们一般就不想费心去摸索哪些参数怎么来的，直接用Selenium加上各种浏览器驱动，模拟各种点击啊输入啊等操作，剩下的事情，“浏览器”帮我们解决。<br>但是，这种方法在本机上跑没问题，但是如果部署到服务器上跑就难说了，浏览器要用到GUI，但服务器大多数没有GUI。因此，我们还需要在服务器上装一个名叫“xvfb”的东西。<br>这一整套东西自己装还是挺麻烦的，例如安装Chrome的话还需要找对应的chrome-drive包，版本不一致无法使用，还有各种奇怪的坑。幸好，早已有人帮我们把这些东西整合了，我们直接使用这个别人已经整合好的Docker镜像。  </p>
+<ul>
+<li>chromium-xvfb-py3：在Docker hub上能直接找到，下载即可，不过它的Python版本稍旧，现在是3.5的</li>
+<li>thsheep/chromium-xvfb-py3：这个和上边那个类似，而它的Python版本是3.6.3的，我们就选择它了</li>
+</ul>
+<p>那么，我们就在这个镜像的基础上构建我们的爬虫镜像吧，之前的dockerfile修改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FROM docker.io/thsheep/chromium-xvfb-py3:master</span><br><span class="line">ADD . /code</span><br><span class="line">WORKDIR /code</span><br><span class="line">COPY ./scrapyd.conf /etc/scrapyd/</span><br><span class="line">EXPOSE 6800</span><br><span class="line">RUN pip3 install -i https://pypi.douban.com/simple/ -r requirements.txt</span><br><span class="line">RUN chmod 755 start.sh</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;./start.sh&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>其实就是修改了第一行。<br>真正用的时候还有其他坑，例如：<br><a href="https://segmentfault.com/a/1190000016154179" target="_blank" rel="noopener">https://segmentfault.com/a/1190000016154179</a></p>
+<blockquote>
+<p>chrome和chromium都不能在root模式下运行，而且也不安全。所以最好是创建一个用户来运行。使用docker的时候，run时候需要加–privileged参数<br>还有：<a href="http://dockone.io/article/2232" target="_blank" rel="noopener">http://dockone.io/article/2232</a><br>在编译运行后，发现在这个Docker容器内单纯的去访问网页没有问题，如果去执行带有键盘的操作时，会报错。经过调查是需要在启动容器时执行Xvfb，申请一块Screen<br>这个等我遇到了再补充。</p>
+</blockquote>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/CentOS系统添加用户/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/CentOS系统添加用户/" itemprop="url">CentOS系统添加用户</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:32:23+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>据说平常使用root用户不够安全，那么还是创建另外的用户吧</p>
+</blockquote>
+<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><p>首先创建用户<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ adduser 用户名</span><br></pre></td></tr></table></figure></p>
+<p>然后分配密码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ passwd 用户名</span><br></pre></td></tr></table></figure></p>
+<p>按提示连续2次输入密码</p>
+<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>对linux不太熟，只为了完成日常开发，最好是用的账号和root几乎没有区别。首先我们用以下命令切换到root账号：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ su</span><br></pre></td></tr></table></figure></p>
+<p>按提示输入root账号的密码，然后修改/etc/sudoers配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ visudo</span><br></pre></td></tr></table></figure></p>
+<p>找到以下几行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Allow root to run any commands anywhere</span><br><span class="line">root    ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>然后再root那一会下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>退出。之后要执行命令，在命令前加上sudo，再输入密码（当前用户的密码），就可以成功执行了，例如，我安装了docker，然后执行docker ps它需要root权限，那么我这样就可成功：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker ps</span><br><span class="line">[sudo] password for 用户名:</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                               NAMES</span><br><span class="line">81b7ac1e12d1        mysql:5.7.23        &quot;docker-entrypoint.s…&quot;   3 hours ago         Up 3 hours          0.0.0.0:3306-&gt;3306/tcp, 33060/tcp   mysql57</span><br></pre></td></tr></table></figure></p>
+<h2 id="免密码"><a href="#免密码" class="headerlink" title="免密码"></a>免密码</h2><p>每次sudo都要输入密码很麻烦，我们把以下语句：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>改为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       NOPASSWD: ALL</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/" itemprop="url">sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:31:34+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>一开始都是用root用户操作Docker，后来用了非root用户，产生了各种问题。这次是使用maven插件docker-maven-plugin制作镜像时引起的各种问题</p>
+</blockquote>
+<p>命令如下，当使用root用户时正常运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>使用非root用户，却报如下错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD FAILURE</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time: 01:59 min</span><br><span class="line">[INFO] Finished at: 2019-01-15T18:12:46+08:00</span><br><span class="line">[INFO] Final Memory: 64M/1150M</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[ERROR] Failed to execute goal com.spotify:docker-maven-plugin:0.4.11:build (default-cli) on project elves: Exception caught: java.util.concurrent.ExecutionException: com.spotify.docker.client.shaded.javax.ws.rs.ProcessingException: java.io.IOException: Permission denied -&gt; [Help 1]</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.</span><br><span class="line">[ERROR] Re-run Maven using the -X switch to enable full debug logging.</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] For more information about the errors and possible solutions, please read the following articles:</span><br><span class="line">[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException</span><br></pre></td></tr></table></figure></p>
+<h1 id="操作Docker的权限"><a href="#操作Docker的权限" class="headerlink" title="操作Docker的权限"></a>操作Docker的权限</h1><p>首先想到的是当前用户没有操作Docker的权限，因此在前边加上sudo：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>结果居然报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo，mvn command not found</span><br></pre></td></tr></table></figure></p>
+<h1 id="解决sudo的问题"><a href="#解决sudo的问题" class="headerlink" title="解决sudo的问题"></a>解决sudo的问题</h1><p>上网查了下，原因是“系统预装的 sudo 在编译时缺省使用了 –with-secure-path 参数，因此当前用户使用 sudo 时环境变量 $PATH 被覆盖”，因此设置好的maven的环境变量被覆盖掉。如何处理呢？</p>
+<h2 id="使用别名修改sudo"><a href="#使用别名修改sudo" class="headerlink" title="使用别名修改sudo"></a>使用别名修改sudo</h2><p>这是其中一个简单的解决办法，编辑当前用户的.bashrc 文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi ~/.bashrc</span><br></pre></td></tr></table></figure></p>
+<p>添加下面这行内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alias sudo=&quot;sudo env PATH=$PATH&quot;</span><br></pre></td></tr></table></figure></p>
+<p>通过添加上面那行别名设置，就会在执行 sudo 时把当前的 $PATH 的值再套用上，达到想要的效果。然后编译一下.bashrc文件，再运行之前sudo mvn就能正常跑了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bashrc</span><br><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>看上去是没问题了，但是如果把sudo man这句放到shell文件中执行，还是报<code>sudo，mvn command not found</code>，因此我们不使用别名这种方法了，改为用另一种：</p>
+<h2 id="修改-etc-sudoers"><a href="#修改-etc-sudoers" class="headerlink" title="修改/etc/sudoers"></a>修改/etc/sudoers</h2><p>当前用户下我配置的环境变量是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/lib/jvm/java</span><br><span class="line">M2_HOME=/usr/local/maven3</span><br><span class="line">PATH=$PATH:$JAVA_HOME/bin</span><br><span class="line">export PATH=$PATH:$M2_HOME/bin</span><br></pre></td></tr></table></figure></p>
+<p>我们用如下指令修改/etc/sudoers：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo visudo</span><br></pre></td></tr></table></figure></p>
+<p>然后用以下其中任意一种方法：</p>
+<h3 id="修改secure-path"><a href="#修改secure-path" class="headerlink" title="修改secure_path"></a>修改secure_path</h3><p>找到<code>secure_path</code>那一行，例如它原来是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin</span><br></pre></td></tr></table></figure></p>
+<p>我们改为这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/lib/jvm/java/bin:/usr/local/maven3/bin</span><br></pre></td></tr></table></figure></p>
+<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
+<h3 id="修改env-keep"><a href="#修改env-keep" class="headerlink" title="修改env_keep"></a>修改env_keep</h3><p>找到<code>env_keep</code>那一行，在它下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    env_keep += &quot;PATH&quot;</span><br></pre></td></tr></table></figure></p>
+<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/Docker容器的重启策略/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/27/Docker容器的重启策略/" itemprop="url">Docker容器的重启策略</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-27T15:48:08+08:00">
+                2018-12-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Docker之前，传统的项目部署，也会遇到服务由于某种原因停了必须重新启动的情况。想象一下休息时间突然接到电话要求马上解决服务不正常的那种窘况，因此要让服务可以自行重启</p>
+</blockquote>
+<h1 id="Docker容器有什么重启策略"><a href="#Docker容器有什么重启策略" class="headerlink" title="Docker容器有什么重启策略"></a>Docker容器有什么重启策略</h1><ul>
+<li>no，默认策略，在容器退出时不重启容器</li>
+<li>on-failure，在容器非正常退出时（退出状态非0），才会重启容器。一般来说，手动的docker stop 容器名这样停止的容器，退出状态会是0。<ul>
+<li>on-failure:3，在容器非正常退出时重启容器，最多重启3次</li>
+</ul>
+</li>
+<li>always，在容器退出时总是重启容器</li>
+<li>unless-stopped，在容器退出时总是重启容器，但是不考虑在Docker守护进程启动时就已经停止了的容器</li>
+</ul>
+<h1 id="启动Docker镜像时设定重启策略"><a href="#启动Docker镜像时设定重启策略" class="headerlink" title="启动Docker镜像时设定重启策略"></a>启动Docker镜像时设定重启策略</h1><p>例如，我启动一个容器，我希望它每次非正常退出就自动重启服务，最多重启3次：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name dict-web -d --restart=on-failure:3 tisson/dict-web-bid:latest</span><br></pre></td></tr></table></figure></p>
+<h1 id="更新正在运行中的Docker容器的重启策略"><a href="#更新正在运行中的Docker容器的重启策略" class="headerlink" title="更新正在运行中的Docker容器的重启策略"></a>更新正在运行中的Docker容器的重启策略</h1><p>如果某Docker容器已在运行中，我希望在不停止该服务的情况下，把它设为可以自动重启，命令格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker update --restart=重启策略 &lt;container_id&gt;</span><br></pre></td></tr></table></figure></p>
+<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker update --restart=always dict-web</span><br></pre></td></tr></table></figure></p>
+<p>假设某容器我们启动时设置了“总是重启”，那么如果我们手动停止它，它也会马上重启，因此我们在停止该重启前，也要用上边的方法，更改它的重启策略后，方能停止。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/" itemprop="url">用Docker构建、运行、发布一个SpringBoot应用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-27T15:47:46+08:00">
+                2018-12-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>开发了一个Spring Boot的应用，传统的方法是打包（导出jar包），然后扔到服务器上，在服务器上配置好JDK等环境变量，然后运行jar包。现在改为用Docker了，希望每个jar包放在一个独立的容器，互不影响，要怎么做呢？<br>我们假设你用的是maven</p>
+</blockquote>
+<h1 id="Maven中加入Docker插件"><a href="#Maven中加入Docker插件" class="headerlink" title="Maven中加入Docker插件"></a>Maven中加入Docker插件</h1><p>修改工程的pom.xml文件，在如下位置加入依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;project ......&gt;</span><br><span class="line">	&lt;build&gt;</span><br><span class="line">		&lt;plugins&gt;</span><br><span class="line">			&lt;plugin&gt;</span><br><span class="line">		                &lt;groupId&gt;com.spotify&lt;/groupId&gt;</span><br><span class="line">		                &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;</span><br><span class="line">		                &lt;version&gt;0.4.11&lt;/version&gt;</span><br><span class="line">		                &lt;configuration&gt;</span><br><span class="line">		                    &lt;imageName&gt;$&#123;imagePath&#125;/$&#123;project.artifactId&#125;&lt;/imageName&gt;</span><br><span class="line">				&lt;!-- 工程中dockerfile的位置--&gt;</span><br><span class="line">		                    &lt;dockerDirectory&gt;src/main/docker&lt;/dockerDirectory&gt;</span><br><span class="line">		                    &lt;resources&gt;</span><br><span class="line">			                    &lt;resource&gt;</span><br><span class="line">			                            &lt;targetPath&gt;/&lt;/targetPath&gt;</span><br><span class="line">			                            &lt;directory&gt;$&#123;project.build.directory&#125;&lt;/directory&gt;</span><br><span class="line">			                            &lt;include&gt;$&#123;project.build.finalName&#125;.jar&lt;/include&gt;</span><br><span class="line">			                    &lt;/resource&gt;</span><br><span class="line">		                    &lt;/resources&gt;</span><br><span class="line">		                &lt;/configuration&gt;</span><br><span class="line">		            &lt;/plugin&gt;</span><br><span class="line">......</span><br><span class="line">	&lt;profiles&gt;</span><br><span class="line">		&lt;profile&gt;</span><br><span class="line">			&lt;id&gt;自定的id&lt;/id&gt;</span><br><span class="line">			&lt;properties&gt;</span><br><span class="line">				&lt;imagePath&gt;自定的docker镜像前缀&lt;/imagePath&gt;</span><br><span class="line">			&lt;/properties&gt;</span><br><span class="line">		&lt;/profile&gt;</span><br><span class="line">	&lt;/profiles&gt;</span><br><span class="line">......</span><br><span class="line">&lt;/project&gt;</span><br></pre></td></tr></table></figure></p>
+<h1 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h1><p>上边我们定义了docker file的位置：src/main/docker，因此，我们就在工程的该目录下，创建文件：Dockerfile，文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181       # 表示我们的docker镜像是基于openjdk:8u181构建的</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD helloworld-0.0.1-SNAPSHOT.jar app.jar      #其中“helloworld”对应pom.xml中的artifactId，“0.0.1-SNAPSHOT”对应pom.xml中的version，jar对应pom.xml中的packaging</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]      # -Duser.timezone=GMT+8这句是设置docker使用北京、上海的这个时区</span><br></pre></td></tr></table></figure></p>
+<h1 id="构建Docker-Image"><a href="#构建Docker-Image" class="headerlink" title="构建Docker Image"></a>构建Docker Image</h1><p>这一步把工程通过maven构建为一个docker镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn package -D maven.test.skip=true -P 【上边自定的profile id】 docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>这时，我们通过docker images命令可以看到创建的镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">tisson/dict                latest              6febabde1fc5        6 hours ago         836 MB</span><br></pre></td></tr></table></figure></p>
+<p>tisson/dict 就是之前定义的imageName：${imagePath}/${project.artifactId}</p>
+<h1 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h1><p>然后就像运行一般docker容器那样即可<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d tisson/dict:latest</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/备份Docker-MySQL镜像的数据/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -303,16 +1160,15 @@
             <blockquote>
 <p>Docker容器关闭（删除）后，数据会消失。为此我们需用到Docker的挂载。那么现在如果我们要再多做一步，每天备份Docker MYSQL镜像的数据呢？</p>
 </blockquote>
-<h1 id="使用挂载功能"><a href="#使用挂载功能" class="headerlink" title="使用挂载功能"></a>使用挂载功能</h1><p>我们把MySQL Docker容器中用到的目录挂载到宿主机上的目录： -v 主机路径:容器内部路径</p>
-<pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 -v /mnt/data-disk/mysql1/config:/etc/mysql/conf.d -v /mnt/data-disk/mysql1/datadir:/var/lib/mysql -v /etc/localtime:/etc/localtime:ro -m 2G --memory-swap=2G -e MYSQL_ROOT_PASSWORD=&apos;ROOT用户的密码&apos; -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure>
-</code></pre><h1 id="备份数据的脚本"><a href="#备份数据的脚本" class="headerlink" title="备份数据的脚本"></a>备份数据的脚本</h1><h2 id="MySQL的备份脚本"><a href="#MySQL的备份脚本" class="headerlink" title="MySQL的备份脚本"></a>MySQL的备份脚本</h2><p>格式如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -u 用户名 -p密码 数据库名 &gt; 导出的文件名（自行定义，例如test.dump）</span><br><span class="line"># 注意-p和密码之间不要留空格（留了也许可以，但有时会报错）</span><br></pre></td></tr></table></figure></p>
-<h2 id="Docker-MySQL镜像的备份脚本"><a href="#Docker-MySQL镜像的备份脚本" class="headerlink" title="Docker MySQL镜像的备份脚本"></a>Docker MySQL镜像的备份脚本</h2><pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=xxxx&quot;) mysqldump -u root -p&apos;root用户密码&apos; --ignore-table=xxx.aaa 数据库名 &gt; 文件名</span><br><span class="line"># 注意不要有-t，因为-t是分配一个伪终端,但是crontab执行的时候实际是不需要的</span><br></pre></td></tr></table></figure>
-</code></pre><p>例如，我们刚才创建了一个名为mysql57的MySQL Docker容器，我们设置了它的root密码是ab(c)，我们希望可以备份到一个根据当前日期决定的文件名<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
+<h1 id="使用挂载功能"><a href="#使用挂载功能" class="headerlink" title="使用挂载功能"></a>使用挂载功能</h1><p>我们把MySQL Docker容器中用到的目录挂载到宿主机上的目录： -v 主机路径:容器内部路径<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 -v /mnt/data-disk/mysql1/config:/etc/mysql/conf.d -v /mnt/data-disk/mysql1/datadir:/var/lib/mysql -v /etc/localtime:/etc/localtime:ro -m 2G --memory-swap=2G -e MYSQL_ROOT_PASSWORD=&apos;ROOT用户的密码&apos; -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<h1 id="备份数据的脚本"><a href="#备份数据的脚本" class="headerlink" title="备份数据的脚本"></a>备份数据的脚本</h1><h2 id="MySQL的备份脚本"><a href="#MySQL的备份脚本" class="headerlink" title="MySQL的备份脚本"></a>MySQL的备份脚本</h2><p>格式如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -u 用户名 -p密码 数据库名 &gt; 导出的文件名（自行定义，例如test.dump）</span><br><span class="line"># 注意-p和密码之间不要留空格（留了也许可以，但有时会报错）</span><br></pre></td></tr></table></figure></p>
+<h2 id="Docker-MySQL镜像的备份脚本"><a href="#Docker-MySQL镜像的备份脚本" class="headerlink" title="Docker MySQL镜像的备份脚本"></a>Docker MySQL镜像的备份脚本</h2><p>脚本如下<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=xxxx&quot;) mysqldump -u root -p&apos;root用户密码&apos; --ignore-table=xxx.aaa 数据库名 &gt; 文件名</span><br><span class="line"># 注意不要有-t，因为-t是分配一个伪终端,但是crontab执行的时候实际是不需要的</span><br></pre></td></tr></table></figure></p>
+<p>例如，我们刚才创建了一个名为mysql57的MySQL Docker容器，我们设置了它的root密码是ab(c)，我们希望可以备份到一个根据当前日期决定的文件名<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
 <h1 id="使用Linux的定时功能，定时备份数据"><a href="#使用Linux的定时功能，定时备份数据" class="headerlink" title="使用Linux的定时功能，定时备份数据"></a>使用Linux的定时功能，定时备份数据</h1><p>需要用到crontab，如果没安装，需要先安装  </p>
 <h2 id="编写脚本文件"><a href="#编写脚本文件" class="headerlink" title="编写脚本文件"></a>编写脚本文件</h2><p>假设我们要执行的脚本文件是/root/dockerfiles/script/data_bak.sh<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 创建文件</span><br><span class="line">$ touch data_bak.sh</span><br><span class="line"># 赋予执行权限</span><br><span class="line">$ chmod 755 data_bak.sh</span><br></pre></td></tr></table></figure></p>
 <p>在文件中写入如下语句<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
-<h2 id="编辑定时执行计划"><a href="#编辑定时执行计划" class="headerlink" title="编辑定时执行计划"></a>编辑定时执行计划</h2><pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br></pre></td></tr></table></figure>
-</code></pre><p>然后在文件中添加：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0 3 * * * sh /root/dockerfiles/script/data_bak.sh &gt;&gt; /mnt/data-disk/mysql_dumps.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure></p>
+<h2 id="编辑定时执行计划"><a href="#编辑定时执行计划" class="headerlink" title="编辑定时执行计划"></a>编辑定时执行计划</h2><p>执行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br></pre></td></tr></table></figure></p>
+<p>然后在文件中添加：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0 3 * * * sh /root/dockerfiles/script/data_bak.sh &gt;&gt; /mnt/data-disk/mysql_dumps.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure></p>
 <p>前面5个参数分别表示分钟、小时、日、月、年，星号表示任意</p>
 <p>就这样，每天凌晨3点，数据会备份到/mnt/data-disk/ 目录下的dict-当前日期.dump</p>
 
@@ -786,811 +1642,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/Linux-SSH远程免密码登录/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/30/Linux-SSH远程免密码登录/" itemprop="url">Linux SSH远程免密码登录</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T11:38:31+08:00">
-                2018-07-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>远程登录Linux服务器，或者往其上传文件，每次都要输入一大串密码，而且密码还不能复制，相当麻烦，有没办法保存密码不用每次输入呢？</p>
-</blockquote>
-<h1 id="在本机（Linux-macOS-）上生成密钥"><a href="#在本机（Linux-macOS-）上生成密钥" class="headerlink" title="在本机（Linux/macOS ）上生成密钥"></a>在本机（Linux/macOS ）上生成密钥</h1><p>执行命令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure></p>
-<p>然后按提示操作，在位置所有默认设置的情况下，该命令会在<strong>用户的根目录</strong>（例如/root/）生成.ssh文件夹，里边会有如下文件：    </p>
-<ul>
-<li>authorized_keys:存放远程免密登录的公钥,主要通过这个文件记录多台机器的公钥</li>
-<li>id_rsa : 生成的私钥文件</li>
-<li>id_rsa.pub ： 生成的公钥文件</li>
-<li>know_hosts : 已知的主机公钥清单</li>
-</ul>
-<h1 id="把公钥添加到要被远程登录的服务器"><a href="#把公钥添加到要被远程登录的服务器" class="headerlink" title="把公钥添加到要被远程登录的服务器"></a>把公钥添加到要被远程登录的服务器</h1><p>如果希望ssh公钥生效需满足至少下面两个条件：  </p>
-<ol>
-<li>.ssh目录的权限必须至少是700</li>
-<li>.ssh/authorized_keys文件权限必须至少是600    </li>
-</ol>
-<p>添加的方式也有如下几种，使用其中一种即可。</p>
-<h2 id="通过ssh-copy-id的方式"><a href="#通过ssh-copy-id的方式" class="headerlink" title="通过ssh-copy-id的方式"></a>通过ssh-copy-id的方式</h2><p>将本机的公钥复制到远程机器的authorized_keys文件中，ssh-copy-id也能让你有到远程机器的home, ./ssh , 和 /.ssh/authorized_keys的权利<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-copy-id -i ~/.ssh/id_rsa.pub &lt;remote-host&gt;</span><br></pre></td></tr></table></figure></p>
-<p>remote-host就是远程服务器ip，例如132.121.30.70  。<br>这里需要按提示输入该远程服务器的密码。<br>（注意）要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。</p>
-<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2><p>运行如下命令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scp -p ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:/root/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
-<p>remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。<br>也可以分为两步操作：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 不过要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
-<h2 id="通过Ansible实现批量免密（以后补充）"><a href="#通过Ansible实现批量免密（以后补充）" class="headerlink" title="通过Ansible实现批量免密（以后补充）"></a>通过Ansible实现批量免密（以后补充）</h2><h2 id="手工复制粘贴的方式"><a href="#手工复制粘贴的方式" class="headerlink" title="手工复制粘贴的方式"></a>手工复制粘贴的方式</h2><p>将本地id_rsa.pub文件的内容拷贝至远程服务器的/.ssh/authorized_keys文件中</p>
-<p>参考：<br><a href="http://blog.chinaunix.net/uid-26284395-id-2949145.html" title="使用ssh-keygen和ssh-copy-id三步实现SSH无密码登录" target="_blank" rel="noopener"> 使用ssh-keygen和ssh-copy-id三步实现SSH无密码登录 </a><br><a href="https://www.cnblogs.com/yixue2017/p/7559970.html" title="Linux下实现免密码登录(超详细)" target="_blank" rel="noopener">Linux下实现免密码登录(超详细)</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/19/Window下让JAR包在后台运行的方法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/19/Window下让JAR包在后台运行的方法/" itemprop="url">Window下让JAR包在后台运行的方法</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-19T16:03:38+08:00">
-                2018-06-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>近日曾通过远程桌面登录一个windows服务器，在上边跑一个Java的jar包。登录的状态下，看上去是正确运行的，但是，切换出去后再切换回远程桌面，竟然发现那个jar包的运行貌似是暂停了，需要按任意按键让它继续跑。</p>
-</blockquote>
-<p>解决方法如下：</p>
-<ol>
-<li>新建一个批处理，例如run.bat</li>
-<li><p>文件内添加如下内容：（注意“java”可以替换为“javaw”，这样就会没有命令行窗口，System out输出看不到，需要在程序中重定向system.out/err的输出到日志文件）</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@echo off</span><br><span class="line">start java -jar xx.jar</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>双击运行该批处理</p>
-</li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/09/Windows安装MySQL5-7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/09/Windows安装MySQL5-7/" itemprop="url">Windows安装MySQL5.7</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-09T17:18:43+08:00">
-                2018-06-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>在一台Windows上安装MySQL5.7，用的是官网提供的压缩包而不是安装文件，过程中踩坑无数，特此记录。</p>
-</blockquote>
-<h1 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h1><p>我是去<a href="https://dev.mysql.com/downloads/mysql/" target="_blank" rel="noopener">官网</a>下载，下载版本为5.7.22，选择的是“Windows (x86, 64-bit), ZIP Archive”这个包。下载后，解压。假设我源码解压后的目录为C:\mysql</p>
-<h1 id="添加环境变量"><a href="#添加环境变量" class="headerlink" title="添加环境变量"></a>添加环境变量</h1><p>系统变量中添加名字为“MYSQL_HOME”，值为“C:\mysql”的变量，然后修改“Path”变量，在最后加入“%MYSQL_HOME%\bin”，保存。这样，就能在命令行模式任何目录下执行mysqld等操作。</p>
-<h1 id="安装-Net-Framework"><a href="#安装-Net-Framework" class="headerlink" title="安装.Net Framework"></a>安装.Net Framework</h1><p>这就是其中一个大坑。在命令行执行mysqld时报App Crash，错误模块为MSVCR120.dll。网上搜索了一下，好像没什么看上去靠谱的解决方案，都是让你升级操作系统，要不就是直接再下载一个MSVCR120.dll。眼看就要一直卡在这了，突然想起如果不是使用压缩包而是直接用MySQL的window安装包，安装后启动时它提示需要.Net Framework。果然，安装了.Net Framework后（我估计它要的其实是Visual C++的编译器），问题解决。</p>
-<h1 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h1><p>这个版本的MySQL竟然连默认的my.ini文件也没提供，真是坑！就不能提供个示例文件吗？还需要自己上网找，参考别人怎么配置！我只好自行新建一个my.ini文件，放到mysql根目录下。文件的示例如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line"># mysql服务端默认监听(listen on)的TCP/IP端口</span><br><span class="line">port=3306</span><br><span class="line"># 基准路径，其他路径都相对于这个路径</span><br><span class="line">basedir=&quot;C:/mysql/&quot;   </span><br><span class="line"># mysql数据库文件所在目录</span><br><span class="line">datadir=&quot;C:/mysql/data/&quot;</span><br><span class="line"># 服务端使用的字符集默，utf8mb4比utf8多了对文字中表情的支持</span><br><span class="line">character-set-server=utf8mb4</span><br><span class="line"># 创建新表时将使用的默认存储引擎</span><br><span class="line">default-storage-engine=INNODB</span><br><span class="line"># SQL模式为strict模式</span><br><span class="line">sql-mode=&quot;STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION&quot;</span><br><span class="line"># mysql服务器支持的最大并发连接数（用户数），但总会预留其中的一个连接给管理员使用超级权限登录，即使连接数目达到最大限制。如果设置得过小而用户比较多，会经常出现“Too many connections”错误。</span><br><span class="line">max_connections=100</span><br><span class="line"># 锁表操作的超时时间，默认长达1年！所以必须设置，否则锁表操作一执行就无法停止，除非重启数据库，影响巨大，这里设置为半小时</span><br><span class="line">lock_wait_timeout=1800</span><br><span class="line"># MySQL默认只能本地访问，如果需允许远程访问，必须设置（0.0.0.0就是允许全网访问）</span><br><span class="line">bind_address=0.0.0.0</span><br></pre></td></tr></table></figure></p>
-<p>注意配置文件是分“块”的：[client]，[mysqld]等，就像上边的配置都放在mysqld这个块下，如果放到client是不行的。<br>参考<a href="https://www.jb51.net/article/88731.htm" target="_blank" rel="noopener">MySQL 5.6 &amp; 5.7最优配置文件模板(my.ini)</a>，<a href="http://yrq205.blog.163.com/blog/static/476721402013226337767/" target="_blank" rel="noopener">MySQL配置文件mysql.ini参数详解</a></p>
-<h1 id="初始化数据库"><a href="#初始化数据库" class="headerlink" title="初始化数据库"></a>初始化数据库</h1><p>设置登录的用户名密码，以及把MySQL创建为一个服务，让它可以开机启动。<br>初始化（生成data目录）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld  --initialize</span><br></pre></td></tr></table></figure></p>
-<p>安装（创建为一个服务），install后边就是自行设置的服务名，例如我也可以设为MySQL5.7，注意后边有个大坑：default<strong>s</strong>-file而不是default-file！！！不知道是网上文章一大抄还是某个版本改了，网上很多文章写的都是default-file。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -install MySQL --defaults-file=C:/mysql/my.ini</span><br></pre></td></tr></table></figure></p>
-<p>初始化数据库data（这一步是否必要，有待验证，我当时好像是做了，但这部未必有必要）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --initialize-insecure --user=root</span><br></pre></td></tr></table></figure></p>
-<p>启动服务，也可以在服务菜单启动<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start MySQL</span><br></pre></td></tr></table></figure></p>
-<p>注意这时我们还没有设置用户名密码，虽然服务启动了，但是无法登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -u root -p</span><br></pre></td></tr></table></figure></p>
-<p>输入任意密码都会报Access Deny<br>我们需要在my.ini的mysqld块下增加一行<code>skip-grant-tables</code>，然后重启MySQL服务，输入以下指令，成功登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure></p>
-<h1 id="设置root密码"><a href="#设置root密码" class="headerlink" title="设置root密码"></a>设置root密码</h1><p>假设我们要设置登录密码为“password”。这里有个坑，貌似MySQL5.6及以前，mysql.user这个表，放密码的字段就是password，5.7这个password改为了authentication_string。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; update mysql.user set authentication_string=password(&quot;password&quot;) where user=&quot;root&quot;;</span><br></pre></td></tr></table></figure></p>
-<p>然后输入exit回车，退出mysql。把之前在my.ini添加的<code>skip-grant-tables</code>删掉。重启服务，重新登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure></p>
-<p>输入密码password，成功登录。然后又遇到一个坑，无论执行什么命令，都会报<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1820 (HY000): You must reset your password using ALTER USER statement before executing this statement.</span><br></pre></td></tr></table></figure></p>
-<p>明明用密码登录了，还要我重新设置！那我就重新设置呗。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET PASSWORD = PASSWORD(&apos;password&apos;);</span><br></pre></td></tr></table></figure></p>
-<p>注意有些人在设置密码时还会报以下错误，意思是密码太简单了，还好我没遇到<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1819 (HY000): Your password does NOT satisfy the CURRENT policy requirements</span><br></pre></td></tr></table></figure></p>
-<h1 id="允许远程登录"><a href="#允许远程登录" class="headerlink" title="允许远程登录"></a>允许远程登录</h1><p>我们为MySQL设置了用户root的账号密码，在该服务器上也能成功登录了，但是，现在用其他机器还是无法登录该MySQL服务的。因为mysql.user表的记录有个host字段，规定了从什么机器能用该账号登录，如果是localhost就是只能本机访问，如果是某ip就是指定ip方可访问，如果是%则所有ip均可访问。另外，让所有人使用root登录好像不太安全，那我们干脆创建一个用户给开发人员远程登录吧。<br>我们创建一个bigdataweb的用户，密码为big123!@#web，执行以下全部或某几条命令（抱歉我忘了）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; set password for &apos;bigdataweb&apos;@&apos;%&apos; = password(&apos;big123!@#web&apos;);</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure></p>
-<p>如果上边的不行，就试试这个吧，我记得这个是行的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create user bigdataweb identified by &apos;big123!@#web&apos;;</span><br></pre></td></tr></table></figure></p>
-<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>创建了的新用户是没有什么权限的，我们要给它分配权限：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; grant all privileges on *.* to &apos;bigdataweb&apos;@&apos;%&apos;identified by &apos;big123!@#web&apos; with grant option;</span><br><span class="line">mysql&gt; flush privileges ;</span><br></pre></td></tr></table></figure></p>
-<h1 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h1><p>99%的文章只教安装不提卸载，好吧能安装已是万事大吉了还想研究如何卸载？不过有时还真有这个需要，例如之前的install时我把defaults-file的路径设错了，服务死活启动不了，重新安装它又说服务已存在。网上搜索如何卸载干净，又说执行“sc delete MySQL”的，有说要在注册表删除的，我试过，毫无作用。唯一正解是执行这个（参考：<a href="https://www.jb51.net/article/105755.htm" target="_blank" rel="noopener">Windows下MySQL服务无法停止和删除的解决办法</a><br>）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld remove MySQL</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/" itemprop="url">Mac远程桌面连接Windows Server 2012R2</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-08T15:46:43+08:00">
-                2018-06-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>安装了Windows Server 2012 R2系统，控制面板开启了允许远程桌面，使用win7能顺利用远程桌面连上，但是用Mac的远程桌面却死活连不上，报“远程桌面无法验证您希望连接的计算机的身份”</p>
-</blockquote>
-<p>解决方案如下：</p>
-<ol>
-<li>在Windows Server系统，开始->运行，也可以进入命令行，输入gpedit.msc，打开组策略编辑器</li>
-<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面会话主机”->“安全”，打开“（RDP）连接要求使用指定的安全层”，设为“启用”，另外把安全层下拉框调成“RDP”。英文版：（进入Computer Configuration->Administrative Templates->Windows Components->Remote Desktop Services->Remote Desktop Session Host->Security，打开”Require use of specific security layer for remote desktop (RDP) connection”的设置，将其设置为Enabled，并且在Options中将Security Layer设置为RDP）。</li>
-<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面连接客户端”，把“在客户端计算机上提示提供凭据”设为启用。英文版：（Computer Configuration -> Administrative Templates -> Windows Components -> Remote Desktop Services -> Remote Desktop Connection Client 中允许”Prompt for credentials on the client computer”）</li>
-</ol>
-<p>至此，Mac终于能通过远程桌面连上Windows Server 2012了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/06/MySQL中把一个表的内容更新到另一个表/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/06/MySQL中把一个表的内容更新到另一个表/" itemprop="url">MySQL中把一个表的内容更新到另一个表</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T15:06:32+08:00">
-                2018-06-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>导数据时经常会遇到的情况：例如我想把两个表的内容合并，从表B的字段全部放到主表A</p>
-<h1 id="在主表A新增从表B的字段"><a href="#在主表A新增从表B的字段" class="headerlink" title="在主表A新增从表B的字段"></a>在主表A新增从表B的字段</h1><p>这个步骤很简单，直接按照从表B的结构，在主表A Add Column就是。当然我们可以谨慎一些，避免表A被锁:</p>
-<ol>
-<li>先创建一个临时表TempA，内容包含表A与表B的字段</li>
-<li>insert into TempA (字段列表，以逗号隔开) select 字段列表以逗号隔开 from A</li>
-<li>drop table A</li>
-<li>alter table TempA rename to A</li>
-</ol>
-<h1 id="根据表B更新表A"><a href="#根据表B更新表A" class="headerlink" title="根据表B更新表A"></a>根据表B更新表A</h1><p>假设A表B表根据ID一一对应，现在要把从表B的column1更新到A表的column2<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A,B set A.column2=B.column1 where A.ID=B.ID</span><br></pre></td></tr></table></figure></p>
-<p>另外，也可以写成子查询的形式<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A set column2=(select column1 from B where ID=A.ID)</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/Selenium使用cookie免登录示例（Python版）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/01/Selenium使用cookie免登录示例（Python版）/" itemprop="url">Selenium使用cookie免登录示例（Python版）</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-01T20:55:54+08:00">
-                2018-06-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>业务需求，爬取某网站，该网站必须登录，而登录过程中包含拖动滑块与汉字坐标验证码，其中后者我暂时无法破解，只能手动处理。如何做到登录一次后，保存cookie，下次就让Selenium读取cookie，免去我手动登录呢</p>
-</blockquote>
-<h1 id="安装Selenium"><a href="#安装Selenium" class="headerlink" title="安装Selenium"></a>安装Selenium</h1><p>安装依赖<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install selenium</span><br></pre></td></tr></table></figure></p>
-<h1 id="下载webdriver"><a href="#下载webdriver" class="headerlink" title="下载webdriver"></a>下载webdriver</h1><p>由于我用最主流的Chrome，需要下载它的驱动：<a href="http://chromedriver.storage.googleapis.com/index.html" target="_blank" rel="noopener">（chrome各个版本的web driver）</a>，假设我放到<code>/Users/SeaMonster/Downloads/</code>目录下<br>注：有时我们更新了Chrome浏览器后，再使用原来的chrome web driver就有可能产生各种奇怪的报错，如果发生这种情况，可以试试下载最新版的web driver替换之前用的。</p>
-<h1 id="让Selenium登录一次"><a href="#让Selenium登录一次" class="headerlink" title="让Selenium登录一次"></a>让Selenium登录一次</h1><p>实例化一个Selenium的web drive（这里用的是Chrome的web drive）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">from selenium import webdrive</span><br><span class="line"># webdriver的路径</span><br><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>然后，手动完成验证码校验</p>
-<h1 id="获取cookie，保存到文件"><a href="#获取cookie，保存到文件" class="headerlink" title="获取cookie，保存到文件"></a>获取cookie，保存到文件</h1><p>登录完成后，可以获取到cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cookies = browser.get_cookies()</span><br></pre></td></tr></table></figure></p>
-<p>我们把它以json格式保存到文件中<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import json</span><br><span class="line"># 假设文件路径为/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt</span><br><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;,&apos;w&apos;) as fp:</span><br><span class="line">	json.dump(cookies,fp)</span><br></pre></td></tr></table></figure></p>
-<h1 id="让Selenium读取cookie"><a href="#让Selenium读取cookie" class="headerlink" title="让Selenium读取cookie"></a>让Selenium读取cookie</h1><p>我们初始化一个webdriver，注意这时无法直接给它设置cookie，否则会报错。我们要先请求一下那个网页<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>这时可以给它设置cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;, &apos;r&apos;) as fp:</span><br><span class="line">	cookies = json.load(fp)</span><br><span class="line"></span><br><span class="line">for cookie in cookies:</span><br><span class="line">	driver.add_cookie(cookie)</span><br></pre></td></tr></table></figure></p>
-<p>这时候再请求那个网址，就可发现已登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>参考文章：<br><a href="https://www.cnblogs.com/small-bud/p/9064674.html" target="_blank" rel="noopener">selenium+requests进行cookies保存读取操作</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1641,7 +1692,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1654,7 +1705,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">24</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -1691,7 +1742,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

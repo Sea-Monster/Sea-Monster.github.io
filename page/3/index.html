@@ -229,6 +229,842 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/22/一个Linux-Bash文件示例/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/22/一个Linux-Bash文件示例/" itemprop="url">一个Linux Bash文件示例</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-22T23:32:37+08:00">
+                2018-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>故事背景大概是这样：有一台生产环境的服务器，没办法直接给它上传文件，也就是往上边部署代码非常麻烦，但幸好那台服务器可以访问外网，所以想出一个歪招，把代码上传到码云，然后在那台服务器上下载码云上的代码。</p>
+<ol>
+<li>创建.sh文件，假设文件名为update-source.sh<br> <code>$ touch update-source.sh</code></li>
+<li>赋予执行权限<br> <code>$ chmod 777 update-source.sh</code></li>
+<li>编辑文件<br> <code>$ vi update-source.sh</code></li>
+<li><p>编写内容</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">rm -rf TelecomInfo</span><br><span class="line">wget https://gitee.com/Sea-Monster/repository/archive/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line">rm -f master.zip</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行<br> <code>$ ./update-source.sh</code></p>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/22/linux前后台任务的切换以及执行暂停/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/22/linux前后台任务的切换以及执行暂停/" itemprop="url">linux前后台任务的切换以及执行暂停</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-22T23:10:01+08:00">
+                2018-05-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>我们平常运行一条命令，系统将会等待命令执行完毕才让我们进行下一步操作。</p>
+<ol>
+<li>这时按CTRL+Z，会把当前运行的命令暂停（而不是停止！CTRL+C才是停止）</li>
+<li><p>这时候输入jobs，可以看到刚才暂停的进程（其实应该是job，不是进程pid），例如<br> <code>[1]+  Stopped                 ./a.out</code></p>
+</li>
+<li><p>我们可以让它在后台继续运行：bg 1</p>
+</li>
+<li>也可以让它在前台继续运行：fg 1</li>
+<li>甚至可以把进程杀掉，让它真正终止： kill %1 （注意前边有个百分号）</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/15/Linux上同时安装Python2和Python3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/15/Linux上同时安装Python2和Python3/" itemprop="url">Linux上同时安装Python2和Python3</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-15T11:35:13+08:00">
+                2018-05-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Linux和MacOS默认都是安装了Python2的。我们如何在操作系统中继续安装Python3但不覆盖系统自带的Python2呢？</p>
+</blockquote>
+<p>这里的小技巧就是，下载Python3的源码之后，使用 “make altinstall”安裝而不是“make install”安装。</p>
+<p>Python 的 make install 跟 make altinstall 有什么差別呢?<br>我们看下make的帮助文档：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">install:         altinstall bininstall maninstall</span><br></pre></td></tr></table></figure></p>
+<p>很明显 install 除了做 altinstall 还会做 bininstall , maninstall 共三个动作。<br>bininstall 就是在处理 Symbolic Link Chain 的事务, 而 maninstall 則是在产生 unversioned manual pages, 所以, 不使用 bininstall 可以避免 python install 时 update link的问题。说白了，就是这样安装不会自动创建softlink。保持python继续链接系统自带的python2。<br>所以我们的步骤如下：</p>
+<h1 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h1><p>假设我们要下载的是Python 3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tar.xz</span><br></pre></td></tr></table></figure></p>
+<h1 id="解压"><a href="#解压" class="headerlink" title="解压"></a>解压</h1><pre><code>tar xvJf Python-3.6.5.tar.xz
+</code></pre><h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>进入目录Python-3.6.5<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo ./configure --prefix=/usr/local/python3 --with-ssl</span><br><span class="line">$ sudo make </span><br><span class="line">$ sudo make altinstall</span><br></pre></td></tr></table></figure></p>
+<h1 id="路径"><a href="#路径" class="headerlink" title="路径"></a>路径</h1><p>python程序的执行文件：/usr/local/python3/bin/python3.6<br>python应用程序目录：/usr/local/python3/lib/python3.6<br>pip的执行文件：/usr/local/python3/bin/pip3.6</p>
+<h1 id="设置环境变量"><a href="#设置环境变量" class="headerlink" title="设置环境变量"></a>设置环境变量</h1><p>配置文件有好几个：</p>
+<ul>
+<li>/etc/profile</li>
+<li>/etc/bashrc</li>
+<li>~/.bash_profile</li>
+<li>~/.bashrc</li>
+</ul>
+<p>一般是修改~/.bash_profile<br>添加<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=$PATH:/usr/local/python3/bin</span><br></pre></td></tr></table></figure></p>
+<p>让它生效，例如我修改的是~/.bash_profile<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bash_profile</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/10/【Python】使用pymysql，pandas把mysql数据导出到excel/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/10/【Python】使用pymysql，pandas把mysql数据导出到excel/" itemprop="url">【Python】使用pymysql，pandas把mysql数据导出到excel</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-10T09:48:17+08:00">
+                2018-05-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="导出表结构"><a href="#导出表结构" class="headerlink" title="导出表结构"></a>导出表结构</h1><p>假设我们要导出表结构，保存到文档，需要保存的内容有表名，表说明，列名，类型，列说明，查询这些内容的sql语句如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select table_name,table_comment from information_schema.tables </span><br><span class="line">where table_schema=【schema名】 and table_type=&apos;base table’;</span><br><span class="line"></span><br><span class="line">select column_name,column_type,column_comment</span><br><span class="line">from information_schema.columns where table_schema=【schema名】</span><br><span class="line">and table_name=【表名】</span><br></pre></td></tr></table></figure></p>
+<p>定义两个方法，分表获取表的资料和列的资料<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import pymysql</span><br><span class="line">from pymysql.cursors import Cursor</span><br><span class="line"># 数据库连接属性</span><br><span class="line">__db_config = &#123;</span><br><span class="line">    &apos;host&apos;: &apos;home_machine&apos;,</span><br><span class="line">    &apos;user&apos;: &apos;root&apos;,</span><br><span class="line">    &apos;password&apos;: &apos;password&apos;,</span><br><span class="line">    &apos;port&apos;: 3306,</span><br><span class="line">    &apos;db&apos;: &apos;telecom_info&apos;,</span><br><span class="line">    &apos;charset&apos;: &apos;utf8mb4&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def query_all_full_conn(sql_str, arg_list):</span><br><span class="line">    with pymysql.connect(**__db_config) as cur:</span><br><span class="line">        if isinstance(cur, Cursor):</span><br><span class="line">            cur.execute(sql_str, arg_list)</span><br><span class="line">            result = cur.fetchall()</span><br><span class="line">            return result</span><br><span class="line"></span><br><span class="line">def get_table_structure(table_name):</span><br><span class="line">    return query_all_full_conn(</span><br><span class="line">    &quot;select column_name,column_type,column_comment &quot; \</span><br><span class="line">    &quot;from information_schema.columns where table_schema&quot; \</span><br><span class="line">    &quot;=&apos;telecom_info&apos; and table_name=%s&quot;, [table_name])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_table_list():</span><br><span class="line">    return query_all_full_conn(</span><br><span class="line">    &quot;select table_name,table_comment from information_schema.tables &quot; \</span><br><span class="line">    &quot;where table_schema=&apos;telecom_info&apos; and table_type=&apos;base table&apos;&quot;, None)</span><br></pre></td></tr></table></figure></p>
+<p>看看查出来的数据什么样：<br><code>get_table_list()</code><br>结果如下（表说明）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">((&apos;t_access_token&apos;, &apos;Access Token表&apos;),</span><br><span class="line"> (&apos;t_area&apos;, &apos;区域码表&apos;),</span><br><span class="line"> (&apos;t_area_stat&apos;, &apos;区域企业统计信息表&apos;),</span><br><span class="line"> (&apos;t_city_code&apos;, &apos;城市码表&apos;),</span><br><span class="line"> (&apos;t_comp_analy&apos;, &apos;企业分析表&apos;),</span><br><span class="line"> (&apos;t_comp_area&apos;, &apos;企业地区表&apos;),</span><br><span class="line"> (&apos;t_comp_basic&apos;, &apos;企业基础信息表&apos;),</span><br><span class="line"> (&apos;t_comp_basic_changelog&apos;, &apos;企业基础信息更改记录表&apos;),</span><br><span class="line"> (&apos;t_comp_biz&apos;, &apos;企业业务信息表&apos;),</span><br><span class="line"> (&apos;t_comp_import&apos;, &apos;企业信息导入表&apos;),</span><br><span class="line"> (&apos;t_industry&apos;, &apos;行业基础表&apos;),</span><br><span class="line"> (&apos;t_industry_stat&apos;, &apos;行业统计表&apos;),</span><br><span class="line"> (&apos;t_user&apos;, &apos;用户信息表&apos;))</span><br></pre></td></tr></table></figure></p>
+<p>其中一个表的列说明会如何呢？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 以Access Token表为例</span><br><span class="line">get_table_structure(&apos;t_access_token&apos;)</span><br></pre></td></tr></table></figure></p>
+<p>结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">((&apos;USER_ID&apos;, &apos;int(11)&apos;, &apos;用户ID&apos;),</span><br><span class="line"> (&apos;TOKEN_CODE&apos;, &apos;varchar(32)&apos;, &apos;Access Token的Code&apos;),</span><br><span class="line"> (&apos;BEGIN_TIME&apos;, &apos;timestamp&apos;, &apos;生效时间&apos;),</span><br><span class="line"> (&apos;END_TIME&apos;, &apos;timestamp&apos;, &apos;失效时间&apos;))</span><br></pre></td></tr></table></figure></p>
+<h1 id="导出表数据"><a href="#导出表数据" class="headerlink" title="导出表数据"></a>导出表数据</h1><p>(1)可以用之前get_table_structure方法来组装sql语句，假设我们要导出T_CITY_CODE表的数据：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">structures = get_table_structure(table_name)</span><br><span class="line">structures</span><br></pre></td></tr></table></figure></p>
+<p>可以看到表的各个列</p>
+<pre><code>((&apos;CITY_ID&apos;, &apos;int(11)&apos;, &apos;城市ID&apos;),
+ (&apos;CITY_CODE&apos;, &apos;varchar(10)&apos;, &apos;城市编码（电信）&apos;),
+ (&apos;CITY_NAME&apos;, &apos;varchar(20)&apos;, &apos;城市名称&apos;))
+</code></pre><p>(2)“转置”一下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">structures_T = list(zip(*structures))</span><br><span class="line">structures_T</span><br></pre></td></tr></table></figure></p>
+<p>可以看到结果列表中的第一个元素就是由每个列名组成的元组，第二个元素是每个列的类型组成的元组，第3个元素就是每个列的注释组成的元组</p>
+<pre><code>[(&apos;CITY_ID&apos;, &apos;CITY_CODE&apos;, &apos;CITY_NAME&apos;),
+ (&apos;int(11)&apos;, &apos;varchar(10)&apos;, &apos;varchar(20)&apos;),
+ (&apos;城市ID&apos;, &apos;城市编码（电信）&apos;, &apos;城市名称&apos;)]
+</code></pre><p>(3) 查出表数据<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 取出列名组成的列表/元组</span><br><span class="line">column_list =structures_T[0]</span><br><span class="line"># 拼接查询的SQL语句</span><br><span class="line">sql_str = &apos;select &#123;0&#125; from &#123;1&#125; order by &#123;2&#125;&apos;.format(&apos;,&apos;.join(column_list),table_name, column_list[0])</span><br><span class="line"># 查询结果</span><br><span class="line">result_data = query_all_full_conn(sql_str, None)</span><br><span class="line">result_data</span><br></pre></td></tr></table></figure></p>
+<p>查询结果如下：</p>
+<pre><code>((1, &apos;200&apos;, &apos;广州市&apos;),
+ (2, &apos;755&apos;, &apos;深圳市&apos;),
+ (3, &apos;756&apos;, &apos;珠海市&apos;),
+ (4, &apos;754&apos;, &apos;汕头市&apos;),
+ (5, &apos;751&apos;, &apos;韶关市&apos;),
+ (6, &apos;762&apos;, &apos;河源市&apos;),
+ (7, &apos;753&apos;, &apos;梅州市&apos;),
+ (8, &apos;752&apos;, &apos;惠州市&apos;),
+ (9, &apos;660&apos;, &apos;汕尾市&apos;),
+ (10, &apos;769&apos;, &apos;东莞市&apos;),
+ (11, &apos;760&apos;, &apos;中山市&apos;),
+ (12, &apos;750&apos;, &apos;江门市&apos;),
+ (13, &apos;757&apos;, &apos;佛山市&apos;),
+ (14, &apos;662&apos;, &apos;阳江市&apos;),
+ (15, &apos;759&apos;, &apos;湛江市&apos;),
+ (16, &apos;668&apos;, &apos;茂名市&apos;),
+ (17, &apos;758&apos;, &apos;肇庆市&apos;),
+ (18, &apos;763&apos;, &apos;清远市&apos;),
+ (19, &apos;768&apos;, &apos;潮州市&apos;),
+ (20, &apos;663&apos;, &apos;揭阳市&apos;),
+ (21, &apos;766&apos;, &apos;云浮市&apos;))
+</code></pre><p>(4) 把查询结果转换为Pandas的DataFrame对象<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># DataFrame构造方法中不支持元组，只能转为列表</span><br><span class="line">df = pd.DataFrame(list(result_data))</span><br><span class="line"># 我们再为它指明列的名字（我们可以把列的注释作为列名而不是表原来的列名）</span><br><span class="line">df.columns=column_list</span><br></pre></td></tr></table></figure></p>
+<p>DataFrame对象会是这个样子：</p>
+<pre><code>    CITY_ID CITY_CODE CITY_NAME
+0         1       200       广州市
+1         2       755       深圳市
+2         3       756       珠海市
+3         4       754       汕头市
+4         5       751       韶关市
+5         6       762       河源市
+6         7       753       梅州市
+7         8       752       惠州市
+8         9       660       汕尾市
+9        10       769       东莞市
+10       11       760       中山市
+11       12       750       江门市
+12       13       757       佛山市
+13       14       662       阳江市
+14       15       759       湛江市
+15       16       668       茂名市
+16       17       758       肇庆市
+17       18       763       清远市
+18       19       768       潮州市
+19       20       663       揭阳市
+20       21       766       云浮市
+</code></pre><h1 id="保存到Excel文件"><a href="#保存到Excel文件" class="headerlink" title="保存到Excel文件"></a>保存到Excel文件</h1><p>如果我们要导出多个表的数据到同一份excel文件，每一个表放到一个sheet，而每一张表的数据我们已经分别生成一个DataFrame对象df1, df2…<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 假设有多张表（DataFrame）组成一个列表</span><br><span class="line">df_list = [df1, df2, df3, df4, df5]</span><br><span class="line"># 导出到Excel</span><br><span class="line">writer = pd.ExcelWriter(【导出目标excel文件含路径】)</span><br><span class="line">try:</span><br><span class="line">	for df in df_list:</span><br><span class="line">		# index为False，导出到excel时则不会有由0开始一直递增的那一列</span><br><span class="line">		df.to_excel(writer, 【sheet名，我们可以用表名】, index=False)</span><br><span class="line">	writer.save()</span><br><span class="line">except Exception as e:</span><br><span class="line">	print(e)</span><br><span class="line">finally:</span><br><span class="line">	writer.close()</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/07/【Python】读取excel文件，保存到MySQL数据库/" itemprop="url">【Python】读取excel文件，保存到MySQL数据库</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-07T23:07:37+08:00">
+                2018-05-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="1-使用Pandas读取Excel文件"><a href="#1-使用Pandas读取Excel文件" class="headerlink" title="1. 使用Pandas读取Excel文件"></a>1. 使用Pandas读取Excel文件</h1><pre><code>import pandas as pd
+excel_file = Excel文件路径
+df = pd.read_excel(excel_file)
+</code></pre><p><a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_excel.html" title="read_excel方法的说明文档" target="_blank" rel="noopener">read_excel方法的说明文档</a></p>
+<h1 id="2-处理数据"><a href="#2-处理数据" class="headerlink" title="2. 处理数据"></a>2. 处理数据</h1><p>假设DataFrame对象df的内容是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">    ID  CITY_CODE CITY_NAME  CITY_TEL_NO</span><br><span class="line">0    1        200        广州市          20</span><br><span class="line">1    2        755        深圳市         755</span><br><span class="line">2    3        756        珠海市         756</span><br><span class="line">3    4        754        汕头市         754</span><br><span class="line">4    5        751        韶关市         751</span><br><span class="line">5    6        762        河源市         762</span><br><span class="line">6    7        753        梅州市         753</span><br><span class="line">7    8        752        惠州市         752</span><br><span class="line">8    9        660        汕尾市         660</span><br><span class="line">9   10        769        东莞市         769</span><br><span class="line">10  11        760        中山市         760</span><br><span class="line">11  12        750        江门市         750</span><br><span class="line">12  13        757        佛山市         757</span><br><span class="line">13  14        662        阳江市         662</span><br><span class="line">14  15        759        湛江市         759</span><br><span class="line">15  16        668        茂名市         668</span><br><span class="line">16  17        758        肇庆市         758</span><br><span class="line">17  18        763        清远市         763</span><br><span class="line">18  19        768        潮州市         768</span><br><span class="line">19  20        663        揭阳市         663</span><br><span class="line">20  21        766        云浮市         766</span><br></pre></td></tr></table></figure></p>
+<p>我们只需要把CITY_CODE和CITY_NAME保存到数据库，我们可以这样做：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">param_list = zip([i for i in df[&apos;CITY_CODE&apos;]], </span><br><span class="line">            [i for i in df[&apos;CITY_NAME&apos;]])</span><br></pre></td></tr></table></figure></p>
+<p>param_list将会是这个样子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[(200, &apos;广州市&apos;),</span><br><span class="line">(755, &apos;深圳市&apos;),</span><br><span class="line">(756, &apos;珠海市&apos;),</span><br><span class="line">(754, &apos;汕头市&apos;),</span><br><span class="line">(751, &apos;韶关市&apos;),</span><br><span class="line">(762, &apos;河源市&apos;),</span><br><span class="line">(753, &apos;梅州市&apos;),</span><br><span class="line">(752, &apos;惠州市&apos;),</span><br><span class="line">(660, &apos;汕尾市&apos;),</span><br><span class="line">(769, &apos;东莞市&apos;),</span><br><span class="line">(760, &apos;中山市&apos;),</span><br><span class="line">(750, &apos;江门市&apos;),</span><br><span class="line">(757, &apos;佛山市&apos;),</span><br><span class="line">(662, &apos;阳江市&apos;),</span><br><span class="line">(759, &apos;湛江市&apos;),</span><br><span class="line">(668, &apos;茂名市&apos;),</span><br><span class="line">(758, &apos;肇庆市&apos;),</span><br><span class="line">(763, &apos;清远市&apos;),</span><br><span class="line">(768, &apos;潮州市&apos;),</span><br><span class="line">(663, &apos;揭阳市&apos;),</span><br><span class="line">(766, &apos;云浮市&apos;)]</span><br></pre></td></tr></table></figure></p>
+<h1 id="3-使用pymysql保存到数据库"><a href="#3-使用pymysql保存到数据库" class="headerlink" title="3. 使用pymysql保存到数据库"></a>3. 使用pymysql保存到数据库</h1><pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import pymysql</span><br><span class="line">#打开数据库连接</span><br><span class="line">conn = pymysql.connect(host=&apos;home_machine&apos;,user=&apos;root&apos;,password=&apos;password&apos;,port=3306,db=&apos;telecom_info&apos;, charset=&apos;utf8mb4&apos;)</span><br><span class="line">#操作游标</span><br><span class="line">cur = conn.cursor()</span><br><span class="line">#定义sql语句</span><br><span class="line">sql=&apos;insert into t_city_code (CITY_CODE,CITY_NAME) values (%s,%s)&apos;</span><br><span class="line">#代入参数，插入sql语句</span><br><span class="line">effect_row = cur.executemany(sql, param_list)</span><br><span class="line">#提交事务</span><br><span class="line">conn.commit()</span><br><span class="line">#关闭游标，关闭连接</span><br><span class="line">cur.close()</span><br><span class="line">conn.close()</span><br></pre></td></tr></table></figure>
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/04/使用Pandas读取数据文件，预处理后保存到EXCEL/" itemprop="url">使用Pandas读取数据文件，预处理后保存到EXCEL</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-04T10:02:02+08:00">
+                2018-05-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="1-读取数据文件，转化为DataFrame对象"><a href="#1-读取数据文件，转化为DataFrame对象" class="headerlink" title="1. 读取数据文件，转化为DataFrame对象"></a>1. 读取数据文件，转化为DataFrame对象</h2><h3 id="读取文件"><a href="#读取文件" class="headerlink" title="读取文件"></a>读取文件</h3><p>一般来说是csv后缀的文件，当然也可能是其他后缀名，里边的内容可以直接当作文本文件打开，例如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">06bb7a2b-0142-1000-e000-4af60a76b50b|49.36165|1.669|1.669|-1.05335|-1.05335|0.540756|0.415|48.94665|50.0</span><br></pre></td></tr></table></figure></p>
+<p>或者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3721049320  bcc0b2fc050b1e0e071a3f93c373182d    440100100012001042800209    91440101190660172H  广州证券股份有限公司  87377597    B0A \N  1   10  1   1   2013-07-03 00:00:00 2015-09-21 00:00:00 \N  54  0   0   0   0   \N  \N  486 32  903 15092   34142458    7764158 12949672    2094029 3   1</span><br></pre></td></tr></table></figure></p>
+<p>我们用Python的Pandas库处理读取这些数据，首先读取数据文件<br>    import pandas as pd<br>    data_frame = pd.read_table(文件路径, header=None, error_bad_lines=False, sep=’|’)<br>其中，</p>
+<ul>
+<li>header如果不设置为None，默认第一行会作为header（也就是列名）</li>
+<li>error_bad_lines设置为False，是为了有些不合规则的行不会导致整个导入工作终止</li>
+<li>sep就是设置分隔符，默认是\t</li>
+</ul>
+<h3 id="指定列名"><a href="#指定列名" class="headerlink" title="指定列名"></a>指定列名</h3><p>因为另外有一份专门的文件记录了这些数据对应的字段，<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">columns = [&apos;serv_id&apos;, &apos;encrypt_serv_id&apos;, &apos;pripid&apos;, &apos;uniscid&apos;, &apos;entname&apos;, &apos;acc_nb&apos;, &apos;STATE&apos;, &apos;STOP_DATE&apos;, &apos;PROD_ID&apos;,</span><br><span class="line">               &apos;BRAND_ID&apos;, &apos;PAYMENT_TYPE&apos;, &apos;IS_MIX_PROD&apos;, &apos;OPEN_DATE&apos;, &apos;COMPLETE_DATE&apos;, &apos;CANCEL_DATE&apos;, &apos;ONLINE_TIME&apos;,</span><br><span class="line">               &apos;IS_NEW_USER&apos;, &apos;IS_CANCEL_USER&apos;, &apos;IS_ARREAR_USER&apos;, &apos;ARREAR_FEE&apos;, &apos;MAX_ARREAR_MONTHS&apos;, &apos;ARREAR_MONTHS&apos;,</span><br><span class="line">               &apos;CUST_GH&apos;, &apos;CUST_KD&apos;, &apos;CUST_YD&apos;, &apos;TOTAL_FEE&apos;, &apos;CUST_TOTAL_FEE&apos;, &apos;CUST_KD_FEE&apos;, &apos;CUST_YD_FEE&apos;,</span><br><span class="line">               &apos;CUST_GH_FEE&apos;, &apos;WORKDAY_CALL_TIMES&apos;, &apos;HOLIDAY_CALL_TIMES&apos;]</span><br></pre></td></tr></table></figure></p>
+<p>现在我们把这些字段名设置为DataFrame对象的列名。<br>    data_frame.columns = columns</p>
+<h2 id="2-保存到EXCEL，以我们惯常看到的格式。"><a href="#2-保存到EXCEL，以我们惯常看到的格式。" class="headerlink" title="2. 保存到EXCEL，以我们惯常看到的格式。"></a>2. 保存到EXCEL，以我们惯常看到的格式。</h2><pre><code>data_frame.to_excel(需要输出到的文件的全路径)
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/23/学习方法以及提高自学能力/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -662,7 +1498,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">23</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -675,7 +1511,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">24</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -712,7 +1548,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
