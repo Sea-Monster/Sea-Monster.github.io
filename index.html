@@ -229,6 +229,264 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/" itemprop="url">构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:34+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内</p>
+</blockquote>
+<h1 id="思考与摸索"><a href="#思考与摸索" class="headerlink" title="思考与摸索"></a>思考与摸索</h1><p>Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计装在一起也不符合“微服务”的思想。其中，JDK与Jetty肯定是要装在一个镜像内的，FFmpeg倒是可以独立出来，不过如果独立出来我还要另外构建个服务，自行实现调用FFmpeg转码的逻辑然后提供接口给外部调用。工作量也难以评估到底哪种多一些，那干脆装到同一个镜像算了。<br>Docker Hub上很多镜像都提供了docker file，我从中摘抄某些语句，自行组合，以期达到我要的效果。一开始并没有使用ffmpeg这个需求，我考虑的只是同时装jdk与jetty。最初我是想在jetty镜像中安装jdk，看上去容易些，但后来貌似被配置环境变量的问题吓跑了，因此改为在jdk镜像中安装jetty。后来，再在该镜像中再装上ffmpeg。</p>
+<h1 id="使用JDK8镜像"><a href="#使用JDK8镜像" class="headerlink" title="使用JDK8镜像"></a>使用JDK8镜像</h1><p>使用的是jdk8，8-jdk与8u111应该是一样的，image id都一样（后边我写的是8-jdk）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull java:8-jdk</span><br></pre></td></tr></table></figure></p>
+<h1 id="在JDK8镜像中安装Jetty9"><a href="#在JDK8镜像中安装Jetty9" class="headerlink" title="在JDK8镜像中安装Jetty9"></a>在JDK8镜像中安装Jetty9</h1><p>dockerfile这样写：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; chown -R jetty:jetty /opt/jetty &amp;&amp; rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>这样，建立的镜像作为容器启动时，jetty就会一直运行了。</p>
+<h1 id="在镜像中安装ffmpeg"><a href="#在镜像中安装ffmpeg" class="headerlink" title="在镜像中安装ffmpeg"></a>在镜像中安装ffmpeg</h1><p>最最麻烦的部分！JDK镜像是基于Debian的，因此我们现在要基于Debian安装FFmpeg（可以把它当做在uBuntu上安装）。本身安装FFmpeg就需要安装一堆依赖，我原本期望是可以用“apt install”的方式直接帮我安装FFmpeg还有一大堆依赖，但不知什么原因，可能是国内很难连上apt的地址，也可能是当前debian根本没有“FFmpeg的源”，总之就是一直各种报错，最终失败。只能手动下载再编译安装。而且仅仅FFmpeg还不够，转码需要特定的插件。反正差不多折腾了我一周的时间。<br>还好，最终整合了很多dockerfile的语句，终于拼出了一个能最终跑起来的。在之前的dockerfile上加上以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br></pre></td></tr></table></figure></p>
+<p>注意上面的语句加在以下语句之前，或者说以下两句必须放在最后，否则容器启动时jetty就不会自动运行了。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>因此，修改后的Dockerfile是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line"># RUN apt-get update</span><br><span class="line"># RUN apt-get install -yq --no-install-recommends wget autoconf automake cmake curl bzip2 libexpat1-dev g++ gcc gperf libtool make nasm perl pkg-config libssl-dev yasm libva-dev zlib1g-dev</span><br><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br><span class="line"></span><br><span class="line"># install jetty</span><br><span class="line"># Install packages</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; \</span><br><span class="line">    chown -R jetty:jetty /opt/jetty &amp;&amp; \</span><br><span class="line">    rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意：  </strong><br>vo-amrwbenc-0.1.3，opencore-amr-0.1.2是转码为amr需要用到的插件，国内连上去速度极慢，如果让它在构建镜像时自行下载，耗时会很长甚至让整个构建失败，因此我这里是自行下载后解压了，把vo-amrwbenc-0.1.3目录与opencore-amr-0.1.2目录放在里与Dockerfile同级的目录内，然后直接复制到镜像内。此外，还曾经遇到ffmpeg找不到我安装的vo-amrwbenc-0.1.3，opencore-amr-0.1.2插件，原因是FFmpeg没有在正确的插件安装位置去找，这里的解决办法是，直接在FFmpeg去找的目录内建立软链接，链接去两个插件安装的位置。  </p>
+<p>两个插件地址如下，请自行下载（也许需要个梯子）：<br><a href="https://sourceforge.net/projects/opencore-amr/files/opencore-amr/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/opencore-amr/</a><br><a href="https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/</a></p>
+<p>参考：<br><a href="https://blog.51cto.com/zlyang/1709508" target="_blank" rel="noopener">安装ffmpeg过程中可能会遇到的问题详解</a><br><a href="https://thierry-xing.iteye.com/blog/2017864" target="_blank" rel="noopener">ubuntu上安装ffmpeg</a><br><a href="https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/" target="_blank" rel="noopener">https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/</a></p>
+<h1 id="在镜像中安装unrar"><a href="#在镜像中安装unrar" class="headerlink" title="在镜像中安装unrar"></a>在镜像中安装unrar</h1><p>5.0版本之前可以通过引用Jar包，在Java代码中解压。5.0版本之后不提供jar包了，如果继续用5.0之前的版本，则无法解压用5.0版本以后压缩的包，因此只能在服务器上装个rar 5.0 之后的版本，然后在Java代码中通过调用shell的方式实现。<br>在Dockerfile中适当位置添加如下语句（在WORKDIR与CMD那两句之前即可）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update -y &amp;&amp; apt-get install make</span><br><span class="line">RUN wget http://www.rarlab.com/rar/rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">cd rar &amp;&amp; \</span><br><span class="line">make  &amp;&amp; \</span><br><span class="line">mv rar_static /usr/local/bin/rar</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/CentOS-7挂载windows下的共享文件夹/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/28/CentOS-7挂载windows下的共享文件夹/" itemprop="url">CentOS 7挂载windows下的共享文件夹</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:09+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>有个需求是让项目访问某个windows系统的某共享文件夹，而我的项目是部署在CentOS上的，怎么做呢？<br>假设我们要访问的共享文件夹路径为：<code>172.16.28.189/kmc</code><br>那么我们要怎么做呢？</p>
+</blockquote>
+<h1 id="使用mount命令"><a href="#使用mount命令" class="headerlink" title="使用mount命令"></a>使用mount命令</h1><p>首先我们要在CentOS中新建某文件夹，例如/home/tisson/kmc_file，然后把共享文件夹挂载到此目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mount -t cifs -o username=administrator,password=&apos;admin@198&apos; //172.16.28.189/kmc /home/tisson/kmc_file</span><br></pre></td></tr></table></figure></p>
+<p>其中administrator与admin@198分别是远程登录172.16.28.189的windows系统的用户名和密码。</p>
+<h1 id="开机启动"><a href="#开机启动" class="headerlink" title="开机启动"></a>开机启动</h1><p>我们发现，系统重启后挂载就没有了，我们想让它开机自动挂载<br>在/etc/fstab文件中添加下列代码：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">//172.16.28.189/kmc /home/tisson/kmc_file cifs username=administrator,password=&apos;admin@198&apos; 0 0</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Docker进阶操作（一）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1370,283 +1628,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发（一）-环境搭建/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发（一）-环境搭建/" itemprop="url">以太坊Dapp开发（一）--环境搭建</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T22:25:31+08:00">
-                2018-09-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>说到环境搭建嘛，所有的开发首先都离不开这一步，熟悉了真不难，不过第一次接触真是觉得它又长又臭无聊又无趣，需要装一大堆听都没听过的东西，毕竟开源的通常都这德行，基本不用指望有人给你提供个“一键安装”的整合包，足以吓走90%的人。不过也无需太担心，某种程度上这是可以用钱解决的问题，如果手头上有点闲钱，可以话个200元去【汇智网】学一个Dapp开发的课程，虽然它的课其实不怎么样，助教水平也不算高不过勉强能帮你解答入门时期的困惑，最关键是帮你搭建了环境，让你可以直接使用。当你看到了环境搭建好的效果后，自己再搭建就会更有信心、更有动力一些</p>
-</blockquote>
-<h1 id="我们到底要干什么"><a href="#我们到底要干什么" class="headerlink" title="我们到底要干什么"></a>我们到底要干什么</h1><p>回想一下我们之前开发一个最终部署到生产环境的应用是怎么样的。以JAVA WEB为例，本地开发后，把代码打包成jar包，部署到线上的服务器，一般情况下，我们的JAVA WEB服务还要连上一个或多个数据库。然后我们需要把这些JAVA WEB服务还有数据库部署到服务器。而这个（些）服务器，一般是私人的，绝大部分人没有权限获知服务器任何信息，而你部署上去的这个jar包，其他人也不清楚里边的逻辑，对于他们而言，整个服务就是一个黑箱，他们也无需关注内里逻辑，能用就行。至于数据呢，全部自己掌控，想怎么改就怎么改。<br>现在我们需要开发DApp（Dapp分为客户端、服务端。客户端可以直接理解为一个WEB应用，我们这系列文章更关注其服务端，也就是智能合约部分），我们把它跟之前开发JAVA WEB服务一一类比，以便理解：</p>
-<ol>
-<li>之前我们开发JAVA WEB，用的是Java语言。而我们准备开发的智能合约，用的是Solidity语言</li>
-<li>开发Java我们需要开发环境（用来编译啊、执行啊、打包啊）：JDK。而我们准备开发的Solidity，同样也需要开发环境：solc。</li>
-<li>开发Java我们会用到IDE，而不是用记事本那么寒酸吧。开发Java我们会用IDEA啦、Eclipse什么的。而开发智能合约，我们使用名为“remix-ide”的IDE。</li>
-<li>开发Java Web我们通常会连数据库，有关系型数据库啦、NoSQL啦、五花八门。而智能合约呢，抱歉没这个东西，数据直接存放到智能合约的运行环境中。想象一下Java程序不可以连外部数据库、外部服务器、外部文件，那数据只能存放到JVM中，而智能合约也类似，不过换了个名称：EVM。</li>
-<li>Java Web服务我们需要部署到一个Web容器它才能跑，例如Tomcat啦、Jetty啦。如果我们希望这个Java Web服务能被互联网上所有人访问到，方法数不胜数，找个阿里云啊腾讯云什么的、或者随便找个什么机房，总之是提供公网访问的服务器，扔上去就可以了。 至于我们准备开发的智能合约呢，本地部署还真有几种类似“Tomcat”这种东西，我只说其中一个：Ganache。如果我们希望合约被互联网上所有人访问呢，呃，貌似只有一个途径：部署到以太坊的网络（我们说的是以太坊，所以什么EOS的，先忽略）。</li>
-</ol>
-<p><strong>综上所述、我们大概是要安装一个类似JDK的东西：solc；一个类似IDEA或者Eclipse的东西：remix-ode、一个类似Tomcat的东西：Ganache</strong></p>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装solc"><a href="#安装solc" class="headerlink" title="安装solc"></a>安装solc</h2><p>安装solc需要使用npm（ Node.js 平台的默认包管理工具），而使用nam就需要先安装node.js。【注：新版的node.js已经集成了npm】安装node.js与npm的过程略去不表，这里只说下一些可能是坑的地方：</p>
-<ol>
-<li>node.js最低要求7.10.1以上，npm最低要求4.2.0以上，过低的需要升级，否则无法安装solc和remix-ide。</li>
-<li>熟知java开发的清楚这个包管理器npm类似maven，需要连网上的中央仓库下载各种依赖包。这个中央仓库是在国外的，速度比较慢。解决办法有A：使用“镜像”源— 国内的阿里提供的，百度一下即可。B：翻墙。其中B比较省事，少了些坑。</li>
-</ol>
-<p>安装好npm，后，运行以下指令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g solc</span><br></pre></td></tr></table></figure></p>
-<p>实际安装的貌似是solcjs而不是solc。两者到底有什么区别，我在网上就没看到说得清楚的文章，反正在我机子上，按字面理解我是安装solc，但实际应用时，还是必须用solcjs。</p>
-<h2 id="安装remix-ide"><a href="#安装remix-ide" class="headerlink" title="安装remix-ide"></a>安装remix-ide</h2><p>有2种版本：在线版和离线版  </p>
-<h3 id="在线版"><a href="#在线版" class="headerlink" title="在线版"></a>在线版</h3><p>直接打开<a href="https://remix.ethereum.org/" title="https://remix.ethereum.org" target="_blank" rel="noopener">https://remix.ethereum.org</a> 无需安装，打开链接即可使用。在国内访问会有些慢，可以考虑翻墙。  </p>
-<h3 id="离线版"><a href="#离线版" class="headerlink" title="离线版"></a>离线版</h3><p>本机启动、无需连网。</p>
-<h4 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h4><p>有两种安装方式：<br>方法一：使用npm安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install remix-ide -g</span><br></pre></td></tr></table></figure></p>
-<p>如果出现错误：Error: EACCES: permission denied, access ‘/usr/local/lib/node_modules’，可以尝试以下方法解决：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R $(whoami) $(npm config get prefix)/&#123;lib/node_modules,bin,share&#125;</span><br></pre></td></tr></table></figure></p>
-<p>方法二：remix-ide的github 上还提供了另一个方法进行安装，通过clone 代码来安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/ethereum/remix-ide.git</span><br><span class="line">$ cd remix-ide</span><br><span class="line">$ npm install</span><br><span class="line">$ npm run setupremix  # this will clone https://github.com/ethereum/remix for you and link it to remix-ide</span><br><span class="line">$ npm start #这句其实是运行remix-ide了</span><br></pre></td></tr></table></figure></p>
-<h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><p>运行以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ remix-ide</span><br></pre></td></tr></table></figure></p>
-<p>然后浏览器打开<a href="http://localohost:8080即可打开ide。" target="_blank" rel="noopener">http://localohost:8080即可打开ide。</a><br>可以看到它默认端口是8080，如果我们需要换一个端口呢？<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ which remix-ide</span><br><span class="line">/usr/local/bin/remix-ide</span><br><span class="line">$ cd /usr/local/bin/</span><br><span class="line">$ vi remix-ide</span><br></pre></td></tr></table></figure></p>
-<p>可以看到一行 <code>server.listen(8080, &#39;127.0.0.1&#39;, function () {})</code>，把那个8080改为任意端口。当然，最好把下边那句console.log的端口也改了，免得打印的信息误导用户。</p>
-<h2 id="安装Ganache"><a href="#安装Ganache" class="headerlink" title="安装Ganache"></a>安装Ganache</h2><p>打开<a href="https://truffleframework.com/ganache" target="_blank" rel="noopener">https://truffleframework.com/ganache</a>（需翻墙），下载，安装，运行。它除了让我们可以部署合约外，它自己默认提供了10个钱包账号（钱包账号数目可以调整，例如调为100），每个账号默认有100个以太币。当我们部署合约、修改合约内的数据时，需要消耗这些以太币。</p>
-<h2 id="安装Metamask"><a href="#安装Metamask" class="headerlink" title="安装Metamask"></a>安装Metamask</h2><p>一个Chrome/Firefox的插件，安装需翻墙。除了用于开发外，也可用于实际支付。反正必须装。</p>
-<p>至此，开发所需环境搭建完毕。注意以上所需环境也可以“变更”，例如我用Ganache-cli，直接用命令行而不是一个Ganache的App，又或者用Mist代替Metamask，本人实在懒得理会这些替代方案了，本人的目标是尽快弄一个Dapp并上线，能跳过的尽量跳过，不想纠缠。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发/" itemprop="url">以太坊Dapp开发</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T12:02:54+08:00">
-                2018-09-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>不包含UI部分开发</p>
-</blockquote>
-<h1 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h1><h1 id="编写Solidity合约"><a href="#编写Solidity合约" class="headerlink" title="编写Solidity合约"></a>编写Solidity合约</h1><h1 id="部署合约到生产-测试环境"><a href="#部署合约到生产-测试环境" class="headerlink" title="部署合约到生产/测试环境"></a>部署合约到生产/测试环境</h1><h1 id="使用Web3j与合约通信"><a href="#使用Web3j与合约通信" class="headerlink" title="使用Web3j与合约通信"></a>使用Web3j与合约通信</h1><h1 id="补充：智能合约的优化"><a href="#补充：智能合约的优化" class="headerlink" title="补充：智能合约的优化"></a>补充：智能合约的优化</h1>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1692,7 +1678,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1705,7 +1691,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

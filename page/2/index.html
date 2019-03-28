@@ -229,6 +229,278 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发（一）-环境搭建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发（一）-环境搭建/" itemprop="url">以太坊Dapp开发（一）--环境搭建</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T22:25:31+08:00">
+                2018-09-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>说到环境搭建嘛，所有的开发首先都离不开这一步，熟悉了真不难，不过第一次接触真是觉得它又长又臭无聊又无趣，需要装一大堆听都没听过的东西，毕竟开源的通常都这德行，基本不用指望有人给你提供个“一键安装”的整合包，足以吓走90%的人。不过也无需太担心，某种程度上这是可以用钱解决的问题，如果手头上有点闲钱，可以话个200元去【汇智网】学一个Dapp开发的课程，虽然它的课其实不怎么样，助教水平也不算高不过勉强能帮你解答入门时期的困惑，最关键是帮你搭建了环境，让你可以直接使用。当你看到了环境搭建好的效果后，自己再搭建就会更有信心、更有动力一些</p>
+</blockquote>
+<h1 id="我们到底要干什么"><a href="#我们到底要干什么" class="headerlink" title="我们到底要干什么"></a>我们到底要干什么</h1><p>回想一下我们之前开发一个最终部署到生产环境的应用是怎么样的。以JAVA WEB为例，本地开发后，把代码打包成jar包，部署到线上的服务器，一般情况下，我们的JAVA WEB服务还要连上一个或多个数据库。然后我们需要把这些JAVA WEB服务还有数据库部署到服务器。而这个（些）服务器，一般是私人的，绝大部分人没有权限获知服务器任何信息，而你部署上去的这个jar包，其他人也不清楚里边的逻辑，对于他们而言，整个服务就是一个黑箱，他们也无需关注内里逻辑，能用就行。至于数据呢，全部自己掌控，想怎么改就怎么改。<br>现在我们需要开发DApp（Dapp分为客户端、服务端。客户端可以直接理解为一个WEB应用，我们这系列文章更关注其服务端，也就是智能合约部分），我们把它跟之前开发JAVA WEB服务一一类比，以便理解：</p>
+<ol>
+<li>之前我们开发JAVA WEB，用的是Java语言。而我们准备开发的智能合约，用的是Solidity语言</li>
+<li>开发Java我们需要开发环境（用来编译啊、执行啊、打包啊）：JDK。而我们准备开发的Solidity，同样也需要开发环境：solc。</li>
+<li>开发Java我们会用到IDE，而不是用记事本那么寒酸吧。开发Java我们会用IDEA啦、Eclipse什么的。而开发智能合约，我们使用名为“remix-ide”的IDE。</li>
+<li>开发Java Web我们通常会连数据库，有关系型数据库啦、NoSQL啦、五花八门。而智能合约呢，抱歉没这个东西，数据直接存放到智能合约的运行环境中。想象一下Java程序不可以连外部数据库、外部服务器、外部文件，那数据只能存放到JVM中，而智能合约也类似，不过换了个名称：EVM。</li>
+<li>Java Web服务我们需要部署到一个Web容器它才能跑，例如Tomcat啦、Jetty啦。如果我们希望这个Java Web服务能被互联网上所有人访问到，方法数不胜数，找个阿里云啊腾讯云什么的、或者随便找个什么机房，总之是提供公网访问的服务器，扔上去就可以了。 至于我们准备开发的智能合约呢，本地部署还真有几种类似“Tomcat”这种东西，我只说其中一个：Ganache。如果我们希望合约被互联网上所有人访问呢，呃，貌似只有一个途径：部署到以太坊的网络（我们说的是以太坊，所以什么EOS的，先忽略）。</li>
+</ol>
+<p><strong>综上所述、我们大概是要安装一个类似JDK的东西：solc；一个类似IDEA或者Eclipse的东西：remix-ode、一个类似Tomcat的东西：Ganache</strong></p>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装solc"><a href="#安装solc" class="headerlink" title="安装solc"></a>安装solc</h2><p>安装solc需要使用npm（ Node.js 平台的默认包管理工具），而使用nam就需要先安装node.js。【注：新版的node.js已经集成了npm】安装node.js与npm的过程略去不表，这里只说下一些可能是坑的地方：</p>
+<ol>
+<li>node.js最低要求7.10.1以上，npm最低要求4.2.0以上，过低的需要升级，否则无法安装solc和remix-ide。</li>
+<li>熟知java开发的清楚这个包管理器npm类似maven，需要连网上的中央仓库下载各种依赖包。这个中央仓库是在国外的，速度比较慢。解决办法有A：使用“镜像”源— 国内的阿里提供的，百度一下即可。B：翻墙。其中B比较省事，少了些坑。</li>
+</ol>
+<p>安装好npm，后，运行以下指令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g solc</span><br></pre></td></tr></table></figure></p>
+<p>实际安装的貌似是solcjs而不是solc。两者到底有什么区别，我在网上就没看到说得清楚的文章，反正在我机子上，按字面理解我是安装solc，但实际应用时，还是必须用solcjs。</p>
+<h2 id="安装remix-ide"><a href="#安装remix-ide" class="headerlink" title="安装remix-ide"></a>安装remix-ide</h2><p>有2种版本：在线版和离线版  </p>
+<h3 id="在线版"><a href="#在线版" class="headerlink" title="在线版"></a>在线版</h3><p>直接打开<a href="https://remix.ethereum.org/" title="https://remix.ethereum.org" target="_blank" rel="noopener">https://remix.ethereum.org</a> 无需安装，打开链接即可使用。在国内访问会有些慢，可以考虑翻墙。  </p>
+<h3 id="离线版"><a href="#离线版" class="headerlink" title="离线版"></a>离线版</h3><p>本机启动、无需连网。</p>
+<h4 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h4><p>有两种安装方式：<br>方法一：使用npm安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install remix-ide -g</span><br></pre></td></tr></table></figure></p>
+<p>如果出现错误：Error: EACCES: permission denied, access ‘/usr/local/lib/node_modules’，可以尝试以下方法解决：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R $(whoami) $(npm config get prefix)/&#123;lib/node_modules,bin,share&#125;</span><br></pre></td></tr></table></figure></p>
+<p>方法二：remix-ide的github 上还提供了另一个方法进行安装，通过clone 代码来安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/ethereum/remix-ide.git</span><br><span class="line">$ cd remix-ide</span><br><span class="line">$ npm install</span><br><span class="line">$ npm run setupremix  # this will clone https://github.com/ethereum/remix for you and link it to remix-ide</span><br><span class="line">$ npm start #这句其实是运行remix-ide了</span><br></pre></td></tr></table></figure></p>
+<h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><p>运行以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ remix-ide</span><br></pre></td></tr></table></figure></p>
+<p>然后浏览器打开<a href="http://localohost:8080即可打开ide。" target="_blank" rel="noopener">http://localohost:8080即可打开ide。</a><br>可以看到它默认端口是8080，如果我们需要换一个端口呢？<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ which remix-ide</span><br><span class="line">/usr/local/bin/remix-ide</span><br><span class="line">$ cd /usr/local/bin/</span><br><span class="line">$ vi remix-ide</span><br></pre></td></tr></table></figure></p>
+<p>可以看到一行 <code>server.listen(8080, &#39;127.0.0.1&#39;, function () {})</code>，把那个8080改为任意端口。当然，最好把下边那句console.log的端口也改了，免得打印的信息误导用户。</p>
+<h2 id="安装Ganache"><a href="#安装Ganache" class="headerlink" title="安装Ganache"></a>安装Ganache</h2><p>打开<a href="https://truffleframework.com/ganache" target="_blank" rel="noopener">https://truffleframework.com/ganache</a>（需翻墙），下载，安装，运行。它除了让我们可以部署合约外，它自己默认提供了10个钱包账号（钱包账号数目可以调整，例如调为100），每个账号默认有100个以太币。当我们部署合约、修改合约内的数据时，需要消耗这些以太币。</p>
+<h2 id="安装Metamask"><a href="#安装Metamask" class="headerlink" title="安装Metamask"></a>安装Metamask</h2><p>一个Chrome/Firefox的插件，安装需翻墙。除了用于开发外，也可用于实际支付。反正必须装。</p>
+<p>至此，开发所需环境搭建完毕。注意以上所需环境也可以“变更”，例如我用Ganache-cli，直接用命令行而不是一个Ganache的App，又或者用Mist代替Metamask，本人实在懒得理会这些替代方案了，本人的目标是尽快弄一个Dapp并上线，能跳过的尽量跳过，不想纠缠。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发/" itemprop="url">以太坊Dapp开发</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T12:02:54+08:00">
+                2018-09-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>不包含UI部分开发</p>
+</blockquote>
+<h1 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h1><h1 id="编写Solidity合约"><a href="#编写Solidity合约" class="headerlink" title="编写Solidity合约"></a>编写Solidity合约</h1><h1 id="部署合约到生产-测试环境"><a href="#部署合约到生产-测试环境" class="headerlink" title="部署合约到生产/测试环境"></a>部署合约到生产/测试环境</h1><h1 id="使用Web3j与合约通信"><a href="#使用Web3j与合约通信" class="headerlink" title="使用Web3j与合约通信"></a>使用Web3j与合约通信</h1><h1 id="补充：智能合约的优化"><a href="#补充：智能合约的优化" class="headerlink" title="补充：智能合约的优化"></a>补充：智能合约的优化</h1>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/Linux-SSH远程免密码登录/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1293,267 +1565,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/27/MySQL的DDL操作流程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/27/MySQL的DDL操作流程/" itemprop="url">MySQL的DDL操作流程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-27T12:06:29+08:00">
-                2018-05-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>mysql在做表的ddl维护时(如添加字段)，是要锁表的，不像oracle那样只更新字典表、巨快，这是因为mysql采用中间表的方式来实现<br>ddl操作流程：</p>
-<ol>
-<li>对表加锁(表此时只读)</li>
-<li>复制原表物理结构</li>
-<li>修改表的物理结构</li>
-<li>把原表数据导入中间表中，数据同步完后，锁定中间表，并删除原表</li>
-<li>rename中间表为原表</li>
-<li>刷新数据字典，并释放锁</li>
-</ol>
-<p>通过上面的过程可以了解到，表的数据量越大，这个ddl维护过程越耗时间（锁表时间越长）。</p>
-<p>附表<br><a href="https://dev.mysql.com/doc/refman/5.6/en/innodb-create-index-overview.html" title="Online DDL Overview" target="_blank" rel="noopener">官网：哪些操作会锁表</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/MySQL的Waiting-for-table-metadata-lock/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/MySQL的Waiting-for-table-metadata-lock/" itemprop="url">MySQL的Waiting for table metadata lock</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T17:29:38+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <ol>
-<li>Waiting for table metadata lock的出现<br>我的理解就是锁住整张表啦，这时候，针对表记录的更新操作将全被阻塞，甚至某些（全部？不确定）查询也会被阻塞！<br>为什么会出现这个“table metadata lock”呢？一般就是alter table操作，例如改表名，增删改列（名字，类型等），增删改索引。<br>由于在生产环境上，整表锁住影响很可能比较致命， 尤其是MySQL它对于修改表结构这种操作，一执行就无法中断，kill都kill不了，直到超过锁超时时间，除非把整个数据库停掉。而MySQL默认的超时时间<code>lock_wait_timeout</code>竟然长达1年。我们这种不是很专业的公司，连dba也很可能没有，也就很大可能按默认值创建数据库。所以，在进行alter table操作之前，必须修改锁超时阈值</li>
-<li>调整锁超时阈值<br>查看锁超时时间<br><code>show variables like &#39;%timeout%&#39;;</code></li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">connect_timeout	10</span><br><span class="line">delayed_insert_timeout	300</span><br><span class="line">innodb_flush_log_at_timeout	1</span><br><span class="line">innodb_lock_wait_timeout	50</span><br><span class="line">innodb_rollback_on_timeout	OFF</span><br><span class="line">interactive_timeout	28800</span><br><span class="line">lock_wait_timeout	1800</span><br><span class="line">net_read_timeout	30</span><br><span class="line">net_write_timeout	60</span><br><span class="line">rpl_stop_slave_timeout	31536000</span><br><span class="line">slave_net_timeout	3600</span><br><span class="line">wait_timeout	28800</span><br></pre></td></tr></table></figure>
-<p>修改超时时间，单位是秒<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set session lock_wait_timeout = 1800;</span><br><span class="line">set global lock_wait_timeout = 1800;</span><br><span class="line">set lock_wait_timeout = 1800;</span><br></pre></td></tr></table></figure></p>
-<p>session：对当前连接有效（注意是当前连接！例如在Navicat或者Sequel中，设置了该值，然后又新开一个窗口，设置对该新创建的窗口是无效的！）<br>global：对所有连接有效，数据库重启则失效<br>不写：默认就是session</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1599,7 +1615,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1612,7 +1628,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

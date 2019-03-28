@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="纯实战,Docker,运维," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内  思考与摸索Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计">
+<meta name="keywords" content="纯实战,Docker,运维">
+<meta property="og:type" content="article">
+<meta property="og:title" content="构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像">
+<meta property="og:url" content="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内  思考与摸索Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-03-28T01:48:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像">
+<meta name="twitter:description" content="为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内  思考与摸索Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/"/>
+
+
+
+
+
+  <title>构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:34+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内</p>
+</blockquote>
+<h1 id="思考与摸索"><a href="#思考与摸索" class="headerlink" title="思考与摸索"></a>思考与摸索</h1><p>Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计装在一起也不符合“微服务”的思想。其中，JDK与Jetty肯定是要装在一个镜像内的，FFmpeg倒是可以独立出来，不过如果独立出来我还要另外构建个服务，自行实现调用FFmpeg转码的逻辑然后提供接口给外部调用。工作量也难以评估到底哪种多一些，那干脆装到同一个镜像算了。<br>Docker Hub上很多镜像都提供了docker file，我从中摘抄某些语句，自行组合，以期达到我要的效果。一开始并没有使用ffmpeg这个需求，我考虑的只是同时装jdk与jetty。最初我是想在jetty镜像中安装jdk，看上去容易些，但后来貌似被配置环境变量的问题吓跑了，因此改为在jdk镜像中安装jetty。后来，再在该镜像中再装上ffmpeg。</p>
+<h1 id="使用JDK8镜像"><a href="#使用JDK8镜像" class="headerlink" title="使用JDK8镜像"></a>使用JDK8镜像</h1><p>使用的是jdk8，8-jdk与8u111应该是一样的，image id都一样（后边我写的是8-jdk）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull java:8-jdk</span><br></pre></td></tr></table></figure></p>
+<h1 id="在JDK8镜像中安装Jetty9"><a href="#在JDK8镜像中安装Jetty9" class="headerlink" title="在JDK8镜像中安装Jetty9"></a>在JDK8镜像中安装Jetty9</h1><p>dockerfile这样写：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; chown -R jetty:jetty /opt/jetty &amp;&amp; rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>这样，建立的镜像作为容器启动时，jetty就会一直运行了。</p>
+<h1 id="在镜像中安装ffmpeg"><a href="#在镜像中安装ffmpeg" class="headerlink" title="在镜像中安装ffmpeg"></a>在镜像中安装ffmpeg</h1><p>最最麻烦的部分！JDK镜像是基于Debian的，因此我们现在要基于Debian安装FFmpeg（可以把它当做在uBuntu上安装）。本身安装FFmpeg就需要安装一堆依赖，我原本期望是可以用“apt install”的方式直接帮我安装FFmpeg还有一大堆依赖，但不知什么原因，可能是国内很难连上apt的地址，也可能是当前debian根本没有“FFmpeg的源”，总之就是一直各种报错，最终失败。只能手动下载再编译安装。而且仅仅FFmpeg还不够，转码需要特定的插件。反正差不多折腾了我一周的时间。<br>还好，最终整合了很多dockerfile的语句，终于拼出了一个能最终跑起来的。在之前的dockerfile上加上以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br></pre></td></tr></table></figure></p>
+<p>注意上面的语句加在以下语句之前，或者说以下两句必须放在最后，否则容器启动时jetty就不会自动运行了。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>因此，修改后的Dockerfile是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line"># RUN apt-get update</span><br><span class="line"># RUN apt-get install -yq --no-install-recommends wget autoconf automake cmake curl bzip2 libexpat1-dev g++ gcc gperf libtool make nasm perl pkg-config libssl-dev yasm libva-dev zlib1g-dev</span><br><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br><span class="line"></span><br><span class="line"># install jetty</span><br><span class="line"># Install packages</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; \</span><br><span class="line">    chown -R jetty:jetty /opt/jetty &amp;&amp; \</span><br><span class="line">    rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意：  </strong><br>vo-amrwbenc-0.1.3，opencore-amr-0.1.2是转码为amr需要用到的插件，国内连上去速度极慢，如果让它在构建镜像时自行下载，耗时会很长甚至让整个构建失败，因此我这里是自行下载后解压了，把vo-amrwbenc-0.1.3目录与opencore-amr-0.1.2目录放在里与Dockerfile同级的目录内，然后直接复制到镜像内。此外，还曾经遇到ffmpeg找不到我安装的vo-amrwbenc-0.1.3，opencore-amr-0.1.2插件，原因是FFmpeg没有在正确的插件安装位置去找，这里的解决办法是，直接在FFmpeg去找的目录内建立软链接，链接去两个插件安装的位置。  </p>
+<p>两个插件地址如下，请自行下载（也许需要个梯子）：<br><a href="https://sourceforge.net/projects/opencore-amr/files/opencore-amr/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/opencore-amr/</a><br><a href="https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/</a></p>
+<p>参考：<br><a href="https://blog.51cto.com/zlyang/1709508" target="_blank" rel="noopener">安装ffmpeg过程中可能会遇到的问题详解</a><br><a href="https://thierry-xing.iteye.com/blog/2017864" target="_blank" rel="noopener">ubuntu上安装ffmpeg</a><br><a href="https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/" target="_blank" rel="noopener">https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/</a></p>
+<h1 id="在镜像中安装unrar"><a href="#在镜像中安装unrar" class="headerlink" title="在镜像中安装unrar"></a>在镜像中安装unrar</h1><p>5.0版本之前可以通过引用Jar包，在Java代码中解压。5.0版本之后不提供jar包了，如果继续用5.0之前的版本，则无法解压用5.0版本以后压缩的包，因此只能在服务器上装个rar 5.0 之后的版本，然后在Java代码中通过调用shell的方式实现。<br>在Dockerfile中适当位置添加如下语句（在WORKDIR与CMD那两句之前即可）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update -y &amp;&amp; apt-get install make</span><br><span class="line">RUN wget http://www.rarlab.com/rar/rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">cd rar &amp;&amp; \</span><br><span class="line">make  &amp;&amp; \</span><br><span class="line">mv rar_static /usr/local/bin/rar</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/纯实战/" rel="tag"># 纯实战</a>
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+            <a href="/tags/运维/" rel="tag"># 运维</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/28/CentOS-7挂载windows下的共享文件夹/" rel="next" title="CentOS 7挂载windows下的共享文件夹">
+                <i class="fa fa-chevron-left"></i> CentOS 7挂载windows下的共享文件夹
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#思考与摸索"><span class="nav-number">1.</span> <span class="nav-text">思考与摸索</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用JDK8镜像"><span class="nav-number">2.</span> <span class="nav-text">使用JDK8镜像</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在JDK8镜像中安装Jetty9"><span class="nav-number">3.</span> <span class="nav-text">在JDK8镜像中安装Jetty9</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在镜像中安装ffmpeg"><span class="nav-number">4.</span> <span class="nav-text">在镜像中安装ffmpeg</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在镜像中安装unrar"><span class="nav-number">5.</span> <span class="nav-text">在镜像中安装unrar</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
