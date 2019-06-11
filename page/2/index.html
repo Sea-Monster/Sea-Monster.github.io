@@ -229,6 +229,456 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/" itemprop="url">用Docker构建、运行、发布一个SpringBoot应用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-27T15:47:46+08:00">
+                2018-12-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>开发了一个Spring Boot的应用，传统的方法是打包（导出jar包），然后扔到服务器上，在服务器上配置好JDK等环境变量，然后运行jar包。现在改为用Docker了，希望每个jar包放在一个独立的容器，互不影响，要怎么做呢？<br>我们假设你用的是maven</p>
+</blockquote>
+<h1 id="Maven中加入Docker插件"><a href="#Maven中加入Docker插件" class="headerlink" title="Maven中加入Docker插件"></a>Maven中加入Docker插件</h1><p>修改工程的pom.xml文件，在如下位置加入依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;project ......&gt;</span><br><span class="line">	&lt;build&gt;</span><br><span class="line">		&lt;plugins&gt;</span><br><span class="line">			&lt;plugin&gt;</span><br><span class="line">		                &lt;groupId&gt;com.spotify&lt;/groupId&gt;</span><br><span class="line">		                &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;</span><br><span class="line">		                &lt;version&gt;0.4.11&lt;/version&gt;</span><br><span class="line">		                &lt;configuration&gt;</span><br><span class="line">		                    &lt;imageName&gt;$&#123;imagePath&#125;/$&#123;project.artifactId&#125;&lt;/imageName&gt;</span><br><span class="line">				&lt;!-- 工程中dockerfile的位置--&gt;</span><br><span class="line">		                    &lt;dockerDirectory&gt;src/main/docker&lt;/dockerDirectory&gt;</span><br><span class="line">		                    &lt;resources&gt;</span><br><span class="line">			                    &lt;resource&gt;</span><br><span class="line">			                            &lt;targetPath&gt;/&lt;/targetPath&gt;</span><br><span class="line">			                            &lt;directory&gt;$&#123;project.build.directory&#125;&lt;/directory&gt;</span><br><span class="line">			                            &lt;include&gt;$&#123;project.build.finalName&#125;.jar&lt;/include&gt;</span><br><span class="line">			                    &lt;/resource&gt;</span><br><span class="line">		                    &lt;/resources&gt;</span><br><span class="line">		                &lt;/configuration&gt;</span><br><span class="line">		            &lt;/plugin&gt;</span><br><span class="line">......</span><br><span class="line">	&lt;profiles&gt;</span><br><span class="line">		&lt;profile&gt;</span><br><span class="line">			&lt;id&gt;自定的id&lt;/id&gt;</span><br><span class="line">			&lt;properties&gt;</span><br><span class="line">				&lt;imagePath&gt;自定的docker镜像前缀&lt;/imagePath&gt;</span><br><span class="line">			&lt;/properties&gt;</span><br><span class="line">		&lt;/profile&gt;</span><br><span class="line">	&lt;/profiles&gt;</span><br><span class="line">......</span><br><span class="line">&lt;/project&gt;</span><br></pre></td></tr></table></figure></p>
+<h1 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h1><p>上边我们定义了docker file的位置：src/main/docker，因此，我们就在工程的该目录下，创建文件：Dockerfile，文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181       # 表示我们的docker镜像是基于openjdk:8u181构建的</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD helloworld-0.0.1-SNAPSHOT.jar app.jar      #其中“helloworld”对应pom.xml中的artifactId，“0.0.1-SNAPSHOT”对应pom.xml中的version，jar对应pom.xml中的packaging</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]      # -Duser.timezone=GMT+8这句是设置docker使用北京、上海的这个时区</span><br></pre></td></tr></table></figure></p>
+<h1 id="构建Docker-Image"><a href="#构建Docker-Image" class="headerlink" title="构建Docker Image"></a>构建Docker Image</h1><p>这一步把工程通过maven构建为一个docker镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn package -D maven.test.skip=true -P 【上边自定的profile id】 docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>这时，我们通过docker images命令可以看到创建的镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">tisson/dict                latest              6febabde1fc5        6 hours ago         836 MB</span><br></pre></td></tr></table></figure></p>
+<p>tisson/dict 就是之前定义的imageName：${imagePath}/${project.artifactId}</p>
+<h1 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h1><p>然后就像运行一般docker容器那样即可<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d tisson/dict:latest</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/备份Docker-MySQL镜像的数据/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/04/备份Docker-MySQL镜像的数据/" itemprop="url">备份Docker MySQL镜像的数据</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-04T20:06:51+08:00">
+                2018-12-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Docker容器关闭（删除）后，数据会消失。为此我们需用到Docker的挂载。那么现在如果我们要再多做一步，每天备份Docker MYSQL镜像的数据呢？</p>
+</blockquote>
+<h1 id="使用挂载功能"><a href="#使用挂载功能" class="headerlink" title="使用挂载功能"></a>使用挂载功能</h1><p>我们把MySQL Docker容器中用到的目录挂载到宿主机上的目录： -v 主机路径:容器内部路径<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 -v /mnt/data-disk/mysql1/config:/etc/mysql/conf.d -v /mnt/data-disk/mysql1/datadir:/var/lib/mysql -v /etc/localtime:/etc/localtime:ro -m 2G --memory-swap=2G -e MYSQL_ROOT_PASSWORD=&apos;ROOT用户的密码&apos; -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<h1 id="备份数据的脚本"><a href="#备份数据的脚本" class="headerlink" title="备份数据的脚本"></a>备份数据的脚本</h1><h2 id="MySQL的备份脚本"><a href="#MySQL的备份脚本" class="headerlink" title="MySQL的备份脚本"></a>MySQL的备份脚本</h2><p>格式如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -u 用户名 -p密码 数据库名 &gt; 导出的文件名（自行定义，例如test.dump）</span><br><span class="line"># 注意-p和密码之间不要留空格（留了也许可以，但有时会报错）</span><br></pre></td></tr></table></figure></p>
+<h2 id="Docker-MySQL镜像的备份脚本"><a href="#Docker-MySQL镜像的备份脚本" class="headerlink" title="Docker MySQL镜像的备份脚本"></a>Docker MySQL镜像的备份脚本</h2><p>脚本如下<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=xxxx&quot;) mysqldump -u root -p&apos;root用户密码&apos; --ignore-table=xxx.aaa 数据库名 &gt; 文件名</span><br><span class="line"># 注意不要有-t，因为-t是分配一个伪终端,但是crontab执行的时候实际是不需要的</span><br></pre></td></tr></table></figure></p>
+<p>例如，我们刚才创建了一个名为mysql57的MySQL Docker容器，我们设置了它的root密码是ab(c)，我们希望可以备份到一个根据当前日期决定的文件名<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
+<h1 id="使用Linux的定时功能，定时备份数据"><a href="#使用Linux的定时功能，定时备份数据" class="headerlink" title="使用Linux的定时功能，定时备份数据"></a>使用Linux的定时功能，定时备份数据</h1><p>需要用到crontab，如果没安装，需要先安装  </p>
+<h2 id="编写脚本文件"><a href="#编写脚本文件" class="headerlink" title="编写脚本文件"></a>编写脚本文件</h2><p>假设我们要执行的脚本文件是/root/dockerfiles/script/data_bak.sh<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 创建文件</span><br><span class="line">$ touch data_bak.sh</span><br><span class="line"># 赋予执行权限</span><br><span class="line">$ chmod 755 data_bak.sh</span><br></pre></td></tr></table></figure></p>
+<p>在文件中写入如下语句<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
+<h2 id="编辑定时执行计划"><a href="#编辑定时执行计划" class="headerlink" title="编辑定时执行计划"></a>编辑定时执行计划</h2><p>执行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br></pre></td></tr></table></figure></p>
+<p>然后在文件中添加：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0 3 * * * sh /root/dockerfiles/script/data_bak.sh &gt;&gt; /mnt/data-disk/mysql_dumps.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure></p>
+<p>前面5个参数分别表示分钟、小时、日、月、年，星号表示任意</p>
+<p>就这样，每天凌晨3点，数据会备份到/mnt/data-disk/ 目录下的dict-当前日期.dump</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/29/Docker基本操作/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/29/Docker基本操作/" itemprop="url">Docker基本操作</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-29T09:42:40+08:00">
+                2018-09-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h1><p>貌似应该装Docker CE版，不过这里我直接装Docker，不知道算是CE（社区）版还是EE（企业）版。  </p>
+<h2 id="安装前提"><a href="#安装前提" class="headerlink" title="安装前提"></a>安装前提</h2><p>以CentOS为例，内核版本需要3.10以上：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br><span class="line">3.10.0-862.el7.x86_64</span><br></pre></td></tr></table></figure></p>
+<h2 id="安装指令"><a href="#安装指令" class="headerlink" title="安装指令"></a>安装指令</h2><p>以CentOS为例（新版的Docker分为企业版和社区版了，以下安装方式安装的版本会比较旧）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install docker</span><br></pre></td></tr></table></figure></p>
+<h3 id="安装Docker-CE（社区版）"><a href="#安装Docker-CE（社区版）" class="headerlink" title="安装Docker CE（社区版）"></a>安装Docker CE（社区版）</h3><p>最新版的以CentOS为例，如果安装了旧版本的，可以先卸载<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum remove docker \</span><br><span class="line">	docker-common \</span><br><span class="line">	docker-selinux \</span><br><span class="line">	docker-engine</span><br></pre></td></tr></table></figure></p>
+<p>安装以下依赖包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br></pre></td></tr></table></figure></p>
+<p>添加国内软件源，加快速度<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure></p>
+<p>安装Docker CE<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum makecache fast</span><br><span class="line">yum install docker-ce</span><br></pre></td></tr></table></figure></p>
+<h1 id="Docker寻找镜像资源"><a href="#Docker寻找镜像资源" class="headerlink" title="Docker寻找镜像资源"></a>Docker寻找镜像资源</h1><p>官方的仓库，直接上去搜，可以看到各个镜像资源的说明，还有资源的各个tag：<br><a href="https://hub.docker.com/search/" target="_blank" rel="noopener">https://hub.docker.com/search/</a></p>
+<h1 id="Docker运行"><a href="#Docker运行" class="headerlink" title="Docker运行"></a>Docker运行</h1><h2 id="查看是否安装成功"><a href="#查看是否安装成功" class="headerlink" title="查看是否安装成功"></a>查看是否安装成功</h2><p>其实就是看看版本号<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker version</span><br></pre></td></tr></table></figure></p>
+<h2 id="使用国内镜像资源"><a href="#使用国内镜像资源" class="headerlink" title="使用国内镜像资源"></a>使用国内镜像资源</h2><p>针对国内下载慢的问题：<br>修改/etc/docker/ 目录下的daemon.json，加入如下语句（注意，大括号是文件内默认已经有的，不用加）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">&quot;registry-mirrors&quot;: [&quot;https://registry.docker-cn.com&quot;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>修改后需要重启服务端</p>
+<h2 id="启动Docker"><a href="#启动Docker" class="headerlink" title="启动Docker"></a>启动Docker</h2><p>要使用Docker，需要启动Docker服务端<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service docker start</span><br></pre></td></tr></table></figure></p>
+<p>CentOS 7.0以上系统也可以这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start docker.service</span><br></pre></td></tr></table></figure></p>
+<h2 id="设置Docker为开机启动"><a href="#设置Docker为开机启动" class="headerlink" title="设置Docker为开机启动"></a>设置Docker为开机启动</h2><p>两种方式（第2种为CentOS7.0以上版本）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig docker on</span><br><span class="line"></span><br><span class="line">$ systemctl enable docker.service</span><br></pre></td></tr></table></figure></p>
+<h2 id="停止Docker服务端"><a href="#停止Docker服务端" class="headerlink" title="停止Docker服务端"></a>停止Docker服务端</h2><p>停止<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service docker stop</span><br></pre></td></tr></table></figure></p>
+<h2 id="下载镜像"><a href="#下载镜像" class="headerlink" title="下载镜像"></a>下载镜像</h2><p>例如我们要下载mysql 5.7.23<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull mysql:5.7.23</span><br></pre></td></tr></table></figure></p>
+<p>又例如我们要下载tomcat最新版<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull tomcat:latest</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看已下载的镜像"><a href="#查看已下载的镜像" class="headerlink" title="查看已下载的镜像"></a>查看已下载的镜像</h2><p>运行docker images，效果如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY                 TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">docker.io/tomcat           latest              41a54fe1f79d        2 weeks ago         463 MB</span><br><span class="line">docker.io/mysql            5.7.23              563a026a1511        3 weeks ago         372 MB</span><br></pre></td></tr></table></figure></p>
+<h2 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h2><p>例如我们要运行tomcat：<br>    ```<br>    $ docker run docker.io/tomcat:latest<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">这样就会在前台运行tomcat服务器，然后我们可以按CTRL+C终止。  </span><br><span class="line">### 后台运行镜像</span><br><span class="line">我们也可以让tomcat在后台运行</span><br></pre></td></tr></table></figure></p>
+<pre><code>$ docker run -d docker.io/tomcat:latest
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">会得到一串字符，这个就是容器运行的ID。</span><br></pre></td></tr></table></figure>
+
+1c5cf21627fbc03d5674a2145b7de206b736b2a4aa006c64dc848762558a1725
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">### 带参数配置的运行</span><br><span class="line">例如我们运行mysql，需要给它指定初始密码（root用户密码），需要指定开放出来的端口号（注意容器内的端口号与容器外对应的端口号，我们在容器外部要连mysql，需要访问的是mysql容器外对应的端口号）</span><br></pre></td></tr></table></figure>
+
+$ docker run --name 任意名字例如mysql57 -e MYSQL_ROOT_PASSWORD=设置root用户的密码 -p 主机端口号:容器端口号 -d docker.io/mysql:5.7.23
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我们知道mysql默认使用的端口号是3306，容器内mysql使用的端口也正是3306，而下边的命令我们设置了主机上的3307端口映射到容器内的3306端口，那么我们要访问mysql就需要从3307端口而不是3306端口了。</span><br></pre></td></tr></table></figure>
+
+$ docker run --name mysql57 -e MYSQL_ROOT_PASSWORD=123456 -p 3307:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 进入正在运行的容器内部</span><br><span class="line">docker exec 【options】【容器名（不用写全）】【命令】【命令参数】</span><br></pre></td></tr></table></figure>
+
+$ docker exec -it 370b0ee1f169 bash
+或者
+$ docker exec -it e1066fe2db35 /bin/bash
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">进入容器后可以通过输入exit退出容器内</span><br><span class="line">## 列出正在运行的容器</span><br><span class="line">docker ps</span><br></pre></td></tr></table></figure>
+
+$ docker ps
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">返回</span><br></pre></td></tr></table></figure>
+</code></pre><p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">### 列出所有容器</span><br><span class="line">包括已经停止的</span><br><span class="line">`$ docker ps -a`  </span><br><span class="line">返回</span><br></pre></td></tr></table></figure></p>
+<p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br>f2da9237003f        docker.io/tomcat:latest          “catalina.sh run”        19 hours ago        Exited (143) 19 hours ago                                                              confident_noyce<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 停止容器运行</span><br><span class="line">我们想停止正在运行的neo4j容器，它的ID是370b0ee1f169，注意执行命令时ID不用写全</span><br></pre></td></tr></table></figure></p>
+<pre><code>$ docker stop 370b0ee1f169
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 重新启动已停止运行的容器</span><br><span class="line">例如我想重新启动之前停止了的tomcat，它的ID是f2da9237003f，注意执行命令的时候，ID不用写全，例如只写f2d也是可以的</span><br></pre></td></tr></table></figure>
+
+$ docker start f2da9237003f
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 移除容器</span><br><span class="line">移除容器之前，该容器必须已停止运行</span><br></pre></td></tr></table></figure>
+
+$ docker rm 容器ID
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 卸载镜像</span><br><span class="line">移除镜像之前，必须移除所有该镜像的容器</span><br></pre></td></tr></table></figure>
+
+$ docker rmi 镜像ID
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 【示例】Docker下修改mysql配置文件</span><br><span class="line">由于需要修改mysql的sql\_mode，在命令行修改每次重启都会失效，因为修改docker下mysql的配置文件，假设正在运行的MySQL容器ID为e1066fe2db35。  </span><br><span class="line">进入容器：</span><br></pre></td></tr></table></figure>
+
+$ docker exec -it e1066fe2db35 /bin/bash
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">配置文件在容器内的这个位置：`/etc/mysql/mysql.conf.d/mysqld.cnf`</span><br><span class="line">直接修改只对容器有用，对镜像本身没用。如果我们想在镜像运行时使用我们想用的配置的话：</span><br></pre></td></tr></table></figure>
+
+docker run -d -p 3306:3306 -v /soft/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf -v /soft/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql57 mysql:5.7.23
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">可以看到用了-v，我们指定使用主机上的/soft/mysql/my.cnf映射到（替换）容器内的/etc/mysql/mysql.conf.d/mysqld.cnf，用主机上的/soft/mysql/data映射到容器内的/var/lib/mysql（这个是容器内mysql的datadir），这样就可以让容器内的mysql使用容器外（主机）上的数据文件。</span><br><span class="line"></span><br><span class="line"># Docker Container的导入导出</span><br><span class="line">导出容器，用ID或names(别名，自定义的)皆可，例如：</span><br></pre></td></tr></table></figure>
+
+$ docker export 011b39e7f806 &gt; ~/Downloads/mysql.tar
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">在导出后，你可以把文件利用scp或是ftp等各种方式分发，然后这样导入：</span><br></pre></td></tr></table></figure>
+
+$ docker import - /Users/SeaMonster/Downloads/mysql.tar
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># Docker 镜像的保存/加载</span><br><span class="line">保存/加载与导出导入有一些类似</span><br><span class="line">- export/import与 save/load区别</span><br><span class="line">	- export/import 是根据容器来导出镜像（因此没有镜像的历史记录）而 save/load 操作的对象是镜像</span><br><span class="line">	- export/import 镜像的历史记录再导后无法进行回滚操作，而save/load镜像有完整的历史记录可以回滚</span><br><span class="line"></span><br><span class="line">保存镜像：</span><br></pre></td></tr></table></figure>
+
+$ docker save mysql:5.7.23 &gt; mysql.tar
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">加载本地镜像</span><br></pre></td></tr></table></figure>
+
+$ docker load -i mysql.tar
+```
+</code></pre><h1 id="Docker-制作镜像"><a href="#Docker-制作镜像" class="headerlink" title="Docker 制作镜像"></a>Docker 制作镜像</h1><h2 id="手工生成方式"><a href="#手工生成方式" class="headerlink" title="手工生成方式"></a>手工生成方式</h2><p>【待补充】，参考<a href="https://blog.csdn.net/u013378306/article/details/54021638" target="_blank" rel="noopener">https://blog.csdn.net/u013378306/article/details/54021638</a></p>
+<h2 id="Dockerfile方式"><a href="#Dockerfile方式" class="headerlink" title="Dockerfile方式"></a>Dockerfile方式</h2>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发（一）-环境搭建/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1178,393 +1628,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/01/Selenium使用cookie免登录示例（Python版）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/01/Selenium使用cookie免登录示例（Python版）/" itemprop="url">Selenium使用cookie免登录示例（Python版）</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-01T20:55:54+08:00">
-                2018-06-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>业务需求，爬取某网站，该网站必须登录，而登录过程中包含拖动滑块与汉字坐标验证码，其中后者我暂时无法破解，只能手动处理。如何做到登录一次后，保存cookie，下次就让Selenium读取cookie，免去我手动登录呢</p>
-</blockquote>
-<h1 id="安装Selenium"><a href="#安装Selenium" class="headerlink" title="安装Selenium"></a>安装Selenium</h1><p>安装依赖<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip3 install selenium</span><br></pre></td></tr></table></figure></p>
-<h1 id="下载webdriver"><a href="#下载webdriver" class="headerlink" title="下载webdriver"></a>下载webdriver</h1><p>由于我用最主流的Chrome，需要下载它的驱动：<a href="http://chromedriver.storage.googleapis.com/index.html" target="_blank" rel="noopener">（chrome各个版本的web driver）</a>，假设我放到<code>/Users/SeaMonster/Downloads/</code>目录下<br>注：有时我们更新了Chrome浏览器后，再使用原来的chrome web driver就有可能产生各种奇怪的报错，如果发生这种情况，可以试试下载最新版的web driver替换之前用的。</p>
-<h1 id="让Selenium登录一次"><a href="#让Selenium登录一次" class="headerlink" title="让Selenium登录一次"></a>让Selenium登录一次</h1><p>实例化一个Selenium的web drive（这里用的是Chrome的web drive）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">from selenium import webdrive</span><br><span class="line"># webdriver的路径</span><br><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>然后，手动完成验证码校验</p>
-<h1 id="获取cookie，保存到文件"><a href="#获取cookie，保存到文件" class="headerlink" title="获取cookie，保存到文件"></a>获取cookie，保存到文件</h1><p>登录完成后，可以获取到cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cookies = browser.get_cookies()</span><br></pre></td></tr></table></figure></p>
-<p>我们把它以json格式保存到文件中<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import json</span><br><span class="line"># 假设文件路径为/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt</span><br><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;,&apos;w&apos;) as fp:</span><br><span class="line">	json.dump(cookies,fp)</span><br></pre></td></tr></table></figure></p>
-<h1 id="让Selenium读取cookie"><a href="#让Selenium读取cookie" class="headerlink" title="让Selenium读取cookie"></a>让Selenium读取cookie</h1><p>我们初始化一个webdriver，注意这时无法直接给它设置cookie，否则会报错。我们要先请求一下那个网页<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">browser = webdrive.Chrome(executable_path=&apos;/Users/SeaMonster/Downloads/chromedriver&apos;)</span><br><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>这时可以给它设置cookie了<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">with open(&apos;/Users/SeaMonster/PycharmProjects/TelecomInfo/src/crawl/json.txt&apos;, &apos;r&apos;) as fp:</span><br><span class="line">	cookies = json.load(fp)</span><br><span class="line"></span><br><span class="line">for cookie in cookies:</span><br><span class="line">	driver.add_cookie(cookie)</span><br></pre></td></tr></table></figure></p>
-<p>这时候再请求那个网址，就可发现已登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">browser.get(要请求的网址)</span><br></pre></td></tr></table></figure></p>
-<p>参考文章：<br><a href="https://www.cnblogs.com/small-bud/p/9064674.html" target="_blank" rel="noopener">selenium+requests进行cookies保存读取操作</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/30/Mac系统下多网卡同时访问/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/30/Mac系统下多网卡同时访问/" itemprop="url">Mac系统下多网卡同时访问</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-30T10:52:53+08:00">
-                2018-05-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>背景：MacBook笔记本在某工作环境，通过Wifi访问外网，通过有线网络访问内网，在不做任何设置的情况下，要上外网就只能拔掉网线，无法同时上内网外网，影响工作，那么有没办法同时访问内外网呢？</p>
-</blockquote>
-<p>答案是肯定的。我们要做的就是为系统添加路由（Route）。</p>
-<h1 id="调整网络服务的顺序"><a href="#调整网络服务的顺序" class="headerlink" title="调整网络服务的顺序"></a>调整网络服务的顺序</h1><p>有线访问默认是排在Wifi访问之前的，但我们只需要访问某些特定网段（10，132，172）时用内网，其他时候用外网。那么我们需要把Wifi调整到有线之前：打开“系统偏好设置”->“网路”，点击左下角的“设定服务顺序”，调整顺序。</p>
-<h1 id="添加理由"><a href="#添加理由" class="headerlink" title="添加理由"></a>添加理由</h1><h2 id="查看路由状态"><a href="#查看路由状态" class="headerlink" title="查看路由状态"></a>查看路由状态</h2><p>打开终端，输入：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -r</span><br></pre></td></tr></table></figure></p>
-<p>可以看到类似下面的结果：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Routing tables</span><br><span class="line"></span><br><span class="line">Internet:</span><br><span class="line">Destination        Gateway            Flags        Refs      Use   Netif Expire</span><br><span class="line">default            1.160.136.219.broa UGSc           98        0     en0</span><br><span class="line">default            10.18.160.254      UGScI           5        0     en5</span><br><span class="line">10.18.160/24       link#4             UCS             7        0     en5</span><br><span class="line">10.18.160.52       0:f:1f:89:7:5d     UHLWIi          1        0     en5   1154</span><br><span class="line">10.18.160.88       54:ee:75:50:e4:f9  UHLWIi          1        0     en5   1195</span><br><span class="line">10.18.160.101/32   link#4             UCS             1        0     en5</span><br><span class="line">10.18.160.166      0:24:81:85:60:4e   UHLWIi          1        1     en5   1183</span><br><span class="line">10.18.160.222      6c:b:84:9:e3:cb    UHLWIi          1        2     en5   1167</span><br><span class="line">10.18.160.254/32   link#4             UCS             2        0     en5</span><br><span class="line">10.18.160.254      0:0:5e:0:1:3b      UHLWIir         6        0     en5   1122</span><br><span class="line">10.18.160.255      link#4             UHLWbI          1        9     en5</span><br><span class="line">127                localhost          UCS             1        0     lo0</span><br><span class="line">localhost          localhost          UH              3       42     lo0</span><br></pre></td></tr></table></figure></p>
-<p>我们看看Netif这一列，有en0，en5，lo0，其中lo0代表是localhost，en5是有线网卡，en0是无线网卡。当然，实际上其他机器可能会不同。<br>Destination 与 Gateway：如果我们要访问某个ip（Destination），需要走哪个Gateway。default就是没有作特定设置的所有ip。可以看到，列表中有2个default（分别对应无线网络与有线网络），它们分别走不同的Gateway</p>
-<h2 id="添加路由，让132和10网段走内网（有线）而不是外网（无线）"><a href="#添加路由，让132和10网段走内网（有线）而不是外网（无线）" class="headerlink" title="添加路由，让132和10网段走内网（有线）而不是外网（无线）"></a>添加路由，让132和10网段走内网（有线）而不是外网（无线）</h2><p>只需这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo route add -net 132.121.0.0 -netmask 255.255.0.0 10.18.160.254</span><br><span class="line">$ sudo route add -net 10.18.0.0 -netmask 255.255.0.0 10.18.160.254</span><br><span class="line">$ sudo route add -net 10.16.0.0 -netmask 255.255.0.0 10.18.160.254</span><br></pre></td></tr></table></figure></p>
-<p>其中，132.121.0.0，设置为0代表“所有”，可以理解为132.121.0~255.0~255。10.18.0.0同理。10.18.160.254就是我们希望访问这些ip时走的Gateway。我们再次查看路由会看到如下结果：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Destination        Gateway            Flags        Refs      Use   Netif Expire</span><br><span class="line">default            1.160.136.219.broa UGSc          496        0     en0</span><br><span class="line">10.16/16           10.18.160.254      UGSc            1        0     en5</span><br><span class="line">10.18/16           10.18.160.254      UGSc            4        0     en5</span><br><span class="line">127                localhost          UCS             1        0     lo0</span><br><span class="line">localhost          localhost          UH             32    81962     lo0</span><br><span class="line">132.121            10.18.160.254      UGSc            2        0     en5</span><br></pre></td></tr></table></figure></p>
-<p>可以看到那几个网段的ip将会走内网了</p>
-<h2 id="如果我们将来想删除了这些路由，让它走默认呢"><a href="#如果我们将来想删除了这些路由，让它走默认呢" class="headerlink" title="如果我们将来想删除了这些路由，让它走默认呢"></a>如果我们将来想删除了这些路由，让它走默认呢</h2><p>只需这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo route delete  -net 132.121.0.0</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/28/Mac系统下：无效的服务器地址-BasicIPv6ValidationError/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/28/Mac系统下：无效的服务器地址-BasicIPv6ValidationError/" itemprop="url">Mac系统下：无效的服务器地址 BasicIPv6ValidationError</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-28T11:07:07+08:00">
-                2018-05-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>背景：在某办公环境，没有wifi，只提供了网线，MacBook除了需要用到转接口，还需要进行网络设置。这个网络配置都是抄的其他人的，他们绝大部分是windows系统，而且他们的配置都是IPv4，没有配置IPv6。结果按照他们的配置却死活不成功，报“无效的服务器地址 BasicIPv6ValidationError”  </p>
-<p>解决办法是<br>1)列出所有网络服务信息<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -listallnetworkservices</span><br></pre></td></tr></table></figure></p>
-<p>结果如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">An asterisk (*) denotes that a network service is disabled.</span><br><span class="line">USB 10/100 LAN</span><br><span class="line">Wi-Fi</span><br><span class="line">iPhone USB</span><br><span class="line">Bluetooth PAN</span><br><span class="line">Thunderbolt Bridge</span><br><span class="line">TissonVPN</span><br></pre></td></tr></table></figure></p>
-<p>2)停止对应网卡的IPv6服务<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -setv6off &quot;USB 10/100 LAN&quot;</span><br></pre></td></tr></table></figure></p>
-<p>3)手动配置网卡的IP地址（地址部分自行调整，反正就是网址，掩码，网关3部分）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ networksetup -setmanual &quot;USB 10/100 LAN&quot; 10.18.160.101 255.255.255.0 10.18.160.254</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1615,7 +1678,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-count">34</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

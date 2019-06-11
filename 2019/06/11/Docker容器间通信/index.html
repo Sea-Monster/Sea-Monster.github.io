@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="纯实战,Docker," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="每个容器有一个独立的ip，而且跟宿主机的ip是两套东西，如何实现容器间/容器与宿主机互相通信？  例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Dock">
+<meta name="keywords" content="纯实战,Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker容器间通信">
+<meta property="og:url" content="http://yoursite.com/2019/06/11/Docker容器间通信/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="每个容器有一个独立的ip，而且跟宿主机的ip是两套东西，如何实现容器间/容器与宿主机互相通信？  例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Dock">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-06-11T06:23:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker容器间通信">
+<meta name="twitter:description" content="每个容器有一个独立的ip，而且跟宿主机的ip是两套东西，如何实现容器间/容器与宿主机互相通信？  例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Dock">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/11/Docker容器间通信/"/>
+
+
+
+
+
+  <title>Docker容器间通信 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/Docker容器间通信/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker容器间通信</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T14:23:40+08:00">
+                2019-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>每个容器有一个独立的ip，而且跟宿主机的ip是两套东西，如何实现容器间/容器与宿主机互相通信？</p>
+</blockquote>
+<p>例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Docker容器之后，容器内部有独立于主机的一套IP，即使Java WEB与数据库容器都在同一个主机上，在JAVA WEB容器内访问127.0.0.1是找不到数据库容器的。怎么办？网上能搜到一堆答案，不过由于对网络这块我不是很熟悉，有很多从“网桥”这个方向的解决方案我是完全看不懂，我能看懂并实际应用的只有下边两种：</p>
+<h1 id="link方式"><a href="#link方式" class="headerlink" title="link方式"></a>link方式</h1><p>我们启动Docker容器的时候可以指定容器的名字，例如我启动一个MySQL的容器，指定其名字为mysql57<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 MYSQL_ROOT_PASSWORD=123456 -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<p>现在，我们启动Java WEB容器，并允许其访问到mysql57这个容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run  --link mysql57:mysql57 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>容器内配置的数据源地址为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用mysql57这个地址可以访问到mysql57容器，注意mysql57容器内部使用的是3306端口，但是映射到主机是3308端口，我们使用link的方式访问，应该使用该容器内部的端口：3306</span><br><span class="line">spring.datasource.url=jdbc:mysql://mysql57:3306/dict?......</span><br></pre></td></tr></table></figure></p>
+<h1 id="add-host方式"><a href="#add-host方式" class="headerlink" title="add-host方式"></a>add-host方式</h1><p>link方式用了一阵，很快我就发现了一些问题：</p>
+<ol>
+<li>容器必须按次序启动，例如我启动Java WEB容器的时候，添加了使用mysql57的link，那么在mysql57容器成功启动之前，我启动Java WEB容器会报错。再考虑极端一些的情况，假如两个容器需要相互访问，要怎么办呢？</li>
+<li>曾经遇到：A容器需要link到B容器，而B容器因为某些原因需要删除，然后重新打包镜像，运行容器，名字也是B。然后A总是说连不上B了，只能把A也删掉，重新建一个A容器</li>
+<li>如果需要相互通信的容器不在同一台主机上，要怎么做</li>
+</ol>
+<p>最无脑的办法是不用“link”，直接写死外网IP。因为容器内也是可以访问到主机的外网IP。但是，如果我们要做服务迁移呢？每迁移一次就改一大堆地址？挺麻烦的样子。然后我又想到了使用hostname，直接让容器内的hosts文件挂载到主机的hosts文件，但是docker启动的时候某些参数也会修改容器内部的hosts，我不知道是否会影响到主机的hosts。如何为容器添加hostname又不影响主机hosts呢？还真有方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用--add-host参数，也不用管哪个容器先启动了，也可以跨主机访问</span><br><span class="line">$ docker run  --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116  -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<h1 id="留意防火墙"><a href="#留意防火墙" class="headerlink" title="留意防火墙"></a>留意防火墙</h1><p>最近服务器迁移时遇到的问题，新部署的docker容器，无法访问宿主机的ip，表现为：</p>
+<ol>
+<li>容器内部可以ping得通宿主机的ip</li>
+<li>容器内部curl宿主机的ip缺报错：No route to host</li>
+<li>容器内可以访问同一主机上的其他容器</li>
+</ol>
+<p>经查，居然是防火墙的问题（系统是CentOS 7.5），比方说，我有个java web的docker容器服务，要访问主机上的mysql数据库，端口号为3306，那么需要在防火墙开放开放指定端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line">success</span><br><span class="line">$ sudo firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/纯实战/" rel="tag"># 纯实战</a>
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/11/Docker查看容器日志/" rel="next" title="Docker查看容器日志">
+                <i class="fa fa-chevron-left"></i> Docker查看容器日志
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#link方式"><span class="nav-number">1.</span> <span class="nav-text">link方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#add-host方式"><span class="nav-number">2.</span> <span class="nav-text">add-host方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#留意防火墙"><span class="nav-number">3.</span> <span class="nav-text">留意防火墙</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

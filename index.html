@@ -229,6 +229,406 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/Docker容器间通信/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/11/Docker容器间通信/" itemprop="url">Docker容器间通信</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T14:23:40+08:00">
+                2019-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>每个容器有一个独立的ip，而且跟宿主机的ip是两套东西，如何实现容器间/容器与宿主机互相通信？</p>
+</blockquote>
+<p>例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Docker容器之后，容器内部有独立于主机的一套IP，即使Java WEB与数据库容器都在同一个主机上，在JAVA WEB容器内访问127.0.0.1是找不到数据库容器的。怎么办？网上能搜到一堆答案，不过由于对网络这块我不是很熟悉，有很多从“网桥”这个方向的解决方案我是完全看不懂，我能看懂并实际应用的只有下边两种：</p>
+<h1 id="link方式"><a href="#link方式" class="headerlink" title="link方式"></a>link方式</h1><p>我们启动Docker容器的时候可以指定容器的名字，例如我启动一个MySQL的容器，指定其名字为mysql57<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 MYSQL_ROOT_PASSWORD=123456 -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<p>现在，我们启动Java WEB容器，并允许其访问到mysql57这个容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run  --link mysql57:mysql57 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>容器内配置的数据源地址为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用mysql57这个地址可以访问到mysql57容器，注意mysql57容器内部使用的是3306端口，但是映射到主机是3308端口，我们使用link的方式访问，应该使用该容器内部的端口：3306</span><br><span class="line">spring.datasource.url=jdbc:mysql://mysql57:3306/dict?......</span><br></pre></td></tr></table></figure></p>
+<h1 id="add-host方式"><a href="#add-host方式" class="headerlink" title="add-host方式"></a>add-host方式</h1><p>link方式用了一阵，很快我就发现了一些问题：</p>
+<ol>
+<li>容器必须按次序启动，例如我启动Java WEB容器的时候，添加了使用mysql57的link，那么在mysql57容器成功启动之前，我启动Java WEB容器会报错。再考虑极端一些的情况，假如两个容器需要相互访问，要怎么办呢？</li>
+<li>曾经遇到：A容器需要link到B容器，而B容器因为某些原因需要删除，然后重新打包镜像，运行容器，名字也是B。然后A总是说连不上B了，只能把A也删掉，重新建一个A容器</li>
+<li>如果需要相互通信的容器不在同一台主机上，要怎么做</li>
+</ol>
+<p>最无脑的办法是不用“link”，直接写死外网IP。因为容器内也是可以访问到主机的外网IP。但是，如果我们要做服务迁移呢？每迁移一次就改一大堆地址？挺麻烦的样子。然后我又想到了使用hostname，直接让容器内的hosts文件挂载到主机的hosts文件，但是docker启动的时候某些参数也会修改容器内部的hosts，我不知道是否会影响到主机的hosts。如何为容器添加hostname又不影响主机hosts呢？还真有方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用--add-host参数，也不用管哪个容器先启动了，也可以跨主机访问</span><br><span class="line">$ docker run  --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116  -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<h1 id="留意防火墙"><a href="#留意防火墙" class="headerlink" title="留意防火墙"></a>留意防火墙</h1><p>最近服务器迁移时遇到的问题，新部署的docker容器，无法访问宿主机的ip，表现为：</p>
+<ol>
+<li>容器内部可以ping得通宿主机的ip</li>
+<li>容器内部curl宿主机的ip缺报错：No route to host</li>
+<li>容器内可以访问同一主机上的其他容器</li>
+</ol>
+<p>经查，居然是防火墙的问题（系统是CentOS 7.5），比方说，我有个java web的docker容器服务，要访问主机上的mysql数据库，端口号为3306，那么需要在防火墙开放开放指定端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line">success</span><br><span class="line">$ sudo firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/Docker查看容器日志/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/11/Docker查看容器日志/" itemprop="url">Docker查看容器日志</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T14:23:27+08:00">
+                2019-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>（容器）控制台的日志</p>
+</blockquote>
+<h1 id="查看日志"><a href="#查看日志" class="headerlink" title="查看日志"></a>查看日志</h1><p>需要知道该容器的ID（不用全部输入，输前边几位就可以了）或名字：例如<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                                            NAMES</span><br><span class="line">b2c2d420d3f1        docker.io/mysql:5.7.23   &quot;docker-entrypoint...&quot;   2 days ago          Up 2 days           33060/tcp, 0.0.0.0:3308-&gt;3306/tcp                mysql57</span><br><span class="line"># 以下两条命令均可</span><br><span class="line">$ docker logs b2c </span><br><span class="line">$ docker logs mysql57</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看特定时间的日志"><a href="#查看特定时间的日志" class="headerlink" title="查看特定时间的日志"></a>查看特定时间的日志</h2><p>日志一多是显示不完的，我们可以指定只显示特定时间内的日志。<br>例如我想看最近30分钟的日志<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs --since 30m CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间之后的日志：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间段日志：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; --until &quot;2018-02-09T12:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看最近的日志"><a href="#查看最近的日志" class="headerlink" title="查看最近的日志"></a>查看最近的日志</h2><p>例如，我要看日志的最后100行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs --tail=100 CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>可以和日期一同使用<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># -f ：跟踪实时日志；-t：显示时间戳</span><br><span class="line">$ docker logs -f -t --since=&quot;2018-12-07&quot; --tail=100 CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h1 id="【重要】限制日志大小"><a href="#【重要】限制日志大小" class="headerlink" title="【重要】限制日志大小"></a>【重要】限制日志大小</h1><p>日志虽然写在容器内，但实际上也是用到宿主机的存储空间，有些服务会写很多日志，如果不加以限制，日志不断膨胀甚至有可能沾满整个存储空间。   </p>
+<h2 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h2><p>修改/etc/docker/daemon.json，没有就新建一个<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># max-size=500m，意味着一个容器日志大小上限是500M</span><br><span class="line"># max-file=3，意味着一个容器有三个日志，分别是id+.json、id+1.json、id+2.json</span><br><span class="line">&#123;</span><br><span class="line">&quot;log-driver&quot;:&quot;json-file&quot;,</span><br><span class="line">&quot;log-opts&quot;: &#123;&quot;max-size&quot;:&quot;500m&quot;, &quot;max-file&quot;:&quot;3&quot;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="重启docker守护线程"><a href="#重启docker守护线程" class="headerlink" title="重启docker守护线程"></a>重启docker守护线程</h2><p>命令如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl restart docker</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意：设置的日志大小规则，只对新建的容器有效</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/11/Docker镜像导出导入/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/11/Docker镜像导出导入/" itemprop="url">Docker镜像导出导入</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-11T14:21:37+08:00">
+                2019-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>这就是我们使用Docker的一大理由。先下载一个基础的镜像，然后在此基础上安装我们需要的各种软件、环境什么的东西，形成一个新的镜像。然后这个镜像可以直接用在其他机器，节省大量配环境的时间。</p>
+</blockquote>
+<h1 id="镜像文件导出"><a href="#镜像文件导出" class="headerlink" title="镜像文件导出"></a>镜像文件导出</h1><p>先查看我们要导出的镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker images</span><br><span class="line">REPOSITORY                TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">tisson/jdk8_rar           latest              2d754ec2021c        8 days ago          511MB</span><br><span class="line">openjdk                   8u212               4a0a42e87cf3        12 days ago         488MB</span><br><span class="line">mongo                     latest              0fb47b43df19        12 days ago         411MB</span><br><span class="line">tisson/jdk8u181chrome     2.0                 10458e5525f5        3 months ago        1.04GB</span><br></pre></td></tr></table></figure></p>
+<p>假设我们要导出“tisson/jdk8u181chrome”这个镜像，执行如下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker save -o jdk8u181chrome.tar tisson/jdk8u181chrome:2.0</span><br></pre></td></tr></table></figure></p>
+<p>这样就会在当前目录生成jdk8u181chrome.tar文件，然后我们下载此文件，或将此文件上传到特定服务器。</p>
+<h1 id="镜像文件导入"><a href="#镜像文件导入" class="headerlink" title="镜像文件导入"></a>镜像文件导入</h1><p>现在我们要在另一台机器上导入tisson/jdk8u181chrome镜像，首先把jdk8u181chrome.tar文件放到当前目录，然后运行如下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker load -i jdk8u181chrome.tar</span><br></pre></td></tr></table></figure></p>
+<p>即可导入此镜像，而且此镜像的名字和tag将和导出时保持一致，当然，某些情况下，可能我们需要为这个镜像改下名字</p>
+<h2 id="更改镜像名称与标记"><a href="#更改镜像名称与标记" class="headerlink" title="更改镜像名称与标记"></a>更改镜像名称与标记</h2><p>例如我们有镜像tisson/jdk8u181chrome，其标记为2.0，我们准备改为java8chrome，标记改为v1：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker tag tisson/jdk8u181chrome:2.0 java8chrome:v1</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1203,456 +1603,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/" itemprop="url">用Docker构建、运行、发布一个SpringBoot应用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-27T15:47:46+08:00">
-                2018-12-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>开发了一个Spring Boot的应用，传统的方法是打包（导出jar包），然后扔到服务器上，在服务器上配置好JDK等环境变量，然后运行jar包。现在改为用Docker了，希望每个jar包放在一个独立的容器，互不影响，要怎么做呢？<br>我们假设你用的是maven</p>
-</blockquote>
-<h1 id="Maven中加入Docker插件"><a href="#Maven中加入Docker插件" class="headerlink" title="Maven中加入Docker插件"></a>Maven中加入Docker插件</h1><p>修改工程的pom.xml文件，在如下位置加入依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;project ......&gt;</span><br><span class="line">	&lt;build&gt;</span><br><span class="line">		&lt;plugins&gt;</span><br><span class="line">			&lt;plugin&gt;</span><br><span class="line">		                &lt;groupId&gt;com.spotify&lt;/groupId&gt;</span><br><span class="line">		                &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;</span><br><span class="line">		                &lt;version&gt;0.4.11&lt;/version&gt;</span><br><span class="line">		                &lt;configuration&gt;</span><br><span class="line">		                    &lt;imageName&gt;$&#123;imagePath&#125;/$&#123;project.artifactId&#125;&lt;/imageName&gt;</span><br><span class="line">				&lt;!-- 工程中dockerfile的位置--&gt;</span><br><span class="line">		                    &lt;dockerDirectory&gt;src/main/docker&lt;/dockerDirectory&gt;</span><br><span class="line">		                    &lt;resources&gt;</span><br><span class="line">			                    &lt;resource&gt;</span><br><span class="line">			                            &lt;targetPath&gt;/&lt;/targetPath&gt;</span><br><span class="line">			                            &lt;directory&gt;$&#123;project.build.directory&#125;&lt;/directory&gt;</span><br><span class="line">			                            &lt;include&gt;$&#123;project.build.finalName&#125;.jar&lt;/include&gt;</span><br><span class="line">			                    &lt;/resource&gt;</span><br><span class="line">		                    &lt;/resources&gt;</span><br><span class="line">		                &lt;/configuration&gt;</span><br><span class="line">		            &lt;/plugin&gt;</span><br><span class="line">......</span><br><span class="line">	&lt;profiles&gt;</span><br><span class="line">		&lt;profile&gt;</span><br><span class="line">			&lt;id&gt;自定的id&lt;/id&gt;</span><br><span class="line">			&lt;properties&gt;</span><br><span class="line">				&lt;imagePath&gt;自定的docker镜像前缀&lt;/imagePath&gt;</span><br><span class="line">			&lt;/properties&gt;</span><br><span class="line">		&lt;/profile&gt;</span><br><span class="line">	&lt;/profiles&gt;</span><br><span class="line">......</span><br><span class="line">&lt;/project&gt;</span><br></pre></td></tr></table></figure></p>
-<h1 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h1><p>上边我们定义了docker file的位置：src/main/docker，因此，我们就在工程的该目录下，创建文件：Dockerfile，文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181       # 表示我们的docker镜像是基于openjdk:8u181构建的</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD helloworld-0.0.1-SNAPSHOT.jar app.jar      #其中“helloworld”对应pom.xml中的artifactId，“0.0.1-SNAPSHOT”对应pom.xml中的version，jar对应pom.xml中的packaging</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]      # -Duser.timezone=GMT+8这句是设置docker使用北京、上海的这个时区</span><br></pre></td></tr></table></figure></p>
-<h1 id="构建Docker-Image"><a href="#构建Docker-Image" class="headerlink" title="构建Docker Image"></a>构建Docker Image</h1><p>这一步把工程通过maven构建为一个docker镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn package -D maven.test.skip=true -P 【上边自定的profile id】 docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
-<p>这时，我们通过docker images命令可以看到创建的镜像<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">tisson/dict                latest              6febabde1fc5        6 hours ago         836 MB</span><br></pre></td></tr></table></figure></p>
-<p>tisson/dict 就是之前定义的imageName：${imagePath}/${project.artifactId}</p>
-<h1 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h1><p>然后就像运行一般docker容器那样即可<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d tisson/dict:latest</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/04/备份Docker-MySQL镜像的数据/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/04/备份Docker-MySQL镜像的数据/" itemprop="url">备份Docker MySQL镜像的数据</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-04T20:06:51+08:00">
-                2018-12-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>Docker容器关闭（删除）后，数据会消失。为此我们需用到Docker的挂载。那么现在如果我们要再多做一步，每天备份Docker MYSQL镜像的数据呢？</p>
-</blockquote>
-<h1 id="使用挂载功能"><a href="#使用挂载功能" class="headerlink" title="使用挂载功能"></a>使用挂载功能</h1><p>我们把MySQL Docker容器中用到的目录挂载到宿主机上的目录： -v 主机路径:容器内部路径<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 -v /mnt/data-disk/mysql1/config:/etc/mysql/conf.d -v /mnt/data-disk/mysql1/datadir:/var/lib/mysql -v /etc/localtime:/etc/localtime:ro -m 2G --memory-swap=2G -e MYSQL_ROOT_PASSWORD=&apos;ROOT用户的密码&apos; -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
-<h1 id="备份数据的脚本"><a href="#备份数据的脚本" class="headerlink" title="备份数据的脚本"></a>备份数据的脚本</h1><h2 id="MySQL的备份脚本"><a href="#MySQL的备份脚本" class="headerlink" title="MySQL的备份脚本"></a>MySQL的备份脚本</h2><p>格式如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -u 用户名 -p密码 数据库名 &gt; 导出的文件名（自行定义，例如test.dump）</span><br><span class="line"># 注意-p和密码之间不要留空格（留了也许可以，但有时会报错）</span><br></pre></td></tr></table></figure></p>
-<h2 id="Docker-MySQL镜像的备份脚本"><a href="#Docker-MySQL镜像的备份脚本" class="headerlink" title="Docker MySQL镜像的备份脚本"></a>Docker MySQL镜像的备份脚本</h2><p>脚本如下<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=xxxx&quot;) mysqldump -u root -p&apos;root用户密码&apos; --ignore-table=xxx.aaa 数据库名 &gt; 文件名</span><br><span class="line"># 注意不要有-t，因为-t是分配一个伪终端,但是crontab执行的时候实际是不需要的</span><br></pre></td></tr></table></figure></p>
-<p>例如，我们刚才创建了一个名为mysql57的MySQL Docker容器，我们设置了它的root密码是ab(c)，我们希望可以备份到一个根据当前日期决定的文件名<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
-<h1 id="使用Linux的定时功能，定时备份数据"><a href="#使用Linux的定时功能，定时备份数据" class="headerlink" title="使用Linux的定时功能，定时备份数据"></a>使用Linux的定时功能，定时备份数据</h1><p>需要用到crontab，如果没安装，需要先安装  </p>
-<h2 id="编写脚本文件"><a href="#编写脚本文件" class="headerlink" title="编写脚本文件"></a>编写脚本文件</h2><p>假设我们要执行的脚本文件是/root/dockerfiles/script/data_bak.sh<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 创建文件</span><br><span class="line">$ touch data_bak.sh</span><br><span class="line"># 赋予执行权限</span><br><span class="line">$ chmod 755 data_bak.sh</span><br></pre></td></tr></table></figure></p>
-<p>在文件中写入如下语句<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -i $(docker ps -aqf &quot;name=mysql57&quot;) mysqldump -u root -p&apos;ab(c)&apos; dict &gt; /mnt/data-disk/dict-$(date +%Y%m%d).dump</span><br></pre></td></tr></table></figure></p>
-<h2 id="编辑定时执行计划"><a href="#编辑定时执行计划" class="headerlink" title="编辑定时执行计划"></a>编辑定时执行计划</h2><p>执行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br></pre></td></tr></table></figure></p>
-<p>然后在文件中添加：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0 3 * * * sh /root/dockerfiles/script/data_bak.sh &gt;&gt; /mnt/data-disk/mysql_dumps.log 2&gt;&amp;1</span><br></pre></td></tr></table></figure></p>
-<p>前面5个参数分别表示分钟、小时、日、月、年，星号表示任意</p>
-<p>就这样，每天凌晨3点，数据会备份到/mnt/data-disk/ 目录下的dict-当前日期.dump</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/29/Docker基本操作/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/29/Docker基本操作/" itemprop="url">Docker基本操作</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-29T09:42:40+08:00">
-                2018-09-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h1><p>貌似应该装Docker CE版，不过这里我直接装Docker，不知道算是CE（社区）版还是EE（企业）版。  </p>
-<h2 id="安装前提"><a href="#安装前提" class="headerlink" title="安装前提"></a>安装前提</h2><p>以CentOS为例，内核版本需要3.10以上：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br><span class="line">3.10.0-862.el7.x86_64</span><br></pre></td></tr></table></figure></p>
-<h2 id="安装指令"><a href="#安装指令" class="headerlink" title="安装指令"></a>安装指令</h2><p>以CentOS为例（新版的Docker分为企业版和社区版了，以下安装方式安装的版本会比较旧）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install docker</span><br></pre></td></tr></table></figure></p>
-<h3 id="安装Docker-CE（社区版）"><a href="#安装Docker-CE（社区版）" class="headerlink" title="安装Docker CE（社区版）"></a>安装Docker CE（社区版）</h3><p>最新版的以CentOS为例，如果安装了旧版本的，可以先卸载<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum remove docker \</span><br><span class="line">	docker-common \</span><br><span class="line">	docker-selinux \</span><br><span class="line">	docker-engine</span><br></pre></td></tr></table></figure></p>
-<p>安装以下依赖包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br></pre></td></tr></table></figure></p>
-<p>添加国内软件源，加快速度<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure></p>
-<p>安装Docker CE<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum makecache fast</span><br><span class="line">yum install docker-ce</span><br></pre></td></tr></table></figure></p>
-<h1 id="Docker寻找镜像资源"><a href="#Docker寻找镜像资源" class="headerlink" title="Docker寻找镜像资源"></a>Docker寻找镜像资源</h1><p>官方的仓库，直接上去搜，可以看到各个镜像资源的说明，还有资源的各个tag：<br><a href="https://hub.docker.com/search/" target="_blank" rel="noopener">https://hub.docker.com/search/</a></p>
-<h1 id="Docker运行"><a href="#Docker运行" class="headerlink" title="Docker运行"></a>Docker运行</h1><h2 id="查看是否安装成功"><a href="#查看是否安装成功" class="headerlink" title="查看是否安装成功"></a>查看是否安装成功</h2><p>其实就是看看版本号<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker version</span><br></pre></td></tr></table></figure></p>
-<h2 id="使用国内镜像资源"><a href="#使用国内镜像资源" class="headerlink" title="使用国内镜像资源"></a>使用国内镜像资源</h2><p>针对国内下载慢的问题：<br>修改/etc/docker/ 目录下的daemon.json，加入如下语句（注意，大括号是文件内默认已经有的，不用加）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">&quot;registry-mirrors&quot;: [&quot;https://registry.docker-cn.com&quot;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>修改后需要重启服务端</p>
-<h2 id="启动Docker"><a href="#启动Docker" class="headerlink" title="启动Docker"></a>启动Docker</h2><p>要使用Docker，需要启动Docker服务端<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service docker start</span><br></pre></td></tr></table></figure></p>
-<p>CentOS 7.0以上系统也可以这样<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl start docker.service</span><br></pre></td></tr></table></figure></p>
-<h2 id="设置Docker为开机启动"><a href="#设置Docker为开机启动" class="headerlink" title="设置Docker为开机启动"></a>设置Docker为开机启动</h2><p>两种方式（第2种为CentOS7.0以上版本）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig docker on</span><br><span class="line"></span><br><span class="line">$ systemctl enable docker.service</span><br></pre></td></tr></table></figure></p>
-<h2 id="停止Docker服务端"><a href="#停止Docker服务端" class="headerlink" title="停止Docker服务端"></a>停止Docker服务端</h2><p>停止<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service docker stop</span><br></pre></td></tr></table></figure></p>
-<h2 id="下载镜像"><a href="#下载镜像" class="headerlink" title="下载镜像"></a>下载镜像</h2><p>例如我们要下载mysql 5.7.23<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull mysql:5.7.23</span><br></pre></td></tr></table></figure></p>
-<p>又例如我们要下载tomcat最新版<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull tomcat:latest</span><br></pre></td></tr></table></figure></p>
-<h2 id="查看已下载的镜像"><a href="#查看已下载的镜像" class="headerlink" title="查看已下载的镜像"></a>查看已下载的镜像</h2><p>运行docker images，效果如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY                 TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">docker.io/tomcat           latest              41a54fe1f79d        2 weeks ago         463 MB</span><br><span class="line">docker.io/mysql            5.7.23              563a026a1511        3 weeks ago         372 MB</span><br></pre></td></tr></table></figure></p>
-<h2 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h2><p>例如我们要运行tomcat：<br>    ```<br>    $ docker run docker.io/tomcat:latest<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">这样就会在前台运行tomcat服务器，然后我们可以按CTRL+C终止。  </span><br><span class="line">### 后台运行镜像</span><br><span class="line">我们也可以让tomcat在后台运行</span><br></pre></td></tr></table></figure></p>
-<pre><code>$ docker run -d docker.io/tomcat:latest
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">会得到一串字符，这个就是容器运行的ID。</span><br></pre></td></tr></table></figure>
-
-1c5cf21627fbc03d5674a2145b7de206b736b2a4aa006c64dc848762558a1725
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">### 带参数配置的运行</span><br><span class="line">例如我们运行mysql，需要给它指定初始密码（root用户密码），需要指定开放出来的端口号（注意容器内的端口号与容器外对应的端口号，我们在容器外部要连mysql，需要访问的是mysql容器外对应的端口号）</span><br></pre></td></tr></table></figure>
-
-$ docker run --name 任意名字例如mysql57 -e MYSQL_ROOT_PASSWORD=设置root用户的密码 -p 主机端口号:容器端口号 -d docker.io/mysql:5.7.23
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我们知道mysql默认使用的端口号是3306，容器内mysql使用的端口也正是3306，而下边的命令我们设置了主机上的3307端口映射到容器内的3306端口，那么我们要访问mysql就需要从3307端口而不是3306端口了。</span><br></pre></td></tr></table></figure>
-
-$ docker run --name mysql57 -e MYSQL_ROOT_PASSWORD=123456 -p 3307:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 进入正在运行的容器内部</span><br><span class="line">docker exec 【options】【容器名（不用写全）】【命令】【命令参数】</span><br></pre></td></tr></table></figure>
-
-$ docker exec -it 370b0ee1f169 bash
-或者
-$ docker exec -it e1066fe2db35 /bin/bash
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">进入容器后可以通过输入exit退出容器内</span><br><span class="line">## 列出正在运行的容器</span><br><span class="line">docker ps</span><br></pre></td></tr></table></figure>
-
-$ docker ps
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">返回</span><br></pre></td></tr></table></figure>
-</code></pre><p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">### 列出所有容器</span><br><span class="line">包括已经停止的</span><br><span class="line">`$ docker ps -a`  </span><br><span class="line">返回</span><br></pre></td></tr></table></figure></p>
-<p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br>f2da9237003f        docker.io/tomcat:latest          “catalina.sh run”        19 hours ago        Exited (143) 19 hours ago                                                              confident_noyce<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 停止容器运行</span><br><span class="line">我们想停止正在运行的neo4j容器，它的ID是370b0ee1f169，注意执行命令时ID不用写全</span><br></pre></td></tr></table></figure></p>
-<pre><code>$ docker stop 370b0ee1f169
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 重新启动已停止运行的容器</span><br><span class="line">例如我想重新启动之前停止了的tomcat，它的ID是f2da9237003f，注意执行命令的时候，ID不用写全，例如只写f2d也是可以的</span><br></pre></td></tr></table></figure>
-
-$ docker start f2da9237003f
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 移除容器</span><br><span class="line">移除容器之前，该容器必须已停止运行</span><br></pre></td></tr></table></figure>
-
-$ docker rm 容器ID
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 卸载镜像</span><br><span class="line">移除镜像之前，必须移除所有该镜像的容器</span><br></pre></td></tr></table></figure>
-
-$ docker rmi 镜像ID
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 【示例】Docker下修改mysql配置文件</span><br><span class="line">由于需要修改mysql的sql\_mode，在命令行修改每次重启都会失效，因为修改docker下mysql的配置文件，假设正在运行的MySQL容器ID为e1066fe2db35。  </span><br><span class="line">进入容器：</span><br></pre></td></tr></table></figure>
-
-$ docker exec -it e1066fe2db35 /bin/bash
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">配置文件在容器内的这个位置：`/etc/mysql/mysql.conf.d/mysqld.cnf`</span><br><span class="line">直接修改只对容器有用，对镜像本身没用。如果我们想在镜像运行时使用我们想用的配置的话：</span><br></pre></td></tr></table></figure>
-
-docker run -d -p 3306:3306 -v /soft/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf -v /soft/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql57 mysql:5.7.23
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">可以看到用了-v，我们指定使用主机上的/soft/mysql/my.cnf映射到（替换）容器内的/etc/mysql/mysql.conf.d/mysqld.cnf，用主机上的/soft/mysql/data映射到容器内的/var/lib/mysql（这个是容器内mysql的datadir），这样就可以让容器内的mysql使用容器外（主机）上的数据文件。</span><br><span class="line"></span><br><span class="line"># Docker Container的导入导出</span><br><span class="line">导出容器，用ID或names(别名，自定义的)皆可，例如：</span><br></pre></td></tr></table></figure>
-
-$ docker export 011b39e7f806 &gt; ~/Downloads/mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">在导出后，你可以把文件利用scp或是ftp等各种方式分发，然后这样导入：</span><br></pre></td></tr></table></figure>
-
-$ docker import - /Users/SeaMonster/Downloads/mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># Docker 镜像的保存/加载</span><br><span class="line">保存/加载与导出导入有一些类似</span><br><span class="line">- export/import与 save/load区别</span><br><span class="line">	- export/import 是根据容器来导出镜像（因此没有镜像的历史记录）而 save/load 操作的对象是镜像</span><br><span class="line">	- export/import 镜像的历史记录再导后无法进行回滚操作，而save/load镜像有完整的历史记录可以回滚</span><br><span class="line"></span><br><span class="line">保存镜像：</span><br></pre></td></tr></table></figure>
-
-$ docker save mysql:5.7.23 &gt; mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">加载本地镜像</span><br></pre></td></tr></table></figure>
-
-$ docker load -i mysql.tar
-```
-</code></pre><h1 id="Docker-制作镜像"><a href="#Docker-制作镜像" class="headerlink" title="Docker 制作镜像"></a>Docker 制作镜像</h1><h2 id="手工生成方式"><a href="#手工生成方式" class="headerlink" title="手工生成方式"></a>手工生成方式</h2><p>【待补充】，参考<a href="https://blog.csdn.net/u013378306/article/details/54021638" target="_blank" rel="noopener">https://blog.csdn.net/u013378306/article/details/54021638</a></p>
-<h2 id="Dockerfile方式"><a href="#Dockerfile方式" class="headerlink" title="Dockerfile方式"></a>Dockerfile方式</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1703,7 +1653,7 @@ $ docker load -i mysql.tar
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-count">34</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
