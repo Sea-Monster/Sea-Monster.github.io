@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="量">
 <meta property="og:description" content="远程登录Linux服务器，或者往其上传文件，每次都要输入一大串密码，而且密码还不能复制，相当麻烦，有没办法保存密码不用每次输入呢？  在本机（Linux/macOS ）上生成密钥执行命令：    1$ ssh-keygen -t rsa 然后按提示操作，在位置所有默认设置的情况下，该命令会在用户的根目录（例如/root/）生成.ssh文件夹，里边会有如下文件：    authorized_key">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-30T03:20:37.000Z">
+<meta property="og:updated_time" content="2019-07-22T09:51:02.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux SSH远程免密码登录">
 <meta name="twitter:description" content="远程登录Linux服务器，或者往其上传文件，每次都要输入一大串密码，而且密码还不能复制，相当麻烦，有没办法保存密码不用每次输入呢？  在本机（Linux/macOS ）上生成密钥执行命令：    1$ ssh-keygen -t rsa 然后按提示操作，在位置所有默认设置的情况下，该命令会在用户的根目录（例如/root/）生成.ssh文件夹，里边会有如下文件：    authorized_key">
@@ -321,10 +321,9 @@
 <p>remote-host就是远程服务器ip，例如132.121.30.70  。<br>这里需要按提示输入该远程服务器的密码。<br><strong>注意</strong></p>
 <ul>
 <li>客户端与服务端将使用同一个用户名，例如本地使用的是user1用户，那么请确保远程服务端也有user1用户并有足够权限。</li>
-<li>要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2>运行如下命令：  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scp -p ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:/root/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
-</li>
+<li>要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。</li>
 </ul>
-<p>remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。<br>也可以分为两步操作：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 不过要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
+<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2><p>运行如下命令：  （remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器（root为远程服务器用户名，可使用其他）</span><br><span class="line"># 登录远程服务器，然后：</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 需要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
 <h2 id="通过Ansible实现批量免密（以后补充）"><a href="#通过Ansible实现批量免密（以后补充）" class="headerlink" title="通过Ansible实现批量免密（以后补充）"></a>通过Ansible实现批量免密（以后补充）</h2><h2 id="手工复制粘贴的方式"><a href="#手工复制粘贴的方式" class="headerlink" title="手工复制粘贴的方式"></a>手工复制粘贴的方式</h2><p>将本地id_rsa.pub文件的内容拷贝至远程服务器的/.ssh/authorized_keys文件中</p>
 <h1 id="其他注意事项"><a href="#其他注意事项" class="headerlink" title="其他注意事项"></a>其他注意事项</h1><p>（1）SELinux需关闭：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ getenforce</span><br><span class="line">Disabled</span><br></pre></td></tr></table></figure></p>
 <p>（2）/etc/ssh/sshd_config文件的配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">StrictModes yes</span><br><span class="line"># 上面这句需要注释掉或改为StrictModes no，否则不能免密</span><br></pre></td></tr></table></figure></p>
@@ -461,7 +460,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-count">35</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -474,7 +473,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

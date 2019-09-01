@@ -229,6 +229,141 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/Docker容器的重启策略/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/27/Docker容器的重启策略/" itemprop="url">Docker容器的重启策略</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-27T15:48:08+08:00">
+                2018-12-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Docker之前，传统的项目部署，也会遇到服务由于某种原因停了必须重新启动的情况。想象一下休息时间突然接到电话要求马上解决服务不正常的那种窘况，因此要让服务可以自行重启</p>
+</blockquote>
+<h1 id="Docker容器有什么重启策略"><a href="#Docker容器有什么重启策略" class="headerlink" title="Docker容器有什么重启策略"></a>Docker容器有什么重启策略</h1><ul>
+<li>no，默认策略，在容器退出时不重启容器</li>
+<li>on-failure，在容器非正常退出时（退出状态非0），才会重启容器。一般来说，手动的docker stop 容器名这样停止的容器，退出状态会是0。<ul>
+<li>on-failure:3，在容器非正常退出时重启容器，最多重启3次</li>
+</ul>
+</li>
+<li>always，在容器退出时总是重启容器</li>
+<li>unless-stopped，在容器退出时总是重启容器，但是不考虑在Docker守护进程启动时就已经停止了的容器</li>
+</ul>
+<h1 id="启动Docker镜像时设定重启策略"><a href="#启动Docker镜像时设定重启策略" class="headerlink" title="启动Docker镜像时设定重启策略"></a>启动Docker镜像时设定重启策略</h1><p>例如，我启动一个容器，我希望它每次非正常退出就自动重启服务，最多重启3次：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name dict-web -d --restart=on-failure:3 tisson/dict-web-bid:latest</span><br></pre></td></tr></table></figure></p>
+<h1 id="更新正在运行中的Docker容器的重启策略"><a href="#更新正在运行中的Docker容器的重启策略" class="headerlink" title="更新正在运行中的Docker容器的重启策略"></a>更新正在运行中的Docker容器的重启策略</h1><p>如果某Docker容器已在运行中，我希望在不停止该服务的情况下，把它设为可以自动重启，命令格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker update --restart=重启策略 &lt;container_id&gt;</span><br></pre></td></tr></table></figure></p>
+<p>例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker update --restart=always dict-web</span><br></pre></td></tr></table></figure></p>
+<p>假设某容器我们启动时设置了“总是重启”，那么如果我们手动停止它，它也会马上重启，因此我们在停止该重启前，也要用上边的方法，更改它的重启策略后，方能停止。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/用Docker构建、运行、发布一个SpringBoot应用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1043,10 +1178,9 @@ $ docker load -i mysql.tar
 <p>remote-host就是远程服务器ip，例如132.121.30.70  。<br>这里需要按提示输入该远程服务器的密码。<br><strong>注意</strong></p>
 <ul>
 <li>客户端与服务端将使用同一个用户名，例如本地使用的是user1用户，那么请确保远程服务端也有user1用户并有足够权限。</li>
-<li>要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2>运行如下命令：  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scp -p ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:/root/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
-</li>
+<li>要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。</li>
 </ul>
-<p>remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。<br>也可以分为两步操作：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 不过要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
+<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2><p>运行如下命令：  （remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器（root为远程服务器用户名，可使用其他）</span><br><span class="line"># 登录远程服务器，然后：</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 需要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
 <h2 id="通过Ansible实现批量免密（以后补充）"><a href="#通过Ansible实现批量免密（以后补充）" class="headerlink" title="通过Ansible实现批量免密（以后补充）"></a>通过Ansible实现批量免密（以后补充）</h2><h2 id="手工复制粘贴的方式"><a href="#手工复制粘贴的方式" class="headerlink" title="手工复制粘贴的方式"></a>手工复制粘贴的方式</h2><p>将本地id_rsa.pub文件的内容拷贝至远程服务器的/.ssh/authorized_keys文件中</p>
 <h1 id="其他注意事项"><a href="#其他注意事项" class="headerlink" title="其他注意事项"></a>其他注意事项</h1><p>（1）SELinux需关闭：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ getenforce</span><br><span class="line">Disabled</span><br></pre></td></tr></table></figure></p>
 <p>（2）/etc/ssh/sshd_config文件的配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">StrictModes yes</span><br><span class="line"># 上面这句需要注释掉或改为StrictModes no，否则不能免密</span><br></pre></td></tr></table></figure></p>
@@ -1499,135 +1633,6 @@ $ docker load -i mysql.tar
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/06/MySQL中把一个表的内容更新到另一个表/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/06/MySQL中把一个表的内容更新到另一个表/" itemprop="url">MySQL中把一个表的内容更新到另一个表</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T15:06:32+08:00">
-                2018-06-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>导数据时经常会遇到的情况：例如我想把两个表的内容合并，从表B的字段全部放到主表A</p>
-<h1 id="在主表A新增从表B的字段"><a href="#在主表A新增从表B的字段" class="headerlink" title="在主表A新增从表B的字段"></a>在主表A新增从表B的字段</h1><p>这个步骤很简单，直接按照从表B的结构，在主表A Add Column就是。当然我们可以谨慎一些，避免表A被锁:</p>
-<ol>
-<li>先创建一个临时表TempA，内容包含表A与表B的字段</li>
-<li>insert into TempA (字段列表，以逗号隔开) select 字段列表以逗号隔开 from A</li>
-<li>drop table A</li>
-<li>alter table TempA rename to A</li>
-</ol>
-<h1 id="根据表B更新表A"><a href="#根据表B更新表A" class="headerlink" title="根据表B更新表A"></a>根据表B更新表A</h1><p>假设A表B表根据ID一一对应，现在要把从表B的column1更新到A表的column2<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A,B set A.column2=B.column1 where A.ID=B.ID</span><br></pre></td></tr></table></figure></p>
-<p>另外，也可以写成子查询的形式<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update A set column2=(select column1 from B where ID=A.ID)</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1678,7 +1683,7 @@ $ docker load -i mysql.tar
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-count">35</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1691,7 +1696,7 @@ $ docker load -i mysql.tar
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">29</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
