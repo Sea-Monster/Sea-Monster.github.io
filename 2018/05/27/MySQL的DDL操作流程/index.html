@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="MySQL,理论," />
+  <meta name="keywords" content="理论,MySQL," />
 
 
 
@@ -80,7 +80,7 @@
 
 
 <meta name="description" content="mysql在做表的ddl维护时(如添加字段)，是要锁表的，不像oracle那样只更新字典表、巨快，这是因为mysql采用中间表的方式来实现ddl操作流程：  对表加锁(表此时只读) 复制原表物理结构 修改表的物理结构 把原表数据导入中间表中，数据同步完后，锁定中间表，并删除原表 rename中间表为原表 刷新数据字典，并释放锁  通过上面的过程可以了解到，表的数据量越大，这个ddl维护过程越耗时间">
-<meta name="keywords" content="MySQL,理论">
+<meta name="keywords" content="理论,MySQL">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL的DDL操作流程">
 <meta property="og:url" content="http://yoursite.com/2018/05/27/MySQL的DDL操作流程/index.html">
@@ -328,9 +328,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
-          
             <a href="/tags/理论/" rel="tag"># 理论</a>
+          
+            <a href="/tags/MySQL/" rel="tag"># MySQL</a>
           
         </div>
       
@@ -423,7 +423,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -436,7 +436,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

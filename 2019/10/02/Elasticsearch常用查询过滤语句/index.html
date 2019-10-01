@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="纯实战,Elasticsearch," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Elasticsearch的语法上手有些难度，会出现很多嵌套，一开始还真被它吓着了  Query DSL在查询上下文中，查询会回答这个问题——“这个文档匹不匹配这个查询，它的相关度高么？”如何验证匹配很好理解，如何计算相关度呢？ES中索引的数据都会存储一个“_score”分值，分值越高就代表越匹配。另外关于某个搜索的分值计算还是很复杂的，因此也需要一定的时间。查询上下文 是在 使用query进行">
+<meta name="keywords" content="纯实战,Elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch常用查询过滤语句">
+<meta property="og:url" content="http://yoursite.com/2019/10/02/Elasticsearch常用查询过滤语句/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="Elasticsearch的语法上手有些难度，会出现很多嵌套，一开始还真被它吓着了  Query DSL在查询上下文中，查询会回答这个问题——“这个文档匹不匹配这个查询，它的相关度高么？”如何验证匹配很好理解，如何计算相关度呢？ES中索引的数据都会存储一个“_score”分值，分值越高就代表越匹配。另外关于某个搜索的分值计算还是很复杂的，因此也需要一定的时间。查询上下文 是在 使用query进行">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-10-01T16:45:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch常用查询过滤语句">
+<meta name="twitter:description" content="Elasticsearch的语法上手有些难度，会出现很多嵌套，一开始还真被它吓着了  Query DSL在查询上下文中，查询会回答这个问题——“这个文档匹不匹配这个查询，它的相关度高么？”如何验证匹配很好理解，如何计算相关度呢？ES中索引的数据都会存储一个“_score”分值，分值越高就代表越匹配。另外关于某个搜索的分值计算还是很复杂的，因此也需要一定的时间。查询上下文 是在 使用query进行">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/02/Elasticsearch常用查询过滤语句/"/>
+
+
+
+
+
+  <title>Elasticsearch常用查询过滤语句 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/02/Elasticsearch常用查询过滤语句/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch常用查询过滤语句</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-02T00:45:59+08:00">
+                2019-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Elasticsearch的语法上手有些难度，会出现很多嵌套，一开始还真被它吓着了</p>
+</blockquote>
+<h1 id="Query-DSL"><a href="#Query-DSL" class="headerlink" title="Query DSL"></a>Query DSL</h1><p>在查询上下文中，查询会回答这个问题——“这个文档匹不匹配这个查询，它的相关度高么？”<br>如何验证匹配很好理解，如何计算相关度呢？ES中索引的数据都会存储一个“_score”分值，分值越高就代表越匹配。另外关于某个搜索的分值计算还是很复杂的，因此也需要一定的时间。<br>查询上下文 是在 使用query进行查询时的执行环境，比如使用search的时候。<br>一些query的场景：</p>
+<ul>
+<li>与full text search的匹配度最高</li>
+<li>包含run单词，如果包含这些单词：runs、running、jog、sprint，也被视为包含run单词</li>
+<li>包含quick、brown、fox。这些词越接近，这份文档的相关性就越高</li>
+</ul>
+<h2 id="match-all查询"><a href="#match-all查询" class="headerlink" title="match_all查询"></a>match_all查询</h2><p>可以查询到所有文档，是没有查询条件下的默认语句。此查询常用于合并过滤条件。 比如说你需要检索所有的邮箱,所有的文档相关性都是相同的，所以得到的_score为1<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">	&quot;query&quot;:&#123;</span><br><span class="line">		&quot;match_all&quot;:&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="match查询"><a href="#match查询" class="headerlink" title="match查询"></a>match查询</h2><p>match查询是一个标准查询，不管你需要全文本查询还是精确查询基本上都要用到它。如果你使用 match 查询一个全文本字段，它会在真正查询之前用分析器先分析match一下查询字符，以下语句，tweet包含“About”、“Search”，或者同时包含“About”和“Search”的记录都会被返回：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">  &quot;query&quot;:&#123;</span><br><span class="line">    &quot;match&quot;: &#123;</span><br><span class="line">      &quot;tweet&quot;: &quot;About Search&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果用match下指定了一个确切值，在遇到数字，日期，布尔值或者not_analyzed 的字符串时，它将为你搜索你给定的值：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123; &quot;match&quot;: &#123; &quot;age&quot;:    26           &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;date&quot;:   &quot;2014-09-01&quot; &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;public&quot;: true         &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;tag&quot;:    &quot;full_text&quot;  &#125;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>提示： 做精确匹配搜索时，你最好用过滤语句，因为过滤语句可以缓存数据。match查询只能就指定某个确切字段某个确切的值进行搜索，而你要做的就是为它指定正确的字段名以避免语法错误。</p>
+<h2 id="multi-match-查询"><a href="#multi-match-查询" class="headerlink" title="multi_match 查询"></a>multi_match 查询</h2><p>multi_match查询允许你做match查询的基础上同时搜索多个字段，在多个字段中同时查一个，例如我想查询title字段和body字段都含有“text”的记录：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;multi_match&quot;: &#123;</span><br><span class="line">            &quot;query&quot;:    &quot;text&quot;,</span><br><span class="line">            &quot;fields&quot;:   [ &quot;title&quot;, &quot;body&quot; ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="bool查询"><a href="#bool查询" class="headerlink" title="bool查询"></a>bool查询</h2><p>bool 查询与 bool 过滤相似，用于合并多个查询子句。不同的是，bool 过滤可以直接给出是否匹配成功， 而bool 查询要计算每一个查询子句的_score （相关性分值）。</p>
+<ul>
+<li>must：查询指定文档一定要被包含。</li>
+<li>must_not：查询指定文档一定不要被包含。</li>
+<li>should：查询指定文档，有则可以为文档相关性加分。</li>
+</ul>
+<p>以下查询将会找到 title 字段中包含 “how to make millions”，并且 “tag” 字段没有被标为 spam。 如果有标识为 “starred” 或者发布日期为2014年之后，那么这些匹配的文档将比同类网站等级高：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;bool&quot;:&#123;</span><br><span class="line">            &quot;must&quot;:&#123; </span><br><span class="line">                &quot;match&quot;: &#123; </span><br><span class="line">                    &quot;title&quot;: &quot;how to make millions&quot; </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;must_not&quot;:&#123;</span><br><span class="line">                &quot;match&quot;: &#123;</span><br><span class="line">                    &quot;tag&quot;:   &quot;spam&quot;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;should&quot;:[</span><br><span class="line">                &#123;</span><br><span class="line">                    &quot;match&quot;:&#123;</span><br><span class="line">                        &quot;tag&quot;: &quot;starred&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;range&quot;:&#123;</span><br><span class="line">                        &quot;date&quot;: &#123; &quot;gte&quot;: &quot;2014-01-01&quot; &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>提示： 如果bool 查询下没有must子句，那至少应该有一个should子句。但是 如果有must子句，那么没有should子句也可以进行查询。</p>
+<h2 id="wildcards-查询"><a href="#wildcards-查询" class="headerlink" title="wildcards 查询"></a>wildcards 查询</h2><p>使用标准的shell通配符查询<br>以下查询能够匹配包含W1F 7HW和W2F 8HW的文档：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;wildcard&quot;: &#123;</span><br><span class="line">            &quot;postcode&quot;: &quot;W?F*HW&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>又比如下面查询 hostname 匹配下面shell通配符的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;wildcard&quot;: &#123;</span><br><span class="line">            &quot;hostname&quot;: &quot;wxopen*&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="正则查询"><a href="#正则查询" class="headerlink" title="正则查询"></a>正则查询</h2><p>假设只想匹配以W开头，紧跟着数字的邮政编码。使用regexp查询能够让你写下更复杂的模式：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;regexp&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;W[0-9].+&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面例子是所有以 wxopen 开头的正则<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;regexp&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;wxopen.*&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="prefix查询"><a href="#prefix查询" class="headerlink" title="prefix查询"></a>prefix查询</h2><p>以什么字符开头的，可以更简单地用 prefix，如下面的例子：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;prefix&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;wxopen&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="短语查询"><a href="#短语查询" class="headerlink" title="短语查询"></a>短语查询</h2><p>当你需要寻找邻近的几个单词时，你会使用match_phrase查询：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;match_phrase&quot;:&#123;</span><br><span class="line">	    &quot;title&quot;: &quot;quick brown fox&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和match查询类似，match_phrase查询首先解析查询字符串来产生一个词条列表。然后会搜索所有的词条，但只保留含有了所有搜索词条的文档，并且词条的位置要邻接。一个针对短语quick fox的查询不会匹配我们的任何文档，因为没有文档含有邻接在一起的quick和box词条。<br>match_phrase查询也可以写成类型为phrase的match查询：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;match&quot;:&#123;</span><br><span class="line">	    &quot;title&quot;: &#123;</span><br><span class="line">                &quot;query&quot;:&quot;quick brown fox&quot;,</span><br><span class="line">		&quot;type&quot;:&quot;phrase&quot;</span><br><span class="line">	    &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="Filter-DSL"><a href="#Filter-DSL" class="headerlink" title="Filter DSL"></a>Filter DSL</h1><p>在过滤器上下文中，查询会回答这个问题——“这个文档匹不匹配？”<br>答案很简单，是或者不是。它不会去计算任何分值，也不会关心返回的排序问题，因此效率会高一点。<br>过滤上下文 是在使用filter参数时候的执行环境，比如在bool查询中使用Must_not或者filter。<br>另外，经常使用过滤器，ES会自动的缓存过滤器的内容，这对于查询来说，会提高很多性能。<br>一些过滤的情景：</p>
+<ul>
+<li>创建日期是否在2013-2014年间？</li>
+<li>status字段是否为published？</li>
+<li>lat字段是否在某个坐标的10公里范围内？</li>
+</ul>
+<h2 id="term-过滤"><a href="#term-过滤" class="headerlink" title="term 过滤"></a>term 过滤</h2><p>尽管看上去像个“查询”，但是如果结果不完全符合条件它是不会返回的。<br>term主要用于精确匹配哪些值，比如数字，日期，布尔值或 string 的字符串(未经分析的文本数据类型)，我的理解是，它不会对term的条件再进行分词：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;term&quot;:&#123;</span><br><span class="line">	    &quot;prj_name&quot;:&quot;汕尾土建&quot;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上语句，prj name为“汕尾XXXXX土建”的记录并不会被返回。</p>
+<h2 id="terms-过滤"><a href="#terms-过滤" class="headerlink" title="terms 过滤"></a>terms 过滤</h2><p>terms 跟 term 有点类似，但 terms 允许指定多个匹配条件。 如果某个字段指定了多个值，那么文档需要一起去做匹配（就是说，只要满足其中之一的条件）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;terms&quot;:&#123;</span><br><span class="line">	    &quot;prj_name&quot;:[&quot;汕尾&quot;,&quot;土建&quot;]</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上语句，可以返回prj name为“汕尾XXXXX”和“江门XX土建”的记录。</p>
+<h2 id="range过滤"><a href="#range过滤" class="headerlink" title="range过滤"></a>range过滤</h2><p>range过滤允许我们按照指定范围查找一批数据，例如寻找“年龄为20岁到30岁之间的记录”：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;range&quot;:&#123;</span><br><span class="line">	    &quot;age&quot;:&#123;</span><br><span class="line">		&quot;gte&quot;:20,</span><br><span class="line">		&quot;lte&quot;:30</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="exists-和-missing-过滤"><a href="#exists-和-missing-过滤" class="headerlink" title="exists 和 missing 过滤"></a>exists 和 missing 过滤</h2><p>exists 和 missing 过滤可以用于查找文档中是否包含指定字段或没有某个字段，类似于SQL语句中的IS NOT NUL和IS NULL条件。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;exists&quot;:   &#123;</span><br><span class="line">	    &quot;field&quot;:true</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="bool过滤"><a href="#bool过滤" class="headerlink" title="bool过滤"></a>bool过滤</h2><p>bool下可以跟“filter”。官网的解释是这样的：“The clause (query) must appear in matching documents. However unlike must the score of the query will be ignored. Filter clauses are excuted in filter context, meaning that scoring is ignored and clauses are considered for caching”。按照我的理解，基本等同于bool查询的must吧，只不过省略了评分（全部为0），快一些，可以用到缓存。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;bool&quot;:&#123;</span><br><span class="line">            &quot;filter&quot;:&#123; </span><br><span class="line">                &quot;match&quot;: &#123; </span><br><span class="line">                    &quot;title&quot;: &quot;how to make millions&quot; </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/纯实战/" rel="tag"># 纯实战</a>
+          
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/01/解决Docker容器与主机时间不同步问题/" rel="next" title="解决Docker容器与主机时间不同步问题">
+                <i class="fa fa-chevron-left"></i> 解决Docker容器与主机时间不同步问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/10/02/Docker容器转镜像/" rel="prev" title="Docker容器转镜像">
+                Docker容器转镜像 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Query-DSL"><span class="nav-number">1.</span> <span class="nav-text">Query DSL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#match-all查询"><span class="nav-number">1.1.</span> <span class="nav-text">match_all查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#match查询"><span class="nav-number">1.2.</span> <span class="nav-text">match查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#multi-match-查询"><span class="nav-number">1.3.</span> <span class="nav-text">multi_match 查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bool查询"><span class="nav-number">1.4.</span> <span class="nav-text">bool查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#wildcards-查询"><span class="nav-number">1.5.</span> <span class="nav-text">wildcards 查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#正则查询"><span class="nav-number">1.6.</span> <span class="nav-text">正则查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prefix查询"><span class="nav-number">1.7.</span> <span class="nav-text">prefix查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#短语查询"><span class="nav-number">1.8.</span> <span class="nav-text">短语查询</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Filter-DSL"><span class="nav-number">2.</span> <span class="nav-text">Filter DSL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#term-过滤"><span class="nav-number">2.1.</span> <span class="nav-text">term 过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#terms-过滤"><span class="nav-number">2.2.</span> <span class="nav-text">terms 过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#range过滤"><span class="nav-number">2.3.</span> <span class="nav-text">range过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exists-和-missing-过滤"><span class="nav-number">2.4.</span> <span class="nav-text">exists 和 missing 过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bool过滤"><span class="nav-number">2.5.</span> <span class="nav-text">bool过滤</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

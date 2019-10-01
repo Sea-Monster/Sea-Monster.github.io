@@ -229,6 +229,293 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/02/Docker容器转镜像/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/02/Docker容器转镜像/" itemprop="url">Docker容器转镜像</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-02T00:46:47+08:00">
+                2019-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>有些时候我们在Docker容器内装了某些东西，那要维持那套环境只能一直使用该容器了，如果遇到需要更改环境配置（例如端口映射变更，数据盘映射变更等），需要删掉容器，用镜像文件重新创建容器，又希望能继续使用之前在容器内安装的东西，怎么办呢？</p>
+</blockquote>
+<p>答案就是把容器内容保存下来，转换成镜像。以后就用这个镜像创建容器。<br>我们将使用docker commit命令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]</span><br></pre></td></tr></table></figure></p>
+<p>OPTIONS说明：<br>-a :提交的镜像作者<br>-c :使用Dockerfile指令来创建镜像；<br>-m :提交时的说明文字；<br>-p :在commit时，将容器暂停。 </p>
+<p>例如，我们把ID是bc52b8d6886c的容器转化成名为new-image，tag为2.0的镜像：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker commit bc52b8d6886c new-image:2.0</span><br></pre></td></tr></table></figure></p>
+<p>以后我们就可以在这个新的镜像上建立容器进行各种操作，之前的容器可以不要了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/02/Elasticsearch常用查询过滤语句/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/02/Elasticsearch常用查询过滤语句/" itemprop="url">Elasticsearch常用查询过滤语句</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-02T00:45:59+08:00">
+                2019-10-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>Elasticsearch的语法上手有些难度，会出现很多嵌套，一开始还真被它吓着了</p>
+</blockquote>
+<h1 id="Query-DSL"><a href="#Query-DSL" class="headerlink" title="Query DSL"></a>Query DSL</h1><p>在查询上下文中，查询会回答这个问题——“这个文档匹不匹配这个查询，它的相关度高么？”<br>如何验证匹配很好理解，如何计算相关度呢？ES中索引的数据都会存储一个“_score”分值，分值越高就代表越匹配。另外关于某个搜索的分值计算还是很复杂的，因此也需要一定的时间。<br>查询上下文 是在 使用query进行查询时的执行环境，比如使用search的时候。<br>一些query的场景：</p>
+<ul>
+<li>与full text search的匹配度最高</li>
+<li>包含run单词，如果包含这些单词：runs、running、jog、sprint，也被视为包含run单词</li>
+<li>包含quick、brown、fox。这些词越接近，这份文档的相关性就越高</li>
+</ul>
+<h2 id="match-all查询"><a href="#match-all查询" class="headerlink" title="match_all查询"></a>match_all查询</h2><p>可以查询到所有文档，是没有查询条件下的默认语句。此查询常用于合并过滤条件。 比如说你需要检索所有的邮箱,所有的文档相关性都是相同的，所以得到的_score为1<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">	&quot;query&quot;:&#123;</span><br><span class="line">		&quot;match_all&quot;:&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="match查询"><a href="#match查询" class="headerlink" title="match查询"></a>match查询</h2><p>match查询是一个标准查询，不管你需要全文本查询还是精确查询基本上都要用到它。如果你使用 match 查询一个全文本字段，它会在真正查询之前用分析器先分析match一下查询字符，以下语句，tweet包含“About”、“Search”，或者同时包含“About”和“Search”的记录都会被返回：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">  &quot;query&quot;:&#123;</span><br><span class="line">    &quot;match&quot;: &#123;</span><br><span class="line">      &quot;tweet&quot;: &quot;About Search&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果用match下指定了一个确切值，在遇到数字，日期，布尔值或者not_analyzed 的字符串时，它将为你搜索你给定的值：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123; &quot;match&quot;: &#123; &quot;age&quot;:    26           &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;date&quot;:   &quot;2014-09-01&quot; &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;public&quot;: true         &#125;&#125;</span><br><span class="line">&#123; &quot;match&quot;: &#123; &quot;tag&quot;:    &quot;full_text&quot;  &#125;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>提示： 做精确匹配搜索时，你最好用过滤语句，因为过滤语句可以缓存数据。match查询只能就指定某个确切字段某个确切的值进行搜索，而你要做的就是为它指定正确的字段名以避免语法错误。</p>
+<h2 id="multi-match-查询"><a href="#multi-match-查询" class="headerlink" title="multi_match 查询"></a>multi_match 查询</h2><p>multi_match查询允许你做match查询的基础上同时搜索多个字段，在多个字段中同时查一个，例如我想查询title字段和body字段都含有“text”的记录：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;multi_match&quot;: &#123;</span><br><span class="line">            &quot;query&quot;:    &quot;text&quot;,</span><br><span class="line">            &quot;fields&quot;:   [ &quot;title&quot;, &quot;body&quot; ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="bool查询"><a href="#bool查询" class="headerlink" title="bool查询"></a>bool查询</h2><p>bool 查询与 bool 过滤相似，用于合并多个查询子句。不同的是，bool 过滤可以直接给出是否匹配成功， 而bool 查询要计算每一个查询子句的_score （相关性分值）。</p>
+<ul>
+<li>must：查询指定文档一定要被包含。</li>
+<li>must_not：查询指定文档一定不要被包含。</li>
+<li>should：查询指定文档，有则可以为文档相关性加分。</li>
+</ul>
+<p>以下查询将会找到 title 字段中包含 “how to make millions”，并且 “tag” 字段没有被标为 spam。 如果有标识为 “starred” 或者发布日期为2014年之后，那么这些匹配的文档将比同类网站等级高：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;bool&quot;:&#123;</span><br><span class="line">            &quot;must&quot;:&#123; </span><br><span class="line">                &quot;match&quot;: &#123; </span><br><span class="line">                    &quot;title&quot;: &quot;how to make millions&quot; </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;must_not&quot;:&#123;</span><br><span class="line">                &quot;match&quot;: &#123;</span><br><span class="line">                    &quot;tag&quot;:   &quot;spam&quot;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;should&quot;:[</span><br><span class="line">                &#123;</span><br><span class="line">                    &quot;match&quot;:&#123;</span><br><span class="line">                        &quot;tag&quot;: &quot;starred&quot;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;range&quot;:&#123;</span><br><span class="line">                        &quot;date&quot;: &#123; &quot;gte&quot;: &quot;2014-01-01&quot; &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>提示： 如果bool 查询下没有must子句，那至少应该有一个should子句。但是 如果有must子句，那么没有should子句也可以进行查询。</p>
+<h2 id="wildcards-查询"><a href="#wildcards-查询" class="headerlink" title="wildcards 查询"></a>wildcards 查询</h2><p>使用标准的shell通配符查询<br>以下查询能够匹配包含W1F 7HW和W2F 8HW的文档：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;wildcard&quot;: &#123;</span><br><span class="line">            &quot;postcode&quot;: &quot;W?F*HW&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>又比如下面查询 hostname 匹配下面shell通配符的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;: &#123;</span><br><span class="line">        &quot;wildcard&quot;: &#123;</span><br><span class="line">            &quot;hostname&quot;: &quot;wxopen*&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="正则查询"><a href="#正则查询" class="headerlink" title="正则查询"></a>正则查询</h2><p>假设只想匹配以W开头，紧跟着数字的邮政编码。使用regexp查询能够让你写下更复杂的模式：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;regexp&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;W[0-9].+&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下面例子是所有以 wxopen 开头的正则<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;regexp&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;wxopen.*&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="prefix查询"><a href="#prefix查询" class="headerlink" title="prefix查询"></a>prefix查询</h2><p>以什么字符开头的，可以更简单地用 prefix，如下面的例子：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;prefix&quot;:&#123;</span><br><span class="line">	    &quot;postcode&quot;: &quot;wxopen&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="短语查询"><a href="#短语查询" class="headerlink" title="短语查询"></a>短语查询</h2><p>当你需要寻找邻近的几个单词时，你会使用match_phrase查询：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;match_phrase&quot;:&#123;</span><br><span class="line">	    &quot;title&quot;: &quot;quick brown fox&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>和match查询类似，match_phrase查询首先解析查询字符串来产生一个词条列表。然后会搜索所有的词条，但只保留含有了所有搜索词条的文档，并且词条的位置要邻接。一个针对短语quick fox的查询不会匹配我们的任何文档，因为没有文档含有邻接在一起的quick和box词条。<br>match_phrase查询也可以写成类型为phrase的match查询：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&apos;:&#123;</span><br><span class="line">        &quot;match&quot;:&#123;</span><br><span class="line">	    &quot;title&quot;: &#123;</span><br><span class="line">                &quot;query&quot;:&quot;quick brown fox&quot;,</span><br><span class="line">		&quot;type&quot;:&quot;phrase&quot;</span><br><span class="line">	    &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="Filter-DSL"><a href="#Filter-DSL" class="headerlink" title="Filter DSL"></a>Filter DSL</h1><p>在过滤器上下文中，查询会回答这个问题——“这个文档匹不匹配？”<br>答案很简单，是或者不是。它不会去计算任何分值，也不会关心返回的排序问题，因此效率会高一点。<br>过滤上下文 是在使用filter参数时候的执行环境，比如在bool查询中使用Must_not或者filter。<br>另外，经常使用过滤器，ES会自动的缓存过滤器的内容，这对于查询来说，会提高很多性能。<br>一些过滤的情景：</p>
+<ul>
+<li>创建日期是否在2013-2014年间？</li>
+<li>status字段是否为published？</li>
+<li>lat字段是否在某个坐标的10公里范围内？</li>
+</ul>
+<h2 id="term-过滤"><a href="#term-过滤" class="headerlink" title="term 过滤"></a>term 过滤</h2><p>尽管看上去像个“查询”，但是如果结果不完全符合条件它是不会返回的。<br>term主要用于精确匹配哪些值，比如数字，日期，布尔值或 string 的字符串(未经分析的文本数据类型)，我的理解是，它不会对term的条件再进行分词：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;term&quot;:&#123;</span><br><span class="line">	    &quot;prj_name&quot;:&quot;汕尾土建&quot;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上语句，prj name为“汕尾XXXXX土建”的记录并不会被返回。</p>
+<h2 id="terms-过滤"><a href="#terms-过滤" class="headerlink" title="terms 过滤"></a>terms 过滤</h2><p>terms 跟 term 有点类似，但 terms 允许指定多个匹配条件。 如果某个字段指定了多个值，那么文档需要一起去做匹配（就是说，只要满足其中之一的条件）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;terms&quot;:&#123;</span><br><span class="line">	    &quot;prj_name&quot;:[&quot;汕尾&quot;,&quot;土建&quot;]</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>以上语句，可以返回prj name为“汕尾XXXXX”和“江门XX土建”的记录。</p>
+<h2 id="range过滤"><a href="#range过滤" class="headerlink" title="range过滤"></a>range过滤</h2><p>range过滤允许我们按照指定范围查找一批数据，例如寻找“年龄为20岁到30岁之间的记录”：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;range&quot;:&#123;</span><br><span class="line">	    &quot;age&quot;:&#123;</span><br><span class="line">		&quot;gte&quot;:20,</span><br><span class="line">		&quot;lte&quot;:30</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="exists-和-missing-过滤"><a href="#exists-和-missing-过滤" class="headerlink" title="exists 和 missing 过滤"></a>exists 和 missing 过滤</h2><p>exists 和 missing 过滤可以用于查找文档中是否包含指定字段或没有某个字段，类似于SQL语句中的IS NOT NUL和IS NULL条件。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">	&quot;exists&quot;:   &#123;</span><br><span class="line">	    &quot;field&quot;:true</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="bool过滤"><a href="#bool过滤" class="headerlink" title="bool过滤"></a>bool过滤</h2><p>bool下可以跟“filter”。官网的解释是这样的：“The clause (query) must appear in matching documents. However unlike must the score of the query will be ignored. Filter clauses are excuted in filter context, meaning that scoring is ignored and clauses are considered for caching”。按照我的理解，基本等同于bool查询的must吧，只不过省略了评分（全部为0），快一些，可以用到缓存。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET 索引名/_search</span><br><span class="line">&#123;</span><br><span class="line">    &quot;query&quot;:&#123;</span><br><span class="line">        &quot;bool&quot;:&#123;</span><br><span class="line">            &quot;filter&quot;:&#123; </span><br><span class="line">                &quot;match&quot;: &#123; </span><br><span class="line">                    &quot;title&quot;: &quot;how to make millions&quot; </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/01/解决Docker容器与主机时间不同步问题/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1335,277 +1622,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/CentOS系统添加用户/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/30/CentOS系统添加用户/" itemprop="url">CentOS系统添加用户</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:32:23+08:00">
-                2019-01-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>据说平常使用root用户不够安全，那么还是创建另外的用户吧</p>
-</blockquote>
-<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><p>首先创建用户<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ adduser 用户名</span><br></pre></td></tr></table></figure></p>
-<p>然后分配密码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ passwd 用户名</span><br></pre></td></tr></table></figure></p>
-<p>按提示连续2次输入密码</p>
-<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>对linux不太熟，只为了完成日常开发，最好是用的账号和root几乎没有区别。首先我们用以下命令切换到root账号：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ su</span><br></pre></td></tr></table></figure></p>
-<p>按提示输入root账号的密码，然后修改/etc/sudoers配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ visudo</span><br></pre></td></tr></table></figure></p>
-<p>找到以下几行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Allow root to run any commands anywhere</span><br><span class="line">root    ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
-<p>然后再root那一会下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
-<p>退出。之后要执行命令，在命令前加上sudo，再输入密码（当前用户的密码），就可以成功执行了，例如，我安装了docker，然后执行docker ps它需要root权限，那么我这样就可成功：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker ps</span><br><span class="line">[sudo] password for 用户名:</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                               NAMES</span><br><span class="line">81b7ac1e12d1        mysql:5.7.23        &quot;docker-entrypoint.s…&quot;   3 hours ago         Up 3 hours          0.0.0.0:3306-&gt;3306/tcp, 33060/tcp   mysql57</span><br></pre></td></tr></table></figure></p>
-<h2 id="免密码"><a href="#免密码" class="headerlink" title="免密码"></a>免密码</h2><p>每次sudo都要输入密码很麻烦，我们把以下语句：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
-<p>改为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       NOPASSWD: ALL</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/" itemprop="url">sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:31:34+08:00">
-                2019-01-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>一开始都是用root用户操作Docker，后来用了非root用户，产生了各种问题。这次是使用maven插件docker-maven-plugin制作镜像时引起的各种问题</p>
-</blockquote>
-<p>命令如下，当使用root用户时正常运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
-<p>使用非root用户，却报如下错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD FAILURE</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time: 01:59 min</span><br><span class="line">[INFO] Finished at: 2019-01-15T18:12:46+08:00</span><br><span class="line">[INFO] Final Memory: 64M/1150M</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[ERROR] Failed to execute goal com.spotify:docker-maven-plugin:0.4.11:build (default-cli) on project elves: Exception caught: java.util.concurrent.ExecutionException: com.spotify.docker.client.shaded.javax.ws.rs.ProcessingException: java.io.IOException: Permission denied -&gt; [Help 1]</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.</span><br><span class="line">[ERROR] Re-run Maven using the -X switch to enable full debug logging.</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] For more information about the errors and possible solutions, please read the following articles:</span><br><span class="line">[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException</span><br></pre></td></tr></table></figure></p>
-<h1 id="操作Docker的权限"><a href="#操作Docker的权限" class="headerlink" title="操作Docker的权限"></a>操作Docker的权限</h1><p>首先想到的是当前用户没有操作Docker的权限，因此在前边加上sudo：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
-<p>结果居然报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo，mvn command not found</span><br></pre></td></tr></table></figure></p>
-<h1 id="解决sudo的问题"><a href="#解决sudo的问题" class="headerlink" title="解决sudo的问题"></a>解决sudo的问题</h1><p>上网查了下，原因是“系统预装的 sudo 在编译时缺省使用了 –with-secure-path 参数，因此当前用户使用 sudo 时环境变量 $PATH 被覆盖”，因此设置好的maven的环境变量被覆盖掉。如何处理呢？</p>
-<h2 id="使用别名修改sudo"><a href="#使用别名修改sudo" class="headerlink" title="使用别名修改sudo"></a>使用别名修改sudo</h2><p>这是其中一个简单的解决办法，编辑当前用户的.bashrc 文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi ~/.bashrc</span><br></pre></td></tr></table></figure></p>
-<p>添加下面这行内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alias sudo=&quot;sudo env PATH=$PATH&quot;</span><br></pre></td></tr></table></figure></p>
-<p>通过添加上面那行别名设置，就会在执行 sudo 时把当前的 $PATH 的值再套用上，达到想要的效果。然后编译一下.bashrc文件，再运行之前sudo mvn就能正常跑了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bashrc</span><br><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
-<p>看上去是没问题了，但是如果把sudo man这句放到shell文件中执行，还是报<code>sudo，mvn command not found</code>，因此我们不使用别名这种方法了，改为用另一种：</p>
-<h2 id="修改-etc-sudoers"><a href="#修改-etc-sudoers" class="headerlink" title="修改/etc/sudoers"></a>修改/etc/sudoers</h2><p>当前用户下我配置的环境变量是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/lib/jvm/java</span><br><span class="line">M2_HOME=/usr/local/maven3</span><br><span class="line">PATH=$PATH:$JAVA_HOME/bin</span><br><span class="line">export PATH=$PATH:$M2_HOME/bin</span><br></pre></td></tr></table></figure></p>
-<p>我们用如下指令修改/etc/sudoers：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo visudo</span><br></pre></td></tr></table></figure></p>
-<p>然后用以下其中任意一种方法：</p>
-<h3 id="修改secure-path"><a href="#修改secure-path" class="headerlink" title="修改secure_path"></a>修改secure_path</h3><p>找到<code>secure_path</code>那一行，例如它原来是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin</span><br></pre></td></tr></table></figure></p>
-<p>我们改为这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/lib/jvm/java/bin:/usr/local/maven3/bin</span><br></pre></td></tr></table></figure></p>
-<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
-<h3 id="修改env-keep"><a href="#修改env-keep" class="headerlink" title="修改env_keep"></a>修改env_keep</h3><p>找到<code>env_keep</code>那一行，在它下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    env_keep += &quot;PATH&quot;</span><br></pre></td></tr></table></figure></p>
-<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1656,7 +1672,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1669,7 +1685,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

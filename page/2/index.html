@@ -229,6 +229,277 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/CentOS系统添加用户/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/CentOS系统添加用户/" itemprop="url">CentOS系统添加用户</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:32:23+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>据说平常使用root用户不够安全，那么还是创建另外的用户吧</p>
+</blockquote>
+<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><p>首先创建用户<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ adduser 用户名</span><br></pre></td></tr></table></figure></p>
+<p>然后分配密码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ passwd 用户名</span><br></pre></td></tr></table></figure></p>
+<p>按提示连续2次输入密码</p>
+<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>对linux不太熟，只为了完成日常开发，最好是用的账号和root几乎没有区别。首先我们用以下命令切换到root账号：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ su</span><br></pre></td></tr></table></figure></p>
+<p>按提示输入root账号的密码，然后修改/etc/sudoers配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ visudo</span><br></pre></td></tr></table></figure></p>
+<p>找到以下几行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Allow root to run any commands anywhere</span><br><span class="line">root    ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>然后再root那一会下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>退出。之后要执行命令，在命令前加上sudo，再输入密码（当前用户的密码），就可以成功执行了，例如，我安装了docker，然后执行docker ps它需要root权限，那么我这样就可成功：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo docker ps</span><br><span class="line">[sudo] password for 用户名:</span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                               NAMES</span><br><span class="line">81b7ac1e12d1        mysql:5.7.23        &quot;docker-entrypoint.s…&quot;   3 hours ago         Up 3 hours          0.0.0.0:3306-&gt;3306/tcp, 33060/tcp   mysql57</span><br></pre></td></tr></table></figure></p>
+<h2 id="免密码"><a href="#免密码" class="headerlink" title="免密码"></a>免密码</h2><p>每次sudo都要输入密码很麻烦，我们把以下语句：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure></p>
+<p>改为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户名  ALL=(ALL)       NOPASSWD: ALL</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题/" itemprop="url">sudo环境变量-某次使用maven插件docker-maven-plugin制作镜像引发的问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:31:34+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>一开始都是用root用户操作Docker，后来用了非root用户，产生了各种问题。这次是使用maven插件docker-maven-plugin制作镜像时引起的各种问题</p>
+</blockquote>
+<p>命令如下，当使用root用户时正常运行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>使用非root用户，却报如下错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: I/O exception (java.io.IOException) caught when processing request to &#123;&#125;-&gt;unix://localhost:80: Permission denied</span><br><span class="line">一月 15, 2019 6:12:46 下午 org.apache.http.impl.execchain.RetryExec execute</span><br><span class="line">信息: Retrying request to &#123;&#125;-&gt;unix://localhost:80</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD FAILURE</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time: 01:59 min</span><br><span class="line">[INFO] Finished at: 2019-01-15T18:12:46+08:00</span><br><span class="line">[INFO] Final Memory: 64M/1150M</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[ERROR] Failed to execute goal com.spotify:docker-maven-plugin:0.4.11:build (default-cli) on project elves: Exception caught: java.util.concurrent.ExecutionException: com.spotify.docker.client.shaded.javax.ws.rs.ProcessingException: java.io.IOException: Permission denied -&gt; [Help 1]</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.</span><br><span class="line">[ERROR] Re-run Maven using the -X switch to enable full debug logging.</span><br><span class="line">[ERROR]</span><br><span class="line">[ERROR] For more information about the errors and possible solutions, please read the following articles:</span><br><span class="line">[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException</span><br></pre></td></tr></table></figure></p>
+<h1 id="操作Docker的权限"><a href="#操作Docker的权限" class="headerlink" title="操作Docker的权限"></a>操作Docker的权限</h1><p>首先想到的是当前用户没有操作Docker的权限，因此在前边加上sudo：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>结果居然报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo，mvn command not found</span><br></pre></td></tr></table></figure></p>
+<h1 id="解决sudo的问题"><a href="#解决sudo的问题" class="headerlink" title="解决sudo的问题"></a>解决sudo的问题</h1><p>上网查了下，原因是“系统预装的 sudo 在编译时缺省使用了 –with-secure-path 参数，因此当前用户使用 sudo 时环境变量 $PATH 被覆盖”，因此设置好的maven的环境变量被覆盖掉。如何处理呢？</p>
+<h2 id="使用别名修改sudo"><a href="#使用别名修改sudo" class="headerlink" title="使用别名修改sudo"></a>使用别名修改sudo</h2><p>这是其中一个简单的解决办法，编辑当前用户的.bashrc 文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi ~/.bashrc</span><br></pre></td></tr></table></figure></p>
+<p>添加下面这行内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alias sudo=&quot;sudo env PATH=$PATH&quot;</span><br></pre></td></tr></table></figure></p>
+<p>通过添加上面那行别名设置，就会在执行 sudo 时把当前的 $PATH 的值再套用上，达到想要的效果。然后编译一下.bashrc文件，再运行之前sudo mvn就能正常跑了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ source ~/.bashrc</span><br><span class="line">$ sudo mvn package -D maven.test.skip=true docker:build -f pom.xml</span><br></pre></td></tr></table></figure></p>
+<p>看上去是没问题了，但是如果把sudo man这句放到shell文件中执行，还是报<code>sudo，mvn command not found</code>，因此我们不使用别名这种方法了，改为用另一种：</p>
+<h2 id="修改-etc-sudoers"><a href="#修改-etc-sudoers" class="headerlink" title="修改/etc/sudoers"></a>修改/etc/sudoers</h2><p>当前用户下我配置的环境变量是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/lib/jvm/java</span><br><span class="line">M2_HOME=/usr/local/maven3</span><br><span class="line">PATH=$PATH:$JAVA_HOME/bin</span><br><span class="line">export PATH=$PATH:$M2_HOME/bin</span><br></pre></td></tr></table></figure></p>
+<p>我们用如下指令修改/etc/sudoers：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo visudo</span><br></pre></td></tr></table></figure></p>
+<p>然后用以下其中任意一种方法：</p>
+<h3 id="修改secure-path"><a href="#修改secure-path" class="headerlink" title="修改secure_path"></a>修改secure_path</h3><p>找到<code>secure_path</code>那一行，例如它原来是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin</span><br></pre></td></tr></table></figure></p>
+<p>我们改为这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/lib/jvm/java/bin:/usr/local/maven3/bin</span><br></pre></td></tr></table></figure></p>
+<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
+<h3 id="修改env-keep"><a href="#修改env-keep" class="headerlink" title="修改env_keep"></a>修改env_keep</h3><p>找到<code>env_keep</code>那一行，在它下边加上：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Defaults    env_keep += &quot;PATH&quot;</span><br></pre></td></tr></table></figure></p>
+<p>修改后，即使在shell中执行sudo mvn也能正常跑了</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/27/Docker容器的重启策略/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1362,277 +1633,6 @@ $ docker load -i mysql.tar
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/09/Windows安装MySQL5-7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/09/Windows安装MySQL5-7/" itemprop="url">Windows安装MySQL5.7</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-09T17:18:43+08:00">
-                2018-06-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>在一台Windows上安装MySQL5.7，用的是官网提供的压缩包而不是安装文件，过程中踩坑无数，特此记录。</p>
-</blockquote>
-<h1 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h1><p>我是去<a href="https://dev.mysql.com/downloads/mysql/" target="_blank" rel="noopener">官网</a>下载，下载版本为5.7.22，选择的是“Windows (x86, 64-bit), ZIP Archive”这个包。下载后，解压。假设我源码解压后的目录为C:\mysql</p>
-<h1 id="添加环境变量"><a href="#添加环境变量" class="headerlink" title="添加环境变量"></a>添加环境变量</h1><p>系统变量中添加名字为“MYSQL_HOME”，值为“C:\mysql”的变量，然后修改“Path”变量，在最后加入“%MYSQL_HOME%\bin”，保存。这样，就能在命令行模式任何目录下执行mysqld等操作。</p>
-<h1 id="安装-Net-Framework"><a href="#安装-Net-Framework" class="headerlink" title="安装.Net Framework"></a>安装.Net Framework</h1><p>这就是其中一个大坑。在命令行执行mysqld时报App Crash，错误模块为MSVCR120.dll。网上搜索了一下，好像没什么看上去靠谱的解决方案，都是让你升级操作系统，要不就是直接再下载一个MSVCR120.dll。眼看就要一直卡在这了，突然想起如果不是使用压缩包而是直接用MySQL的window安装包，安装后启动时它提示需要.Net Framework。果然，安装了.Net Framework后（我估计它要的其实是Visual C++的编译器），问题解决。</p>
-<h1 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h1><p>这个版本的MySQL竟然连默认的my.ini文件也没提供，真是坑！就不能提供个示例文件吗？还需要自己上网找，参考别人怎么配置！我只好自行新建一个my.ini文件，放到mysql根目录下。文件的示例如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line"># mysql服务端默认监听(listen on)的TCP/IP端口</span><br><span class="line">port=3306</span><br><span class="line"># 基准路径，其他路径都相对于这个路径</span><br><span class="line">basedir=&quot;C:/mysql/&quot;   </span><br><span class="line"># mysql数据库文件所在目录</span><br><span class="line">datadir=&quot;C:/mysql/data/&quot;</span><br><span class="line"># 服务端使用的字符集默，utf8mb4比utf8多了对文字中表情的支持</span><br><span class="line">character-set-server=utf8mb4</span><br><span class="line"># 创建新表时将使用的默认存储引擎</span><br><span class="line">default-storage-engine=INNODB</span><br><span class="line"># SQL模式为strict模式</span><br><span class="line">sql-mode=&quot;STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION&quot;</span><br><span class="line"># mysql服务器支持的最大并发连接数（用户数），但总会预留其中的一个连接给管理员使用超级权限登录，即使连接数目达到最大限制。如果设置得过小而用户比较多，会经常出现“Too many connections”错误。</span><br><span class="line">max_connections=100</span><br><span class="line"># 锁表操作的超时时间，默认长达1年！所以必须设置，否则锁表操作一执行就无法停止，除非重启数据库，影响巨大，这里设置为半小时</span><br><span class="line">lock_wait_timeout=1800</span><br><span class="line"># MySQL默认只能本地访问，如果需允许远程访问，必须设置（0.0.0.0就是允许全网访问）</span><br><span class="line">bind_address=0.0.0.0</span><br></pre></td></tr></table></figure></p>
-<p>注意配置文件是分“块”的：[client]，[mysqld]等，就像上边的配置都放在mysqld这个块下，如果放到client是不行的。<br>参考<a href="https://www.jb51.net/article/88731.htm" target="_blank" rel="noopener">MySQL 5.6 &amp; 5.7最优配置文件模板(my.ini)</a>，<a href="http://yrq205.blog.163.com/blog/static/476721402013226337767/" target="_blank" rel="noopener">MySQL配置文件mysql.ini参数详解</a></p>
-<h1 id="初始化数据库"><a href="#初始化数据库" class="headerlink" title="初始化数据库"></a>初始化数据库</h1><p>设置登录的用户名密码，以及把MySQL创建为一个服务，让它可以开机启动。<br>初始化（生成data目录）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld  --initialize</span><br></pre></td></tr></table></figure></p>
-<p>安装（创建为一个服务），install后边就是自行设置的服务名，例如我也可以设为MySQL5.7，注意后边有个大坑：default<strong>s</strong>-file而不是default-file！！！不知道是网上文章一大抄还是某个版本改了，网上很多文章写的都是default-file。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -install MySQL --defaults-file=C:/mysql/my.ini</span><br></pre></td></tr></table></figure></p>
-<p>初始化数据库data（这一步是否必要，有待验证，我当时好像是做了，但这部未必有必要）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --initialize-insecure --user=root</span><br></pre></td></tr></table></figure></p>
-<p>启动服务，也可以在服务菜单启动<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net start MySQL</span><br></pre></td></tr></table></figure></p>
-<p>注意这时我们还没有设置用户名密码，虽然服务启动了，但是无法登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld -u root -p</span><br></pre></td></tr></table></figure></p>
-<p>输入任意密码都会报Access Deny<br>我们需要在my.ini的mysqld块下增加一行<code>skip-grant-tables</code>，然后重启MySQL服务，输入以下指令，成功登录<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure></p>
-<h1 id="设置root密码"><a href="#设置root密码" class="headerlink" title="设置root密码"></a>设置root密码</h1><p>假设我们要设置登录密码为“password”。这里有个坑，貌似MySQL5.6及以前，mysql.user这个表，放密码的字段就是password，5.7这个password改为了authentication_string。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; update mysql.user set authentication_string=password(&quot;password&quot;) where user=&quot;root&quot;;</span><br></pre></td></tr></table></figure></p>
-<p>然后输入exit回车，退出mysql。把之前在my.ini添加的<code>skip-grant-tables</code>删掉。重启服务，重新登录。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure></p>
-<p>输入密码password，成功登录。然后又遇到一个坑，无论执行什么命令，都会报<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1820 (HY000): You must reset your password using ALTER USER statement before executing this statement.</span><br></pre></td></tr></table></figure></p>
-<p>明明用密码登录了，还要我重新设置！那我就重新设置呗。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SET PASSWORD = PASSWORD(&apos;password&apos;);</span><br></pre></td></tr></table></figure></p>
-<p>注意有些人在设置密码时还会报以下错误，意思是密码太简单了，还好我没遇到<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1819 (HY000): Your password does NOT satisfy the CURRENT policy requirements</span><br></pre></td></tr></table></figure></p>
-<h1 id="允许远程登录"><a href="#允许远程登录" class="headerlink" title="允许远程登录"></a>允许远程登录</h1><p>我们为MySQL设置了用户root的账号密码，在该服务器上也能成功登录了，但是，现在用其他机器还是无法登录该MySQL服务的。因为mysql.user表的记录有个host字段，规定了从什么机器能用该账号登录，如果是localhost就是只能本机访问，如果是某ip就是指定ip方可访问，如果是%则所有ip均可访问。另外，让所有人使用root登录好像不太安全，那我们干脆创建一个用户给开发人员远程登录吧。<br>我们创建一个bigdataweb的用户，密码为big123!@#web，执行以下全部或某几条命令（抱歉我忘了）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; set password for &apos;bigdataweb&apos;@&apos;%&apos; = password(&apos;big123!@#web&apos;);</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure></p>
-<p>如果上边的不行，就试试这个吧，我记得这个是行的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create user bigdataweb identified by &apos;big123!@#web&apos;;</span><br></pre></td></tr></table></figure></p>
-<h1 id="分配权限"><a href="#分配权限" class="headerlink" title="分配权限"></a>分配权限</h1><p>创建了的新用户是没有什么权限的，我们要给它分配权限：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; grant all privileges on *.* to &apos;bigdataweb&apos;@&apos;%&apos;identified by &apos;big123!@#web&apos; with grant option;</span><br><span class="line">mysql&gt; flush privileges ;</span><br></pre></td></tr></table></figure></p>
-<h1 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h1><p>99%的文章只教安装不提卸载，好吧能安装已是万事大吉了还想研究如何卸载？不过有时还真有这个需要，例如之前的install时我把defaults-file的路径设错了，服务死活启动不了，重新安装它又说服务已存在。网上搜索如何卸载干净，又说执行“sc delete MySQL”的，有说要在注册表删除的，我试过，毫无作用。唯一正解是执行这个（参考：<a href="https://www.jb51.net/article/105755.htm" target="_blank" rel="noopener">Windows下MySQL服务无法停止和删除的解决办法</a><br>）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld remove MySQL</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/08/Mac远程桌面连接Windows-Server-2012R2/" itemprop="url">Mac远程桌面连接Windows Server 2012R2</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-08T15:46:43+08:00">
-                2018-06-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>安装了Windows Server 2012 R2系统，控制面板开启了允许远程桌面，使用win7能顺利用远程桌面连上，但是用Mac的远程桌面却死活连不上，报“远程桌面无法验证您希望连接的计算机的身份”</p>
-</blockquote>
-<p>解决方案如下：</p>
-<ol>
-<li>在Windows Server系统，开始->运行，也可以进入命令行，输入gpedit.msc，打开组策略编辑器</li>
-<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面会话主机”->“安全”，打开“（RDP）连接要求使用指定的安全层”，设为“启用”，另外把安全层下拉框调成“RDP”。英文版：（进入Computer Configuration->Administrative Templates->Windows Components->Remote Desktop Services->Remote Desktop Session Host->Security，打开”Require use of specific security layer for remote desktop (RDP) connection”的设置，将其设置为Enabled，并且在Options中将Security Layer设置为RDP）。</li>
-<li>选择“本地计算机策略”->“计算机配置”->“管理模板”->“windows组件”->“远程桌面服务”->“远程桌面连接客户端”，把“在客户端计算机上提示提供凭据”设为启用。英文版：（Computer Configuration -> Administrative Templates -> Windows Components -> Remote Desktop Services -> Remote Desktop Connection Client 中允许”Prompt for credentials on the client computer”）</li>
-</ol>
-<p>至此，Mac终于能通过远程桌面连上Windows Server 2012了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1683,7 +1683,7 @@ $ docker load -i mysql.tar
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1696,7 +1696,7 @@ $ docker load -i mysql.tar
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
