@@ -229,6 +229,419 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/" itemprop="url">构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:34+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内</p>
+</blockquote>
+<h1 id="思考与摸索"><a href="#思考与摸索" class="headerlink" title="思考与摸索"></a>思考与摸索</h1><p>Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计装在一起也不符合“微服务”的思想。其中，JDK与Jetty肯定是要装在一个镜像内的，FFmpeg倒是可以独立出来，不过如果独立出来我还要另外构建个服务，自行实现调用FFmpeg转码的逻辑然后提供接口给外部调用。工作量也难以评估到底哪种多一些，那干脆装到同一个镜像算了。<br>Docker Hub上很多镜像都提供了docker file，我从中摘抄某些语句，自行组合，以期达到我要的效果。一开始并没有使用ffmpeg这个需求，我考虑的只是同时装jdk与jetty。最初我是想在jetty镜像中安装jdk，看上去容易些，但后来貌似被配置环境变量的问题吓跑了，因此改为在jdk镜像中安装jetty。后来，再在该镜像中再装上ffmpeg。</p>
+<h1 id="使用JDK8镜像"><a href="#使用JDK8镜像" class="headerlink" title="使用JDK8镜像"></a>使用JDK8镜像</h1><p>使用的是jdk8，8-jdk与8u111应该是一样的，image id都一样（后边我写的是8-jdk）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull java:8-jdk</span><br></pre></td></tr></table></figure></p>
+<h1 id="在JDK8镜像中安装Jetty9"><a href="#在JDK8镜像中安装Jetty9" class="headerlink" title="在JDK8镜像中安装Jetty9"></a>在JDK8镜像中安装Jetty9</h1><p>dockerfile这样写：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; chown -R jetty:jetty /opt/jetty &amp;&amp; rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>这样，建立的镜像作为容器启动时，jetty就会一直运行了。</p>
+<h1 id="在镜像中安装ffmpeg"><a href="#在镜像中安装ffmpeg" class="headerlink" title="在镜像中安装ffmpeg"></a>在镜像中安装ffmpeg</h1><p>最最麻烦的部分！JDK镜像是基于Debian的，因此我们现在要基于Debian安装FFmpeg（可以把它当做在uBuntu上安装）。本身安装FFmpeg就需要安装一堆依赖，我原本期望是可以用“apt install”的方式直接帮我安装FFmpeg还有一大堆依赖，但不知什么原因，可能是国内很难连上apt的地址，也可能是当前debian根本没有“FFmpeg的源”，总之就是一直各种报错，最终失败。只能手动下载再编译安装。而且仅仅FFmpeg还不够，转码需要特定的插件。反正差不多折腾了我一周的时间。<br>还好，最终整合了很多dockerfile的语句，终于拼出了一个能最终跑起来的。在之前的dockerfile上加上以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br></pre></td></tr></table></figure></p>
+<p>注意上面的语句加在以下语句之前，或者说以下两句必须放在最后，否则容器启动时jetty就不会自动运行了。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>因此，修改后的Dockerfile是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line"># RUN apt-get update</span><br><span class="line"># RUN apt-get install -yq --no-install-recommends wget autoconf automake cmake curl bzip2 libexpat1-dev g++ gcc gperf libtool make nasm perl pkg-config libssl-dev yasm libva-dev zlib1g-dev</span><br><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br><span class="line"></span><br><span class="line"># install jetty</span><br><span class="line"># Install packages</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; \</span><br><span class="line">    chown -R jetty:jetty /opt/jetty &amp;&amp; \</span><br><span class="line">    rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意：  </strong><br>vo-amrwbenc-0.1.3，opencore-amr-0.1.2是转码为amr需要用到的插件，国内连上去速度极慢，如果让它在构建镜像时自行下载，耗时会很长甚至让整个构建失败，因此我这里是自行下载后解压了，把vo-amrwbenc-0.1.3目录与opencore-amr-0.1.2目录放在里与Dockerfile同级的目录内，然后直接复制到镜像内。此外，还曾经遇到ffmpeg找不到我安装的vo-amrwbenc-0.1.3，opencore-amr-0.1.2插件，原因是FFmpeg没有在正确的插件安装位置去找，这里的解决办法是，直接在FFmpeg去找的目录内建立软链接，链接去两个插件安装的位置。  </p>
+<p>两个插件地址如下，请自行下载（也许需要个梯子）：<br><a href="https://sourceforge.net/projects/opencore-amr/files/opencore-amr/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/opencore-amr/</a><br><a href="https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/</a></p>
+<p>参考：<br><a href="https://blog.51cto.com/zlyang/1709508" target="_blank" rel="noopener">安装ffmpeg过程中可能会遇到的问题详解</a><br><a href="https://thierry-xing.iteye.com/blog/2017864" target="_blank" rel="noopener">ubuntu上安装ffmpeg</a><br><a href="https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/" target="_blank" rel="noopener">https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/</a></p>
+<h1 id="在镜像中安装unrar"><a href="#在镜像中安装unrar" class="headerlink" title="在镜像中安装unrar"></a>在镜像中安装unrar</h1><p>5.0版本之前可以通过引用Jar包，在Java代码中解压。5.0版本之后不提供jar包了，如果继续用5.0之前的版本，则无法解压用5.0版本以后压缩的包，因此只能在服务器上装个rar 5.0 之后的版本，然后在Java代码中通过调用shell的方式实现。<br>在Dockerfile中适当位置添加如下语句（在WORKDIR与CMD那两句之前即可）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update -y &amp;&amp; apt-get install make</span><br><span class="line">RUN wget http://www.rarlab.com/rar/rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">cd rar &amp;&amp; \</span><br><span class="line">make  &amp;&amp; \</span><br><span class="line">mv rar_static /usr/local/bin/rar</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/CentOS-7挂载windows下的共享文件夹/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/28/CentOS-7挂载windows下的共享文件夹/" itemprop="url">CentOS 7挂载windows下的共享文件夹</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:09+08:00">
+                2019-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>有个需求是让项目访问某个windows系统的某共享文件夹，而我的项目是部署在CentOS上的，怎么做呢？<br>假设我们要访问的共享文件夹路径为：<code>172.16.28.189/kmc</code><br>那么我们要怎么做呢？</p>
+</blockquote>
+<h1 id="使用mount命令"><a href="#使用mount命令" class="headerlink" title="使用mount命令"></a>使用mount命令</h1><p>首先我们要在CentOS中新建某文件夹，例如/home/tisson/kmc_file，然后把共享文件夹挂载到此目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mount -t cifs -o username=administrator,password=&apos;admin@198&apos; //172.16.28.189/kmc /home/tisson/kmc_file</span><br></pre></td></tr></table></figure></p>
+<p>其中administrator与admin@198分别是远程登录172.16.28.189的windows系统的用户名和密码。</p>
+<h1 id="开机启动"><a href="#开机启动" class="headerlink" title="开机启动"></a>开机启动</h1><p>我们发现，系统重启后挂载就没有了，我们想让它开机自动挂载<br>在/etc/fstab文件中添加下列代码：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">//172.16.28.189/kmc /home/tisson/kmc_file cifs username=administrator,password=&apos;admin@198&apos; 0 0</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Docker进阶操作（一）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/Docker进阶操作（一）/" itemprop="url">Docker进阶操作（一）</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:33:26+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>之前介绍了Docker的一些基本操作，现在我们需要做一些稍微复杂一些的，例如Java Web容器的日志默认都打印在哪里了？ 如何限制每个容器使用的内存，如何实现各个Docker间相互通信，为什么容器内的时间与主机时间相差了8小时，如何解决</p>
+</blockquote>
+<h1 id="查看容器内日志"><a href="#查看容器内日志" class="headerlink" title="查看容器内日志"></a>查看容器内日志</h1><p>需要知道该容器的ID（不用全部输入，输前边几位就可以了）或名字：例如<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                                            NAMES</span><br><span class="line">b2c2d420d3f1        docker.io/mysql:5.7.23   &quot;docker-entrypoint...&quot;   2 days ago          Up 2 days           33060/tcp, 0.0.0.0:3308-&gt;3306/tcp                mysql57</span><br><span class="line"># 以下两条命令均可</span><br><span class="line">$ docker logs b2c </span><br><span class="line">$ docker logs mysql57</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看指定时间后的日志，只显示最后n行"><a href="#查看指定时间后的日志，只显示最后n行" class="headerlink" title="查看指定时间后的日志，只显示最后n行"></a>查看指定时间后的日志，只显示最后n行</h2><p>例如，我要看2018年12月7日至今的日志的最后100行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># -f ：跟踪实时日志；-t：显示时间戳</span><br><span class="line">$ docker logs -f -t --since=&quot;2018-12-07&quot; --tail=100 CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h2 id="查看某个相对时间之前-之后的日志"><a href="#查看某个相对时间之前-之后的日志" class="headerlink" title="查看某个相对时间之前/之后的日志"></a>查看某个相对时间之前/之后的日志</h2><p>例如我要看最近30分钟的日志<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs --since 30m CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间之后的日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<p>查看某时间段日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; --until &quot;2018-02-09T12:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
+<h1 id="限制Docker容器最大使用内存"><a href="#限制Docker容器最大使用内存" class="headerlink" title="限制Docker容器最大使用内存"></a>限制Docker容器最大使用内存</h1><p>在不设置的情况下，会使用主机所有的内存（大家共享，某个时刻这个容器用得多了，那个容器就用得少了）。如果我们想限制某个容器最大使用内存，可使用-m和–memory-swap参数</p>
+<ul>
+<li>-m：后边写限制内存数目，带单位，可以是k，m，G，例如-m 2G，则该容器最多能使用主机的2G内存</li>
+<li>–memory-swap：后边写限制内存数目，带单位，可以是k，m，G。注意这是内存+swap的值，假设我设了-m 2G，后边再加上–memory-swap 2G，那么这个容器不使用swap。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 例如</span><br><span class="line">$ docker run --name=dict-web-docker -m 2G --memory-swap=2G -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure>
+<h1 id="实现Docker容器间通信"><a href="#实现Docker容器间通信" class="headerlink" title="实现Docker容器间通信"></a>实现Docker容器间通信</h1><p>例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Docker容器之后，容器内部有独立于主机的一套IP，即使Java WEB与数据库容器都在同一个主机上，在JAVA WEB容器内访问127.0.0.1是找不到数据库容器的。怎么办？网上能搜到一堆答案，不过由于对网络这块我不是很熟悉，有很多从“网桥”这个方向的解决方案我是完全看不懂，我能看懂并实际应用的只有下边两种</p>
+<h2 id="link方式"><a href="#link方式" class="headerlink" title="link方式"></a>link方式</h2><p>我们启动Docker容器的时候可以指定容器的名字，例如我启动一个MySQL的容器，指定其名字为mysql57<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 MYSQL_ROOT_PASSWORD=123456 -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<p>现在，我们启动Java WEB容器，并允许其访问到mysql57这个容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run  --link mysql57:mysql57 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>容器内配置的数据源地址为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用mysql57这个地址可以访问到mysql57容器，注意mysql57容器内部使用的是3306端口，但是映射到主机是3308端口，我们使用link的方式访问，应该使用该容器内部的端口：3306</span><br><span class="line">spring.datasource.url=jdbc:mysql://mysql57:3306/dict?......</span><br></pre></td></tr></table></figure></p>
+<h2 id="add-host方式"><a href="#add-host方式" class="headerlink" title="add-host方式"></a>add-host方式</h2><p>link方式用了一阵，很快我就发现了一些问题：</p>
+<ol>
+<li>容器必须按次序启动，例如我启动Java WEB容器的时候，添加了使用mysql57的link，那么在mysql57容器成功启动之前，我启动Java WEB容器会报错。再考虑极端一些的情况，假如两个容器需要相互访问，要怎么办呢？</li>
+<li>曾经遇到：A容器需要link到B容器，而B容器因为某些原因需要删除，然后重新打包镜像，运行容器，名字也是B。然后A总是说连不上B了，只能把A也删掉，重新建一个A容器</li>
+<li>如果需要相互通信的容器不在同一台主机上，要怎么做</li>
+</ol>
+<p>最无脑的办法是不用“link”，直接写死外网IP。因为容器内也是可以访问到主机的外网IP。但是，如果我们要做服务迁移呢？每迁移一次就改一大堆地址？挺麻烦的样子。然后我又想到了使用hostname，直接让容器内的hosts文件挂载到主机的hosts文件，但是docker启动的时候某些参数也会修改容器内部的hosts，我不知道是否会影响到主机的hosts。如何为容器添加hostname又不影响主机hosts呢？还真有方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用--add-host参数，也不用管哪个容器先启动了，也可以跨主机访问</span><br><span class="line">$ docker run  --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116  -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>这样，在容器内可以通过ctyun1这个域名访问10.10.0.234</p>
+<h3 id="留意防火墙"><a href="#留意防火墙" class="headerlink" title="留意防火墙"></a>留意防火墙</h3><p>最近服务器迁移时遇到的问题，新部署的docker容器，无法访问宿主机的ip，表现为：</p>
+<ol>
+<li>容器内部可以ping得通宿主机的ip</li>
+<li>容器内部curl宿主机的ip缺报错：No route to host</li>
+<li>容器内可以访问同一主机上的其他容器</li>
+</ol>
+<p>经查，居然是防火墙的问题（系统是CentOS 7.5），比方说，我有个java web的docker容器服务，要访问主机上的mysql数据库，端口号为3306，那么需要在防火墙开放开放指定端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line">success</span><br><span class="line">$ sudo firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure></p>
+<h1 id="宿主机时间与Docker容器内时间不一致的问题"><a href="#宿主机时间与Docker容器内时间不一致的问题" class="headerlink" title="宿主机时间与Docker容器内时间不一致的问题"></a>宿主机时间与Docker容器内时间不一致的问题</h1><p>启动了Java WEB容器，看它打印的日志，发现比主机的时间慢了8个小时。上网搜了下发现docker容器默认用的是标准时间（伦敦那个时区），我们需要把主机上的时间同步到容器内，让容器内使用主机的时间，那么，启动Java WEB容器的命令需要改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run  -v /etc/localtime:/etc/localtime:ro --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
+<p>启动后观察打印的日志时间，还是慢了8小时。原来Java WEB还需要多一个步骤，Java的参数增加：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-Duser.timezone=GMT+8</span><br></pre></td></tr></table></figure></p>
+<p>因为我使用maven打包的一个springboot容器，我们加这个参数是加在dockerfile里边，Dockerfile内容如下（仅做参考）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD dict-web-0.0.1-SNAPSHOT.jar app.jar</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/部署Scrapy爬虫/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1138,7 +1551,7 @@
             <h1 id="Docker安装"><a href="#Docker安装" class="headerlink" title="Docker安装"></a>Docker安装</h1><p>貌似应该装Docker CE版，不过这里我直接装Docker，不知道算是CE（社区）版还是EE（企业）版。  </p>
 <h2 id="安装前提"><a href="#安装前提" class="headerlink" title="安装前提"></a>安装前提</h2><p>以CentOS为例，内核版本需要3.10以上：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br><span class="line">3.10.0-862.el7.x86_64</span><br></pre></td></tr></table></figure></p>
 <h2 id="安装指令"><a href="#安装指令" class="headerlink" title="安装指令"></a>安装指令</h2><p>以CentOS为例（新版的Docker分为企业版和社区版了，以下安装方式安装的版本会比较旧）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install docker</span><br></pre></td></tr></table></figure></p>
-<h3 id="安装Docker-CE（社区版）"><a href="#安装Docker-CE（社区版）" class="headerlink" title="安装Docker CE（社区版）"></a>安装Docker CE（社区版）</h3><p>最新版的以CentOS为例，如果安装了旧版本的，可以先卸载<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum remove docker \</span><br><span class="line">	docker-common \</span><br><span class="line">	docker-selinux \</span><br><span class="line">	docker-engine</span><br></pre></td></tr></table></figure></p>
+<h3 id="安装Docker-CE（社区版）"><a href="#安装Docker-CE（社区版）" class="headerlink" title="安装Docker CE（社区版）"></a>安装Docker CE（社区版）</h3><p>最新版的以CentOS为例，如果安装了旧版本的，可以先卸载<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ yum remove docker \</span><br><span class="line">    docker-common \</span><br><span class="line">    docker-selinux \</span><br><span class="line">    docker-engine</span><br></pre></td></tr></table></figure></p>
 <p>安装以下依赖包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2</span><br></pre></td></tr></table></figure></p>
 <p>添加国内软件源，加快速度<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure></p>
 <p>安装Docker CE<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum makecache fast</span><br><span class="line">yum install docker-ce</span><br></pre></td></tr></table></figure></p>
@@ -1153,489 +1566,38 @@
 <h2 id="下载镜像"><a href="#下载镜像" class="headerlink" title="下载镜像"></a>下载镜像</h2><p>例如我们要下载mysql 5.7.23<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull mysql:5.7.23</span><br></pre></td></tr></table></figure></p>
 <p>又例如我们要下载tomcat最新版<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull tomcat:latest</span><br></pre></td></tr></table></figure></p>
 <h2 id="查看已下载的镜像"><a href="#查看已下载的镜像" class="headerlink" title="查看已下载的镜像"></a>查看已下载的镜像</h2><p>运行docker images，效果如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ docker images</span><br><span class="line">REPOSITORY                 TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">docker.io/tomcat           latest              41a54fe1f79d        2 weeks ago         463 MB</span><br><span class="line">docker.io/mysql            5.7.23              563a026a1511        3 weeks ago         372 MB</span><br></pre></td></tr></table></figure></p>
-<h2 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h2><p>例如我们要运行tomcat：<br>    ```<br>    $ docker run docker.io/tomcat:latest<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">这样就会在前台运行tomcat服务器，然后我们可以按CTRL+C终止。  </span><br><span class="line">### 后台运行镜像</span><br><span class="line">我们也可以让tomcat在后台运行</span><br></pre></td></tr></table></figure></p>
-<pre><code>$ docker run -d docker.io/tomcat:latest
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">会得到一串字符，这个就是容器运行的ID。</span><br></pre></td></tr></table></figure>
-
-1c5cf21627fbc03d5674a2145b7de206b736b2a4aa006c64dc848762558a1725
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">### 带参数配置的运行</span><br><span class="line">例如我们运行mysql，需要给它指定初始密码（root用户密码），需要指定开放出来的端口号（注意容器内的端口号与容器外对应的端口号，我们在容器外部要连mysql，需要访问的是mysql容器外对应的端口号）</span><br></pre></td></tr></table></figure>
-
-$ docker run --name 任意名字例如mysql57 -e MYSQL_ROOT_PASSWORD=设置root用户的密码 -p 主机端口号:容器端口号 -d docker.io/mysql:5.7.23
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我们知道mysql默认使用的端口号是3306，容器内mysql使用的端口也正是3306，而下边的命令我们设置了主机上的3307端口映射到容器内的3306端口，那么我们要访问mysql就需要从3307端口而不是3306端口了。</span><br></pre></td></tr></table></figure>
-
-$ docker run --name mysql57 -e MYSQL_ROOT_PASSWORD=123456 -p 3307:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 进入正在运行的容器内部</span><br><span class="line">docker exec 【options】【容器名（不用写全）】【命令】【命令参数】</span><br></pre></td></tr></table></figure>
-
-$ docker exec -it 370b0ee1f169 bash
-或者
-$ docker exec -it e1066fe2db35 /bin/bash
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">进入容器后可以通过输入exit退出容器内</span><br><span class="line">## 列出正在运行的容器</span><br><span class="line">docker ps</span><br></pre></td></tr></table></figure>
-
-$ docker ps
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">返回</span><br></pre></td></tr></table></figure>
-</code></pre><p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">### 列出所有容器</span><br><span class="line">包括已经停止的</span><br><span class="line">`$ docker ps -a`  </span><br><span class="line">返回</span><br></pre></td></tr></table></figure></p>
-<p>CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES<br>370b0ee1f169        neo4j                            “/sbin/tini -g – …”   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson<br>f2da9237003f        docker.io/tomcat:latest          “catalina.sh run”        19 hours ago        Exited (143) 19 hours ago                                                              confident_noyce<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 停止容器运行</span><br><span class="line">我们想停止正在运行的neo4j容器，它的ID是370b0ee1f169，注意执行命令时ID不用写全</span><br></pre></td></tr></table></figure></p>
-<pre><code>$ docker stop 370b0ee1f169
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 重新启动已停止运行的容器</span><br><span class="line">例如我想重新启动之前停止了的tomcat，它的ID是f2da9237003f，注意执行命令的时候，ID不用写全，例如只写f2d也是可以的</span><br></pre></td></tr></table></figure>
-
-$ docker start f2da9237003f
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 移除容器</span><br><span class="line">移除容器之前，该容器必须已停止运行</span><br></pre></td></tr></table></figure>
-
-$ docker rm 容器ID
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## 卸载镜像</span><br><span class="line">移除镜像之前，必须移除所有该镜像的容器</span><br></pre></td></tr></table></figure>
-
-$ docker rmi 镜像ID
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 【示例】Docker下修改mysql配置文件</span><br><span class="line">由于需要修改mysql的sql\_mode，在命令行修改每次重启都会失效，因为修改docker下mysql的配置文件，假设正在运行的MySQL容器ID为e1066fe2db35。  </span><br><span class="line">进入容器：</span><br></pre></td></tr></table></figure>
-
-$ docker exec -it e1066fe2db35 /bin/bash
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">配置文件在容器内的这个位置：`/etc/mysql/mysql.conf.d/mysqld.cnf`</span><br><span class="line">直接修改只对容器有用，对镜像本身没用。如果我们想在镜像运行时使用我们想用的配置的话：</span><br></pre></td></tr></table></figure>
-
-docker run -d -p 3306:3306 -v /soft/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf -v /soft/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql57 mysql:5.7.23
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">可以看到用了-v，我们指定使用主机上的/soft/mysql/my.cnf映射到（替换）容器内的/etc/mysql/mysql.conf.d/mysqld.cnf，用主机上的/soft/mysql/data映射到容器内的/var/lib/mysql（这个是容器内mysql的datadir），这样就可以让容器内的mysql使用容器外（主机）上的数据文件。</span><br><span class="line"></span><br><span class="line"># Docker Container的导入导出</span><br><span class="line">导出容器，用ID或names(别名，自定义的)皆可，例如：</span><br></pre></td></tr></table></figure>
-
-$ docker export 011b39e7f806 &gt; ~/Downloads/mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">在导出后，你可以把文件利用scp或是ftp等各种方式分发，然后这样导入：</span><br></pre></td></tr></table></figure>
-
-$ docker import - /Users/SeaMonster/Downloads/mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># Docker 镜像的保存/加载</span><br><span class="line">保存/加载与导出导入有一些类似</span><br><span class="line">- export/import与 save/load区别</span><br><span class="line">	- export/import 是根据容器来导出镜像（因此没有镜像的历史记录）而 save/load 操作的对象是镜像</span><br><span class="line">	- export/import 镜像的历史记录再导后无法进行回滚操作，而save/load镜像有完整的历史记录可以回滚</span><br><span class="line"></span><br><span class="line">保存镜像：</span><br></pre></td></tr></table></figure>
-
-$ docker save mysql:5.7.23 &gt; mysql.tar
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">加载本地镜像</span><br></pre></td></tr></table></figure>
-
-$ docker load -i mysql.tar
-```
-</code></pre><h1 id="Docker-制作镜像"><a href="#Docker-制作镜像" class="headerlink" title="Docker 制作镜像"></a>Docker 制作镜像</h1><h2 id="手工生成方式"><a href="#手工生成方式" class="headerlink" title="手工生成方式"></a>手工生成方式</h2><p>【待补充】，参考<a href="https://blog.csdn.net/u013378306/article/details/54021638" target="_blank" rel="noopener">https://blog.csdn.net/u013378306/article/details/54021638</a></p>
+<h2 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h2><p>例如我们要运行tomcat：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run docker.io/tomcat:latest</span><br></pre></td></tr></table></figure></p>
+<p>这样就会在前台运行tomcat服务器，然后我们可以按CTRL+C终止。  </p>
+<h3 id="后台运行镜像"><a href="#后台运行镜像" class="headerlink" title="后台运行镜像"></a>后台运行镜像</h3><p>我们也可以让tomcat在后台运行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d docker.io/tomcat:latest</span><br></pre></td></tr></table></figure></p>
+<p>会得到一串字符，这个就是容器运行的ID。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1c5cf21627fbc03d5674a2145b7de206b736b2a4aa006c64dc848762558a1725</span><br></pre></td></tr></table></figure></p>
+<h3 id="带参数配置的运行"><a href="#带参数配置的运行" class="headerlink" title="带参数配置的运行"></a>带参数配置的运行</h3><p>例如我们运行mysql，需要给它指定初始密码（root用户密码），需要指定开放出来的端口号（注意容器内的端口号与容器外对应的端口号，我们在容器外部要连mysql，需要访问的是mysql容器外对应的端口号）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name 任意名字例如mysql57 -e MYSQL_ROOT_PASSWORD=设置root用户的密码 -p 主机端口号:容器端口号 -d docker.io/mysql:5.7.23</span><br></pre></td></tr></table></figure></p>
+<p>我们知道mysql默认使用的端口号是3306，容器内mysql使用的端口也正是3306，而下边的命令我们设置了主机上的3307端口映射到容器内的3306端口，那么我们要访问mysql就需要从3307端口而不是3306端口了。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 -e MYSQL_ROOT_PASSWORD=123456 -p 3307:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
+<h2 id="进入正在运行的容器内部"><a href="#进入正在运行的容器内部" class="headerlink" title="进入正在运行的容器内部"></a>进入正在运行的容器内部</h2><p>docker exec 【options】【容器名（不用写全）】【命令】【命令参数】<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec -it 370b0ee1f169 bash</span><br><span class="line">或者</span><br><span class="line">$ docker exec -it e1066fe2db35 /bin/bash</span><br></pre></td></tr></table></figure></p>
+<p>进入容器后可以通过输入exit退出容器内</p>
+<h2 id="列出正在运行的容器"><a href="#列出正在运行的容器" class="headerlink" title="列出正在运行的容器"></a>列出正在运行的容器</h2><p>docker ps<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker ps</span><br></pre></td></tr></table></figure></p>
+<p>返回<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES</span><br><span class="line">370b0ee1f169        neo4j                            &quot;/sbin/tini -g -- ...&quot;   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson</span><br></pre></td></tr></table></figure></p>
+<h3 id="列出所有容器"><a href="#列出所有容器" class="headerlink" title="列出所有容器"></a>列出所有容器</h3><p>包括已经停止的<br><code>$ docker ps -a</code><br>返回<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS                      PORTS                                                      NAMES</span><br><span class="line">370b0ee1f169        neo4j                            &quot;/sbin/tini -g -- ...&quot;   19 hours ago        Up 19 hours                 0.0.0.0:7474-&gt;7474/tcp, 7473/tcp, 0.0.0.0:7687-&gt;7687/tcp   jolly_swanson</span><br><span class="line">f2da9237003f        docker.io/tomcat:latest          &quot;catalina.sh run&quot;        19 hours ago        Exited (143) 19 hours ago                                                              confident_noyce</span><br></pre></td></tr></table></figure></p>
+<h2 id="停止容器运行"><a href="#停止容器运行" class="headerlink" title="停止容器运行"></a>停止容器运行</h2><p>我们想停止正在运行的neo4j容器，它的ID是370b0ee1f169，注意执行命令时ID不用写全<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker stop 370b0ee1f169</span><br></pre></td></tr></table></figure></p>
+<h2 id="重新启动已停止运行的容器"><a href="#重新启动已停止运行的容器" class="headerlink" title="重新启动已停止运行的容器"></a>重新启动已停止运行的容器</h2><p>例如我想重新启动之前停止了的tomcat，它的ID是f2da9237003f，注意执行命令的时候，ID不用写全，例如只写f2d也是可以的<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker start f2da9237003f</span><br></pre></td></tr></table></figure></p>
+<h2 id="移除容器"><a href="#移除容器" class="headerlink" title="移除容器"></a>移除容器</h2><p>移除容器之前，该容器必须已停止运行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker rm 容器ID</span><br></pre></td></tr></table></figure></p>
+<h2 id="卸载镜像"><a href="#卸载镜像" class="headerlink" title="卸载镜像"></a>卸载镜像</h2><p>移除镜像之前，必须移除所有该镜像的容器<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker rmi 镜像ID</span><br></pre></td></tr></table></figure></p>
+<h1 id="【示例】Docker下修改mysql配置文件"><a href="#【示例】Docker下修改mysql配置文件" class="headerlink" title="【示例】Docker下修改mysql配置文件"></a>【示例】Docker下修改mysql配置文件</h1><p>由于需要修改mysql的sql_mode，在命令行修改每次重启都会失效，因为修改docker下mysql的配置文件，假设正在运行的MySQL容器ID为e1066fe2db35。<br>进入容器：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec -it e1066fe2db35 /bin/bash</span><br></pre></td></tr></table></figure></p>
+<p>配置文件在容器内的这个位置：<code>/etc/mysql/mysql.conf.d/mysqld.cnf</code><br>直接修改只对容器有用，对镜像本身没用。如果我们想在镜像运行时使用我们想用的配置的话：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p 3306:3306 -v /soft/mysql/my.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf -v /soft/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql57 mysql:5.7.23</span><br></pre></td></tr></table></figure></p>
+<p>可以看到用了-v，我们指定使用主机上的/soft/mysql/my.cnf映射到（替换）容器内的/etc/mysql/mysql.conf.d/mysqld.cnf，用主机上的/soft/mysql/data映射到容器内的/var/lib/mysql（这个是容器内mysql的datadir），这样就可以让容器内的mysql使用容器外（主机）上的数据文件。</p>
+<h1 id="Docker-Container的导入导出"><a href="#Docker-Container的导入导出" class="headerlink" title="Docker Container的导入导出"></a>Docker Container的导入导出</h1><p>导出容器，用ID或names(别名，自定义的)皆可，例如：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker export 011b39e7f806 &gt; ~/Downloads/mysql.tar</span><br></pre></td></tr></table></figure></p>
+<p>在导出后，你可以把文件利用scp或是ftp等各种方式分发，然后这样导入：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker import - /Users/SeaMonster/Downloads/mysql.tar</span><br></pre></td></tr></table></figure></p>
+<h1 id="Docker-镜像的保存-加载"><a href="#Docker-镜像的保存-加载" class="headerlink" title="Docker 镜像的保存/加载"></a>Docker 镜像的保存/加载</h1><p>保存/加载与导出导入有一些类似</p>
+<ul>
+<li>export/import与 save/load区别<ul>
+<li>export/import 是根据容器来导出镜像（因此没有镜像的历史记录）而 save/load 操作的对象是镜像</li>
+<li>export/import 镜像的历史记录再导后无法进行回滚操作，而save/load镜像有完整的历史记录可以回滚</li>
+</ul>
+</li>
+</ul>
+<p>保存镜像：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker save mysql:5.7.23 &gt; mysql.tar</span><br></pre></td></tr></table></figure></p>
+<p>加载本地镜像<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker load -i mysql.tar</span><br></pre></td></tr></table></figure></p>
+<h1 id="Docker-制作镜像"><a href="#Docker-制作镜像" class="headerlink" title="Docker 制作镜像"></a>Docker 制作镜像</h1><h2 id="手工生成方式"><a href="#手工生成方式" class="headerlink" title="手工生成方式"></a>手工生成方式</h2><p>【待补充】，参考<a href="https://blog.csdn.net/u013378306/article/details/54021638" target="_blank" rel="noopener">https://blog.csdn.net/u013378306/article/details/54021638</a></p>
 <h2 id="Dockerfile方式"><a href="#Dockerfile方式" class="headerlink" title="Dockerfile方式"></a>Dockerfile方式</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发（一）-环境搭建/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发（一）-环境搭建/" itemprop="url">以太坊Dapp开发（一）--环境搭建</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T22:25:31+08:00">
-                2018-09-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>说到环境搭建嘛，所有的开发首先都离不开这一步，熟悉了真不难，不过第一次接触真是觉得它又长又臭无聊又无趣，需要装一大堆听都没听过的东西，毕竟开源的通常都这德行，基本不用指望有人给你提供个“一键安装”的整合包，足以吓走90%的人。不过也无需太担心，某种程度上这是可以用钱解决的问题，如果手头上有点闲钱，可以话个200元去【汇智网】学一个Dapp开发的课程，虽然它的课其实不怎么样，助教水平也不算高不过勉强能帮你解答入门时期的困惑，最关键是帮你搭建了环境，让你可以直接使用。当你看到了环境搭建好的效果后，自己再搭建就会更有信心、更有动力一些</p>
-</blockquote>
-<h1 id="我们到底要干什么"><a href="#我们到底要干什么" class="headerlink" title="我们到底要干什么"></a>我们到底要干什么</h1><p>回想一下我们之前开发一个最终部署到生产环境的应用是怎么样的。以JAVA WEB为例，本地开发后，把代码打包成jar包，部署到线上的服务器，一般情况下，我们的JAVA WEB服务还要连上一个或多个数据库。然后我们需要把这些JAVA WEB服务还有数据库部署到服务器。而这个（些）服务器，一般是私人的，绝大部分人没有权限获知服务器任何信息，而你部署上去的这个jar包，其他人也不清楚里边的逻辑，对于他们而言，整个服务就是一个黑箱，他们也无需关注内里逻辑，能用就行。至于数据呢，全部自己掌控，想怎么改就怎么改。<br>现在我们需要开发DApp（Dapp分为客户端、服务端。客户端可以直接理解为一个WEB应用，我们这系列文章更关注其服务端，也就是智能合约部分），我们把它跟之前开发JAVA WEB服务一一类比，以便理解：</p>
-<ol>
-<li>之前我们开发JAVA WEB，用的是Java语言。而我们准备开发的智能合约，用的是Solidity语言</li>
-<li>开发Java我们需要开发环境（用来编译啊、执行啊、打包啊）：JDK。而我们准备开发的Solidity，同样也需要开发环境：solc。</li>
-<li>开发Java我们会用到IDE，而不是用记事本那么寒酸吧。开发Java我们会用IDEA啦、Eclipse什么的。而开发智能合约，我们使用名为“remix-ide”的IDE。</li>
-<li>开发Java Web我们通常会连数据库，有关系型数据库啦、NoSQL啦、五花八门。而智能合约呢，抱歉没这个东西，数据直接存放到智能合约的运行环境中。想象一下Java程序不可以连外部数据库、外部服务器、外部文件，那数据只能存放到JVM中，而智能合约也类似，不过换了个名称：EVM。</li>
-<li>Java Web服务我们需要部署到一个Web容器它才能跑，例如Tomcat啦、Jetty啦。如果我们希望这个Java Web服务能被互联网上所有人访问到，方法数不胜数，找个阿里云啊腾讯云什么的、或者随便找个什么机房，总之是提供公网访问的服务器，扔上去就可以了。 至于我们准备开发的智能合约呢，本地部署还真有几种类似“Tomcat”这种东西，我只说其中一个：Ganache。如果我们希望合约被互联网上所有人访问呢，呃，貌似只有一个途径：部署到以太坊的网络（我们说的是以太坊，所以什么EOS的，先忽略）。</li>
-</ol>
-<p><strong>综上所述、我们大概是要安装一个类似JDK的东西：solc；一个类似IDEA或者Eclipse的东西：remix-ode、一个类似Tomcat的东西：Ganache</strong></p>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装solc"><a href="#安装solc" class="headerlink" title="安装solc"></a>安装solc</h2><p>安装solc需要使用npm（ Node.js 平台的默认包管理工具），而使用nam就需要先安装node.js。【注：新版的node.js已经集成了npm】安装node.js与npm的过程略去不表，这里只说下一些可能是坑的地方：</p>
-<ol>
-<li>node.js最低要求7.10.1以上，npm最低要求4.2.0以上，过低的需要升级，否则无法安装solc和remix-ide。</li>
-<li>熟知java开发的清楚这个包管理器npm类似maven，需要连网上的中央仓库下载各种依赖包。这个中央仓库是在国外的，速度比较慢。解决办法有A：使用“镜像”源— 国内的阿里提供的，百度一下即可。B：翻墙。其中B比较省事，少了些坑。</li>
-</ol>
-<p>安装好npm，后，运行以下指令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g solc</span><br></pre></td></tr></table></figure></p>
-<p>实际安装的貌似是solcjs而不是solc。两者到底有什么区别，我在网上就没看到说得清楚的文章，反正在我机子上，按字面理解我是安装solc，但实际应用时，还是必须用solcjs。</p>
-<h2 id="安装remix-ide"><a href="#安装remix-ide" class="headerlink" title="安装remix-ide"></a>安装remix-ide</h2><p>有2种版本：在线版和离线版  </p>
-<h3 id="在线版"><a href="#在线版" class="headerlink" title="在线版"></a>在线版</h3><p>直接打开<a href="https://remix.ethereum.org/" title="https://remix.ethereum.org" target="_blank" rel="noopener">https://remix.ethereum.org</a> 无需安装，打开链接即可使用。在国内访问会有些慢，可以考虑翻墙。  </p>
-<h3 id="离线版"><a href="#离线版" class="headerlink" title="离线版"></a>离线版</h3><p>本机启动、无需连网。</p>
-<h4 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h4><p>有两种安装方式：<br>方法一：使用npm安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install remix-ide -g</span><br></pre></td></tr></table></figure></p>
-<p>如果出现错误：Error: EACCES: permission denied, access ‘/usr/local/lib/node_modules’，可以尝试以下方法解决：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R $(whoami) $(npm config get prefix)/&#123;lib/node_modules,bin,share&#125;</span><br></pre></td></tr></table></figure></p>
-<p>方法二：remix-ide的github 上还提供了另一个方法进行安装，通过clone 代码来安装<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git clone https://github.com/ethereum/remix-ide.git</span><br><span class="line">$ cd remix-ide</span><br><span class="line">$ npm install</span><br><span class="line">$ npm run setupremix  # this will clone https://github.com/ethereum/remix for you and link it to remix-ide</span><br><span class="line">$ npm start #这句其实是运行remix-ide了</span><br></pre></td></tr></table></figure></p>
-<h4 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h4><p>运行以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ remix-ide</span><br></pre></td></tr></table></figure></p>
-<p>然后浏览器打开<a href="http://localohost:8080即可打开ide。" target="_blank" rel="noopener">http://localohost:8080即可打开ide。</a><br>可以看到它默认端口是8080，如果我们需要换一个端口呢？<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ which remix-ide</span><br><span class="line">/usr/local/bin/remix-ide</span><br><span class="line">$ cd /usr/local/bin/</span><br><span class="line">$ vi remix-ide</span><br></pre></td></tr></table></figure></p>
-<p>可以看到一行 <code>server.listen(8080, &#39;127.0.0.1&#39;, function () {})</code>，把那个8080改为任意端口。当然，最好把下边那句console.log的端口也改了，免得打印的信息误导用户。</p>
-<h2 id="安装Ganache"><a href="#安装Ganache" class="headerlink" title="安装Ganache"></a>安装Ganache</h2><p>打开<a href="https://truffleframework.com/ganache" target="_blank" rel="noopener">https://truffleframework.com/ganache</a>（需翻墙），下载，安装，运行。它除了让我们可以部署合约外，它自己默认提供了10个钱包账号（钱包账号数目可以调整，例如调为100），每个账号默认有100个以太币。当我们部署合约、修改合约内的数据时，需要消耗这些以太币。</p>
-<h2 id="安装Metamask"><a href="#安装Metamask" class="headerlink" title="安装Metamask"></a>安装Metamask</h2><p>一个Chrome/Firefox的插件，安装需翻墙。除了用于开发外，也可用于实际支付。反正必须装。</p>
-<p>至此，开发所需环境搭建完毕。注意以上所需环境也可以“变更”，例如我用Ganache-cli，直接用命令行而不是一个Ganache的App，又或者用Mist代替Metamask，本人实在懒得理会这些替代方案了，本人的目标是尽快弄一个Dapp并上线，能跳过的尽量跳过，不想纠缠。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/04/以太坊Dapp开发/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/04/以太坊Dapp开发/" itemprop="url">以太坊Dapp开发</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-04T12:02:54+08:00">
-                2018-09-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>不包含UI部分开发</p>
-</blockquote>
-<h1 id="开发环境搭建"><a href="#开发环境搭建" class="headerlink" title="开发环境搭建"></a>开发环境搭建</h1><h1 id="编写Solidity合约"><a href="#编写Solidity合约" class="headerlink" title="编写Solidity合约"></a>编写Solidity合约</h1><h1 id="部署合约到生产-测试环境"><a href="#部署合约到生产-测试环境" class="headerlink" title="部署合约到生产/测试环境"></a>部署合约到生产/测试环境</h1><h1 id="使用Web3j与合约通信"><a href="#使用Web3j与合约通信" class="headerlink" title="使用Web3j与合约通信"></a>使用Web3j与合约通信</h1><h1 id="补充：智能合约的优化"><a href="#补充：智能合约的优化" class="headerlink" title="补充：智能合约的优化"></a>补充：智能合约的优化</h1>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/Linux-SSH远程免密码登录/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/30/Linux-SSH远程免密码登录/" itemprop="url">Linux SSH远程免密码登录</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T11:38:31+08:00">
-                2018-07-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>远程登录Linux服务器，或者往其上传文件，每次都要输入一大串密码，而且密码还不能复制，相当麻烦，有没办法保存密码不用每次输入呢？</p>
-</blockquote>
-<h1 id="在本机（Linux-macOS-）上生成密钥"><a href="#在本机（Linux-macOS-）上生成密钥" class="headerlink" title="在本机（Linux/macOS ）上生成密钥"></a>在本机（Linux/macOS ）上生成密钥</h1><p>执行命令：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure></p>
-<p>然后按提示操作，在位置所有默认设置的情况下，该命令会在<strong>用户的根目录</strong>（例如/root/）生成.ssh文件夹，里边会有如下文件：  </p>
-<ul>
-<li>authorized_keys:存放远程免密登录的公钥,主要通过这个文件记录多台机器的公钥</li>
-<li>id_rsa : 生成的私钥文件</li>
-<li>id_rsa.pub ： 生成的公钥文件</li>
-<li>know_hosts : 已知的主机公钥清单</li>
-</ul>
-<h1 id="把公钥添加到要被远程登录的服务器"><a href="#把公钥添加到要被远程登录的服务器" class="headerlink" title="把公钥添加到要被远程登录的服务器"></a>把公钥添加到要被远程登录的服务器</h1><p>如果希望ssh公钥生效需满足至少下面两个条件：  </p>
-<ol>
-<li>.ssh目录的权限必须至少是700</li>
-<li>.ssh/authorized_keys文件权限必须至少是600</li>
-</ol>
-<p>添加的方式也有如下几种，使用其中一种即可。</p>
-<h2 id="通过ssh-copy-id的方式"><a href="#通过ssh-copy-id的方式" class="headerlink" title="通过ssh-copy-id的方式"></a>通过ssh-copy-id的方式</h2><p>将本机的公钥复制到远程机器的authorized_keys文件中，ssh-copy-id也能让你有到远程机器的home, ./ssh , 和 /.ssh/authorized_keys的权利<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-copy-id -i ~/.ssh/id_rsa.pub &lt;remote-host&gt;</span><br></pre></td></tr></table></figure></p>
-<p>remote-host就是远程服务器ip，例如132.121.30.70  。<br>这里需要按提示输入该远程服务器的密码。<br><strong>注意</strong></p>
-<ul>
-<li>客户端与服务端将使用同一个用户名，例如本地使用的是user1用户，那么请确保远程服务端也有user1用户并有足够权限。</li>
-<li>要求该远程服务器安装了ssh，否则会报错“-bash: ssh-copy-id: command not found ”。如果该服务器是CentOS我们可以通过“<code>yum -y install openssh-clients</code>”来安装。</li>
-</ul>
-<h2 id="通过scp将内容写到对方的文件中"><a href="#通过scp将内容写到对方的文件中" class="headerlink" title="通过scp将内容写到对方的文件中"></a>通过scp将内容写到对方的文件中</h2><p>运行如下命令：  （remote_ip就是远程服务器ip，例如132.121.30.70，然后输入远程服务器的密码。）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ scp ~/.ssh/id_rsa.pub root@&lt;remote_ip&gt;:pub_key #将文件拷贝至远程服务器（root为远程服务器用户名，可使用其他）</span><br><span class="line"># 登录远程服务器，然后：</span><br><span class="line">$ cat ~/pub_key &gt;&gt;~/.ssh/authorized_keys  # 将内容追加到authorized_keys文件中， 需要登录远程服务器来执行这条命令</span><br></pre></td></tr></table></figure></p>
-<h2 id="通过Ansible实现批量免密（以后补充）"><a href="#通过Ansible实现批量免密（以后补充）" class="headerlink" title="通过Ansible实现批量免密（以后补充）"></a>通过Ansible实现批量免密（以后补充）</h2><h2 id="手工复制粘贴的方式"><a href="#手工复制粘贴的方式" class="headerlink" title="手工复制粘贴的方式"></a>手工复制粘贴的方式</h2><p>将本地id_rsa.pub文件的内容拷贝至远程服务器的/.ssh/authorized_keys文件中</p>
-<h1 id="其他注意事项"><a href="#其他注意事项" class="headerlink" title="其他注意事项"></a>其他注意事项</h1><p>（1）SELinux需关闭：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ getenforce</span><br><span class="line">Disabled</span><br></pre></td></tr></table></figure></p>
-<p>（2）/etc/ssh/sshd_config文件的配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">StrictModes yes</span><br><span class="line"># 上面这句需要注释掉或改为StrictModes no，否则不能免密</span><br></pre></td></tr></table></figure></p>
-<h1 id="常见问题失败原因"><a href="#常见问题失败原因" class="headerlink" title="常见问题失败原因"></a>常见问题失败原因</h1><h2 id="某次无法免密的原因定位及最终解决办法"><a href="#某次无法免密的原因定位及最终解决办法" class="headerlink" title="某次无法免密的原因定位及最终解决办法"></a>某次无法免密的原因定位及最终解决办法</h2><p>我在本机远程登录某台Linux服务器，已按照本文上述办法配置了keys，登录远程服务器时如果用的是远程服务器的root账号，可以免密，使用另一个账号，死活让我输入密码。</p>
-<h3 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h3><h4 id="使用ssh-vvv"><a href="#使用ssh-vvv" class="headerlink" title="使用ssh -vvv"></a>使用ssh -vvv</h4><p>使用ssh 加上-vvv参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">$ ssh -vvv tisson@tisson_s1</span><br><span class="line">......</span><br><span class="line">debug1: SSH2_MSG_SERVICE_ACCEPT received</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_rsa (0x7fb9db700300),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_dsa (0x0),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_ecdsa (0x0),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_ed25519 (0x0),</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: start over, passed a different list publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: preferred publickey,keyboard-interactive,password</span><br><span class="line">debug3: authmethod_lookup publickey</span><br><span class="line">debug3: remaining preferred: keyboard-interactive,password</span><br><span class="line">debug3: authmethod_is_enabled publickey</span><br><span class="line">debug1: Next authentication method: publickey</span><br><span class="line">debug1: Offering RSA public key: /Users/SeaMonster/.ssh/id_rsa</span><br><span class="line">debug3: send_pubkey_test</span><br><span class="line">debug2: we sent a publickey packet, wait for reply</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug1: Trying private key: /Users/SeaMonster/.ssh/id_dsa</span><br><span class="line">debug3: no such identity: /Users/SeaMonster/.ssh/id_dsa: No such file or directory</span><br><span class="line">debug1: Trying private key: /Users/SeaMonster/.ssh/id_ecdsa</span><br><span class="line">debug3: no such identity: /Users/SeaMonster/.ssh/id_ecdsa: No such file or directory</span><br><span class="line">debug1: Trying private key: /Users/SeaMonster/.ssh/id_ed25519</span><br><span class="line">debug3: no such identity: /Users/SeaMonster/.ssh/id_ed25519: No such file or directory</span><br><span class="line">debug2: we did not send a packet, disable method</span><br><span class="line">debug3: authmethod_lookup password</span><br><span class="line">debug3: remaining preferred: ,password</span><br><span class="line">debug3: authmethod_is_enabled password</span><br><span class="line">debug1: Next authentication method: password</span><br><span class="line">......</span><br><span class="line">tisson@tisson_s1&apos;s password:</span><br></pre></td></tr></table></figure></p>
-<p>如果使用root账号登录则成功免密，打印出来的信息应该是这样：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">$ ssh root@tisson_s1</span><br><span class="line">......</span><br><span class="line">debug1: SSH2_MSG_SERVICE_ACCEPT received</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_rsa (0x7fde8b6001e0),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_dsa (0x0),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_ecdsa (0x0),</span><br><span class="line">debug2: key: /Users/SeaMonster/.ssh/id_ed25519 (0x0),</span><br><span class="line">debug1: Authentications that can continue: publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: start over, passed a different list publickey,gssapi-keyex,gssapi-with-mic,password</span><br><span class="line">debug3: preferred publickey,keyboard-interactive,password</span><br><span class="line">debug3: authmethod_lookup publickey</span><br><span class="line">debug3: remaining preferred: keyboard-interactive,password</span><br><span class="line">debug3: authmethod_is_enabled publickey</span><br><span class="line">debug1: Next authentication method: publickey</span><br><span class="line">debug1: Offering RSA public key: /Users/SeaMonster/.ssh/id_rsa</span><br><span class="line">debug3: send_pubkey_test</span><br><span class="line">debug2: we sent a publickey packet, wait for reply</span><br><span class="line">debug1: Server accepts key: pkalg ssh-rsa blen 279</span><br><span class="line">debug2: input_userauth_pk_ok: fp SHA256:AsKItChwZM65IafPmkuAYHB26hPOaLRh5Dgx5uTMeJY</span><br><span class="line">debug3: sign_and_send_pubkey: RSA SHA256:AsKItChwZM65IafPmkuAYHB26hPOaLRh5Dgx5uTMeJY</span><br><span class="line">debug1: Authentication succeeded (publickey).</span><br><span class="line">Authenticated to tisson_s1 ([172.16.28.226]:22).</span><br><span class="line">debug1: channel 0: new [client-session]</span><br><span class="line">debug3: ssh_session2_open: channel_new: 0</span><br><span class="line">debug2: channel 0: send open</span><br><span class="line">debug1: Requesting no-more-sessions@openssh.com</span><br><span class="line">debug1: Entering interactive session.</span><br><span class="line">debug2: callback start</span><br><span class="line">debug2: fd 3 setting TCP_NODELAY</span><br><span class="line">debug3: ssh_packet_set_tos: set IP_TOS 0x10</span><br><span class="line">debug2: client_session2_setup: id 0</span><br><span class="line">debug2: channel 0: request pty-req confirm 1</span><br><span class="line">debug1: Sending environment.</span><br><span class="line">debug3: Ignored env TERM_PROGRAM</span><br><span class="line">debug3: Ignored env TERM</span><br><span class="line">debug3: Ignored env SHELL</span><br><span class="line">debug3: Ignored env HOMEBREW_BOTTLE_DOMAIN</span><br><span class="line">debug3: Ignored env TMPDIR</span><br><span class="line">debug3: Ignored env Apple_PubSub_Socket_Render</span><br><span class="line">debug3: Ignored env TERM_PROGRAM_VERSION</span><br><span class="line">debug3: Ignored env TERM_SESSION_ID</span><br><span class="line">debug3: Ignored env USER</span><br><span class="line">debug3: Ignored env COMMAND_MODE</span><br><span class="line">debug3: Ignored env SSH_AUTH_SOCK</span><br><span class="line">debug3: Ignored env __CF_USER_TEXT_ENCODING</span><br><span class="line">debug3: Ignored env PATH</span><br><span class="line">debug3: Ignored env PWD</span><br><span class="line">debug1: Sending env LANG = zh_CN.UTF-8</span><br><span class="line">debug2: channel 0: request env confirm 0</span><br><span class="line">debug3: Ignored env ITERM_PROFILE</span><br><span class="line">debug3: Ignored env XPC_FLAGS</span><br><span class="line">debug3: Ignored env XPC_SERVICE_NAME</span><br><span class="line">debug3: Ignored env SHLVL</span><br><span class="line">debug3: Ignored env HOME</span><br><span class="line">debug3: Ignored env COLORFGBG</span><br><span class="line">debug3: Ignored env ITERM_SESSION_ID</span><br><span class="line">debug3: Ignored env LOGNAME</span><br><span class="line">debug3: Ignored env SECURITYSESSIONID</span><br><span class="line">debug3: Ignored env _</span><br><span class="line">debug3: Ignored env OLDPWD</span><br><span class="line">debug2: channel 0: request shell confirm 1</span><br><span class="line">debug2: callback done</span><br><span class="line">debug2: channel 0: open confirm rwindow 0 rmax 32768</span><br><span class="line">debug2: channel_input_status_confirm: type 99 id 0</span><br><span class="line">debug2: PTY allocation request accepted on channel 0</span><br><span class="line">debug2: channel 0: rcvd adjust 2097152</span><br><span class="line">debug2: channel_input_status_confirm: type 99 id 0</span><br><span class="line">debug2: shell request accepted on channel 0</span><br></pre></td></tr></table></figure></p>
-<p>为什么会这样呢？</p>
-<h4 id="查看-var-log-secure中的日志"><a href="#查看-var-log-secure中的日志" class="headerlink" title="查看/var/log/secure中的日志"></a>查看/var/log/secure中的日志</h4><p>在当中发现这么一句：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Authentication refused: bad ownership or modes for directory home/tisson</span><br></pre></td></tr></table></figure></p>
-<p>很明显，该目录的权限配置有问题。sshd为了安全，对属主的目录和文件权限有所要求。如果权限不对，则ssh的免密码登陆不生效。用户目录权限为 755 或者 700，就是不能是77x。<strong>给高了反而失败！</strong><br>。要远程免密登录，几个文件、目录的权限要求如下：</p>
-<ul>
-<li>/home/当前用户：700权限</li>
-<li>~/.ssh：700权限</li>
-<li>~/.ssh/authorized_keys：600或644权限<br>重新调整权限后，免密登录成功。</li>
-</ul>
-<p>参考：<br><a href="http://blog.chinaunix.net/uid-26284395-id-2949145.html" title="使用ssh-keygen和ssh-copy-id三步实现SSH无密码登录" target="_blank" rel="noopener"> 使用ssh-keygen和ssh-copy-id三步实现SSH无密码登录 </a><br><a href="https://www.cnblogs.com/yixue2017/p/7559970.html" title="Linux下实现免密码登录(超详细)" target="_blank" rel="noopener">Linux下实现免密码登录(超详细)</a></p>
-
           
         
       
@@ -1674,7 +1636,7 @@ $ docker load -i mysql.tar
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1720,7 +1682,7 @@ $ docker load -i mysql.tar
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-count">41</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1733,7 +1695,7 @@ $ docker load -i mysql.tar
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-count">33</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

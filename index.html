@@ -229,6 +229,398 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/08/pymysql获取新插入数据的id/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/08/pymysql获取新插入数据的id/" itemprop="url">pymysql获取新插入数据的id</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-08T14:49:59+08:00">
+                2019-11-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>MySQL数据表字段为自增长，当我们往该表添加记录时，自增长列会自行填充数据，但是如何获取它自行填充的值呢？</p>
+</blockquote>
+<p>例如我有一个数据表<code>t_generate_id</code>，里边就一个字段：自增长列<code>id</code>。我们使用的是<code>pymysql</code>，每次往表新增数据时获取刚才新增记录的id值，最简单的方法如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">import pymsql</span><br><span class="line">conn = pymysql.connect(host=&apos;172.16.27.40&apos;, user=&apos;test&apos;, password=&quot;123456&quot;, database=&apos;test1&apos;, port=3306, charset=&apos;utf8mb4&apos;)</span><br><span class="line">try:</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(&apos;insert into t_generate_id () values ()&apos;)</span><br><span class="line">    last_id = cursor.lastrowid</span><br><span class="line">    conn.commit()</span><br><span class="line">except Exception as e:</span><br><span class="line">    conn.rollback()</span><br><span class="line">finally:</span><br><span class="line">    conn.close()</span><br></pre></td></tr></table></figure></p>
+<p>注意：    </p>
+<ol>
+<li>插入记录时，不能自己去指定自增列的值，这样才能使用<code>cursor.lastrowid</code>获取插入数据的自增长列的值，否则结果都是0。</li>
+<li>记得commit。否则<code>auto_increment</code>的值是获取到了，但是记录并没有写入数据库。</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/08/CentOS7下修改Docker工作目录/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/08/CentOS7下修改Docker工作目录/" itemprop="url">CentOS7下修改Docker工作目录</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-08T14:48:21+08:00">
+                2019-11-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>服务器系统盘空间不是很充足，而Docker的环境体积又比较大，有必要把其工作目录放到空间较大的数据盘。</p>
+</blockquote>
+<p>Docker安装时如果不指定工作目录，一般默认工作目录是<code>/var/lib/docker</code>。<br>我们可以先查看一下docker运行的工作目录：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker info |grep &quot;Docker Root Dir&quot;</span><br><span class="line">Docker Root Dir: /var/lib/docker</span><br></pre></td></tr></table></figure></p>
+<p>现在我们需要把工作目录改为<code>/data/docker</code>，网上提到有2种方法：</p>
+<h1 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h1><p>新建或者编辑<code>/etc/docker/daemon.json</code>：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后重启Docker：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl restart docker</span><br></pre></td></tr></table></figure></p>
+<h1 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h1><p>编辑文件<code>/usr/lib/systemd/system/docker.service</code><br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[Service]</span><br><span class="line">Type=notify</span><br><span class="line"># the default is not to use systemd for cgroups because the delegate issues still</span><br><span class="line"># exists and systemd currently does not support the cgroup feature set required</span><br><span class="line"># for containers run by docker</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --data-root=/data/docker</span><br><span class="line">ExecReload=/bin/kill -s HUP $MAINPID</span><br><span class="line">TimeoutSec=0</span><br><span class="line">RestartSec=2……</span><br></pre></td></tr></table></figure></p>
+<p>重启docker:<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl restart docker</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/15/解决MongoDB游标超时的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/15/解决MongoDB游标超时的问题/" itemprop="url">解决MongoDB游标超时的问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-15T11:31:16+08:00">
+                2019-10-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>当我们用Python从MongoDB中查数据时，经常遇到游标。实际上不止是MongoDB，我们用MySQL之类，同样也经常用到游标，用游标会出现什么问题，又是如何解决呢？</p>
+</blockquote>
+<h1 id="使用游标可能遇到的问题"><a href="#使用游标可能遇到的问题" class="headerlink" title="使用游标可能遇到的问题"></a>使用游标可能遇到的问题</h1><p>我们可能这样写代码<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">import pymongo</span><br><span class="line">from urllib.parse import quote_plus</span><br><span class="line"></span><br><span class="line">uri = &quot;mongodb://%s:%s@%s&quot; % (quote_plus(&apos;mongo-admin&apos;), quote_plus(&apos;tisson!1&apos;), &quot;aliyun:37071&quot;)</span><br><span class="line"></span><br><span class="line">client = MongoClient(uri)</span><br><span class="line"># crawler为“库名”，collection_1为Collection名，也可以理解为“表名”</span><br><span class="line">my_set = client.crawler.collection_1</span><br><span class="line">for item in my_set.find():</span><br><span class="line">    # 处理找到的数据</span><br><span class="line">    process_data(item)</span><br></pre></td></tr></table></figure></p>
+<p>短短几行代码，读取MongoDB中某个表的每一行数据，然后由<code>process _data</code>方法做处理，处理完后再读取下一行，逻辑清晰而简单，能有什么问题？<code>process _data(item)</code>不报错，这一段代码就完美无缺。<br>然而事实并非这样，代码可能会在<code>for item in my_set.find():</code>这一行中报错，而且不是一开始就报错，有可能跑了循环中的若干次后才报错，怎么回事呢？<br>原来<code>my_set.find()</code>返回的并不是数据库里的数据，而是一个游标（Cursor）对象，只有当你使用for循环开始迭代它的时候，游标才会真正去数据库。但是，如果每一次循环都连接数据库，那么网络连接会浪费大量的时间。所以pymongo会一次性获取100行，<code>my_set.find()</code>循环第一次时，它会连上MongoDB，读取一百条数据，缓存到内存中。于是循环的第2-100次，数据都是直接从内存中获取，不会连接数据库。当循环进行到第101次时，再一次连接数据库，获取第101-200行的内容。<br>这个逻辑非常有效的降低了网络I/O耗时，但是，MongoDB默认游标的超时时间是10分钟。10分钟之内，必需再次连接MongoDB读取内容刷新游标时间，否则，就会导致游标超时报错：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pymongo.errors.CursorNotFound: cursor id 40929404302 not found</span><br></pre></td></tr></table></figure></p>
+<p>也就是说，如果<code>process _data(item)</code>执行100次的时间超过10分钟，即使该方法没报错，那么等它跑完，需要重新连接数据库获取下100条记录的时候，由于游标超时，就会报错。</p>
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>为了解决以上问题，我们有4种办法</p>
+<h2 id="修改MongoDB配置"><a href="#修改MongoDB配置" class="headerlink" title="修改MongoDB配置"></a>修改MongoDB配置</h2><p>修改MongoDB的配置，延长游标超时时间，并重启MongoDB。假如是生产环境的数据库，按理说不能随便重启，因此这个做法要慎重。</p>
+<h2 id="一次性读取所有数据"><a href="#一次性读取所有数据" class="headerlink" title="一次性读取所有数据"></a>一次性读取所有数据</h2><p>一次性把数据全部读取下来，再做处理：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rs_list = [r for r in my_set.find()]</span><br><span class="line">for r in rs_list:</span><br><span class="line">    process_data(r)</span><br></pre></td></tr></table></figure></p>
+<p>这种方案的弊端也很明显，如果数据量非常大，你不一定能全部放到内存里面。即使能够全部放到内存中，但是列表推导式遍历了所有数据，紧接着for循环又遍历一次，浪费了时间。不过，暂时在实际情况中，我较常使用这种处理办法，因为处理简单。</p>
+<h2 id="减少游标每次返回数据量"><a href="#减少游标每次返回数据量" class="headerlink" title="减少游标每次返回数据量"></a>减少游标每次返回数据量</h2><p>如果处理100条数据会超过10分钟的超时时间，那么我们减少游标每次返回的数据量，例如50条：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for item in my_set.find().batch_size(50):</span><br><span class="line">    process_data(item)</span><br></pre></td></tr></table></figure></p>
+<p>但这种方案会增加数据库的连接次数，从而增加I/O耗时。</p>
+<h2 id="让Pymongo的游标永不超时"><a href="#让Pymongo的游标永不超时" class="headerlink" title="让Pymongo的游标永不超时"></a>让Pymongo的游标永不超时</h2><p>通过设定参数<code>no_cursor_timeout=True</code>，让游标永不超时，游标最后必须手动关闭：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cursor = my_set.find(no_cursor_timeout=True)</span><br><span class="line">for row in cursor:</span><br><span class="line">    process_data(row)</span><br><span class="line"># 一定要手动关闭游标</span><br><span class="line">cursor.close()</span><br></pre></td></tr></table></figure></p>
+<p>然而这个操作非常危险，因为如果你的Python程序因为某种原因意外停止了，这个游标就再也无法关闭了！除非重启MongoDB，否则这些游标会一直留在MongoDB上，占用资源。<br>因此，我们需要把这个做法稍作改良</p>
+<h3 id="使用try、catch、finally"><a href="#使用try、catch、finally" class="headerlink" title="使用try、catch、finally"></a>使用try、catch、finally</h3><p>最容易想到的做法，即使抛出异常，finally部分的代码依然会执行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cursor = my_set.find(no_cursor_timeout=True)</span><br><span class="line">try:</span><br><span class="line">    for row in cursor:</span><br><span class="line">        process_data(row)</span><br><span class="line">except Exception:</span><br><span class="line">    # 处理异常</span><br><span class="line">    handle_exception()</span><br><span class="line">finally:</span><br><span class="line">    # 一定要手动关闭游标</span><br><span class="line">    cursor.close()</span><br></pre></td></tr></table></figure></p>
+<h3 id="使用上下文管理器"><a href="#使用上下文管理器" class="headerlink" title="使用上下文管理器"></a>使用上下文管理器</h3><p>try/catch比较难看，Python还提供了上下文管理器，例如文件的读取与写入我们就可以用上下文管理器：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">with my_set.find(no_cursor_timeout=True) as cursor:</span><br><span class="line">    for row in cursor:</span><br><span class="line">        process_data(row)</span><br></pre></td></tr></table></figure></p>
+<p>只要程序退出了with的缩进，游标自动就会关闭。如果程序中途报错，游标也会关闭。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/07/为基于Debian的Docker镜像更换镜像源/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1171,424 +1563,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/28/构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像/" itemprop="url">构建内含JDK8，Jetty，FFmpeg，RAR的Docker镜像</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:34+08:00">
-                2019-03-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>为方便在多个环境部署，使用了Docker。不过Docker镜像构建起来一点也不容易。最近有个项目，使用了Jetty作为Web服务器，因为还用到Jsp，如果环境中没安装JDK会报没法编译的错，此外，项目中还需要把mp3文件转换为amr，需要用到ffmpeg，也一并装到镜像内</p>
-</blockquote>
-<h1 id="思考与摸索"><a href="#思考与摸索" class="headerlink" title="思考与摸索"></a>思考与摸索</h1><p>Docker Hub上有现成的JDK镜像，FFmpeg镜像，Jetty镜像，但没有现成的几个装在一起的镜像。估计装在一起也不符合“微服务”的思想。其中，JDK与Jetty肯定是要装在一个镜像内的，FFmpeg倒是可以独立出来，不过如果独立出来我还要另外构建个服务，自行实现调用FFmpeg转码的逻辑然后提供接口给外部调用。工作量也难以评估到底哪种多一些，那干脆装到同一个镜像算了。<br>Docker Hub上很多镜像都提供了docker file，我从中摘抄某些语句，自行组合，以期达到我要的效果。一开始并没有使用ffmpeg这个需求，我考虑的只是同时装jdk与jetty。最初我是想在jetty镜像中安装jdk，看上去容易些，但后来貌似被配置环境变量的问题吓跑了，因此改为在jdk镜像中安装jetty。后来，再在该镜像中再装上ffmpeg。</p>
-<h1 id="使用JDK8镜像"><a href="#使用JDK8镜像" class="headerlink" title="使用JDK8镜像"></a>使用JDK8镜像</h1><p>使用的是jdk8，8-jdk与8u111应该是一样的，image id都一样（后边我写的是8-jdk）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull java:8-jdk</span><br></pre></td></tr></table></figure></p>
-<h1 id="在JDK8镜像中安装Jetty9"><a href="#在JDK8镜像中安装Jetty9" class="headerlink" title="在JDK8镜像中安装Jetty9"></a>在JDK8镜像中安装Jetty9</h1><p>dockerfile这样写：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; chown -R jetty:jetty /opt/jetty &amp;&amp; rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
-<p>这样，建立的镜像作为容器启动时，jetty就会一直运行了。</p>
-<h1 id="在镜像中安装ffmpeg"><a href="#在镜像中安装ffmpeg" class="headerlink" title="在镜像中安装ffmpeg"></a>在镜像中安装ffmpeg</h1><p>最最麻烦的部分！JDK镜像是基于Debian的，因此我们现在要基于Debian安装FFmpeg（可以把它当做在uBuntu上安装）。本身安装FFmpeg就需要安装一堆依赖，我原本期望是可以用“apt install”的方式直接帮我安装FFmpeg还有一大堆依赖，但不知什么原因，可能是国内很难连上apt的地址，也可能是当前debian根本没有“FFmpeg的源”，总之就是一直各种报错，最终失败。只能手动下载再编译安装。而且仅仅FFmpeg还不够，转码需要特定的插件。反正差不多折腾了我一周的时间。<br>还好，最终整合了很多dockerfile的语句，终于拼出了一个能最终跑起来的。在之前的dockerfile上加上以下语句：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br></pre></td></tr></table></figure></p>
-<p>注意上面的语句加在以下语句之前，或者说以下两句必须放在最后，否则容器启动时jetty就不会自动运行了。<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
-<p>因此，修改后的Dockerfile是这样的：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">FROM java:8-jdk</span><br><span class="line"># RUN apt-get update</span><br><span class="line"># RUN apt-get install -yq --no-install-recommends wget autoconf automake cmake curl bzip2 libexpat1-dev g++ gcc gperf libtool make nasm perl pkg-config libssl-dev yasm libva-dev zlib1g-dev</span><br><span class="line">RUN apt-get update \</span><br><span class="line">; apt-get -y --force-yes install wget curl autoconf automake build-essential libass-dev libfreetype6-dev \</span><br><span class="line">  libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \</span><br><span class="line">  libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev \</span><br><span class="line">; mkdir ~/ffmpeg_sources \</span><br><span class="line">; sudo apt-get -y --force-yes install yasm \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz \</span><br><span class="line">; tar xzvf yasm-1.3.0.tar.gz \</span><br><span class="line">; cd yasm-1.3.0 \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --bindir=&quot;$HOME/bin&quot; \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line"> make distclean \</span><br><span class="line">; apt-get -y --force-yes install libx264-dev \</span><br><span class="line">; apt-get -y --force-yes install cmake mercurial \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; hg clone https://bitbucket.org/multicoreware/x265 \</span><br><span class="line">; cd ~/ffmpeg_sources/x265/build/linux \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; cmake -G &quot;Unix Makefiles&quot; -DCMAKE_INSTALL_PREFIX=&quot;$HOME/ffmpeg_build&quot; -DENABLE_SHARED:bool=off ../../source \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master \</span><br><span class="line">; tar xzvf fdk-aac.tar.gz \</span><br><span class="line">; cd mstorsjo-fdk-aac* \</span><br><span class="line">; autoreconf -fiv \</span><br><span class="line">; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-shared \</span><br><span class="line">; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make distclean \</span><br><span class="line">; install libmp3lame \</span><br><span class="line">; apt-get -y --force-yes install libmp3lame-dev \</span><br><span class="line">; sudo apt-get -y --force-yes install libopus-dev \</span><br><span class="line">; cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; tar xjvf libvpx-1.4.0.tar.bz2 \</span><br><span class="line">; cd libvpx-1.4.0 \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; ./configure --prefix=&quot;$HOME/ffmpeg_build&quot; --disable-examples --disable-unit-tests \</span><br><span class="line">; PATH=&quot;$HOME/bin:$PATH&quot; make -j$(cat /proc/cpuinfo | grep processor | wc -l) \</span><br><span class="line">; make install \</span><br><span class="line">; make clean</span><br><span class="line"></span><br><span class="line">#install ffmpeg</span><br><span class="line">RUN cd ~/ffmpeg_sources \</span><br><span class="line">; wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 \</span><br><span class="line">; tar xjvf ffmpeg-snapshot.tar.bz2</span><br><span class="line"></span><br><span class="line">COPY vo-amrwbenc-0.1.3/ /root/vo-amrwbenc-0.1.3</span><br><span class="line">COPY opencore-amr-0.1.2/ /root/opencore-amr-0.1.2</span><br><span class="line">RUN cd /root/vo-amrwbenc-0.1.3;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/opencore-amr-0.1.2;./configure;make &amp;&amp; make install</span><br><span class="line">RUN cd /root/ffmpeg_sources/ffmpeg/;./configure --disable-x86asm --enable-libopencore-amrnb --enable-libvo-amrwbenc --enable-version3;make &amp;&amp; make install</span><br><span class="line">RUN ln -s /usr/local/lib/libopencore-amrnb.so.0 /usr/lib/x86_64-linux-gnu/libopencore-amrnb.so.0</span><br><span class="line">RUN ln -s /usr/local/lib/libvo-amrwbenc.so.0 /usr/lib/x86_64-linux-gnu/libvo-amrwbenc.so.0</span><br><span class="line"></span><br><span class="line"># install jetty</span><br><span class="line"># Install packages</span><br><span class="line">RUN apt-get update &amp;&amp; \</span><br><span class="line">    apt-get update --fix-missing &amp;&amp; \</span><br><span class="line">    apt-get install -y wget</span><br><span class="line"></span><br><span class="line"># Download and install jetty</span><br><span class="line">ENV JETTY_VERSION 9.2.14</span><br><span class="line">ENV RELEASE_DATE v20151106</span><br><span class="line">RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.14.v20151106/jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    tar -xzvf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    rm -rf jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;.tar.gz &amp;&amp; \</span><br><span class="line">    mv jetty-distribution-$&#123;JETTY_VERSION&#125;.$&#123;RELEASE_DATE&#125;/ /opt/jetty</span><br><span class="line"></span><br><span class="line"># Configure Jetty user and clean up install</span><br><span class="line">RUN useradd jetty &amp;&amp; \</span><br><span class="line">    chown -R jetty:jetty /opt/jetty &amp;&amp; \</span><br><span class="line">    rm -rf /opt/jetty/webapps.demo</span><br><span class="line"></span><br><span class="line"># Set defaults for docker run</span><br><span class="line">WORKDIR /opt/jetty</span><br><span class="line">CMD [&quot;java&quot;, &quot;-jar&quot;, &quot;start.jar&quot;, &quot;jetty.home=/opt/jetty&quot;]</span><br></pre></td></tr></table></figure></p>
-<p><strong>注意：  </strong><br>vo-amrwbenc-0.1.3，opencore-amr-0.1.2是转码为amr需要用到的插件，国内连上去速度极慢，如果让它在构建镜像时自行下载，耗时会很长甚至让整个构建失败，因此我这里是自行下载后解压了，把vo-amrwbenc-0.1.3目录与opencore-amr-0.1.2目录放在里与Dockerfile同级的目录内，然后直接复制到镜像内。此外，还曾经遇到ffmpeg找不到我安装的vo-amrwbenc-0.1.3，opencore-amr-0.1.2插件，原因是FFmpeg没有在正确的插件安装位置去找，这里的解决办法是，直接在FFmpeg去找的目录内建立软链接，链接去两个插件安装的位置。  </p>
-<p>两个插件地址如下，请自行下载（也许需要个梯子）：<br><a href="https://sourceforge.net/projects/opencore-amr/files/opencore-amr/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/opencore-amr/</a><br><a href="https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/" target="_blank" rel="noopener">https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/</a></p>
-<p>参考：<br><a href="https://blog.51cto.com/zlyang/1709508" target="_blank" rel="noopener">安装ffmpeg过程中可能会遇到的问题详解</a><br><a href="https://thierry-xing.iteye.com/blog/2017864" target="_blank" rel="noopener">ubuntu上安装ffmpeg</a><br><a href="https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/" target="_blank" rel="noopener">https://www.servermanagementadmins.com/ffmpeg-error-while-loading-shared-libraries-libavdevice-so-56-cannot-open-shared-object-file-no-such-file-or-directory/</a></p>
-<h1 id="在镜像中安装unrar"><a href="#在镜像中安装unrar" class="headerlink" title="在镜像中安装unrar"></a>在镜像中安装unrar</h1><p>5.0版本之前可以通过引用Jar包，在Java代码中解压。5.0版本之后不提供jar包了，如果继续用5.0之前的版本，则无法解压用5.0版本以后压缩的包，因此只能在服务器上装个rar 5.0 之后的版本，然后在Java代码中通过调用shell的方式实现。<br>在Dockerfile中适当位置添加如下语句（在WORKDIR与CMD那两句之前即可）：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-get update -y &amp;&amp; apt-get install make</span><br><span class="line">RUN wget http://www.rarlab.com/rar/rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">tar -xzvf rarlinux-x64-5.3.0.tar.gz &amp;&amp; \</span><br><span class="line">cd rar &amp;&amp; \</span><br><span class="line">make  &amp;&amp; \</span><br><span class="line">mv rar_static /usr/local/bin/rar</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/28/CentOS-7挂载windows下的共享文件夹/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/28/CentOS-7挂载windows下的共享文件夹/" itemprop="url">CentOS 7挂载windows下的共享文件夹</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-28T09:48:09+08:00">
-                2019-03-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>有个需求是让项目访问某个windows系统的某共享文件夹，而我的项目是部署在CentOS上的，怎么做呢？<br>假设我们要访问的共享文件夹路径为：<code>172.16.28.189/kmc</code><br>那么我们要怎么做呢？</p>
-</blockquote>
-<h1 id="使用mount命令"><a href="#使用mount命令" class="headerlink" title="使用mount命令"></a>使用mount命令</h1><p>首先我们要在CentOS中新建某文件夹，例如/home/tisson/kmc_file，然后把共享文件夹挂载到此目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mount -t cifs -o username=administrator,password=&apos;admin@198&apos; //172.16.28.189/kmc /home/tisson/kmc_file</span><br></pre></td></tr></table></figure></p>
-<p>其中administrator与admin@198分别是远程登录172.16.28.189的windows系统的用户名和密码。</p>
-<h1 id="开机启动"><a href="#开机启动" class="headerlink" title="开机启动"></a>开机启动</h1><p>我们发现，系统重启后挂载就没有了，我们想让它开机自动挂载<br>在/etc/fstab文件中添加下列代码：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">//172.16.28.189/kmc /home/tisson/kmc_file cifs username=administrator,password=&apos;admin@198&apos; 0 0</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Docker进阶操作（一）/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Sea Monster">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="量">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/30/Docker进阶操作（一）/" itemprop="url">Docker进阶操作（一）</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T11:33:26+08:00">
-                2019-01-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>之前介绍了Docker的一些基本操作，现在我们需要做一些稍微复杂一些的，例如Java Web容器的日志默认都打印在哪里了？ 如何限制每个容器使用的内存，如何实现各个Docker间相互通信，为什么容器内的时间与主机时间相差了8小时，如何解决</p>
-</blockquote>
-<h1 id="查看容器内日志"><a href="#查看容器内日志" class="headerlink" title="查看容器内日志"></a>查看容器内日志</h1><p>需要知道该容器的ID（不用全部输入，输前边几位就可以了）或名字：例如<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                                            NAMES</span><br><span class="line">b2c2d420d3f1        docker.io/mysql:5.7.23   &quot;docker-entrypoint...&quot;   2 days ago          Up 2 days           33060/tcp, 0.0.0.0:3308-&gt;3306/tcp                mysql57</span><br><span class="line"># 以下两条命令均可</span><br><span class="line">$ docker logs b2c </span><br><span class="line">$ docker logs mysql57</span><br></pre></td></tr></table></figure></p>
-<h2 id="查看指定时间后的日志，只显示最后n行"><a href="#查看指定时间后的日志，只显示最后n行" class="headerlink" title="查看指定时间后的日志，只显示最后n行"></a>查看指定时间后的日志，只显示最后n行</h2><p>例如，我要看2018年12月7日至今的日志的最后100行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># -f ：跟踪实时日志；-t：显示时间戳</span><br><span class="line">$ docker logs -f -t --since=&quot;2018-12-07&quot; --tail=100 CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
-<h2 id="查看某个相对时间之前-之后的日志"><a href="#查看某个相对时间之前-之后的日志" class="headerlink" title="查看某个相对时间之前/之后的日志"></a>查看某个相对时间之前/之后的日志</h2><p>例如我要看最近30分钟的日志<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs --since 30m CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
-<p>查看某时间之后的日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
-<p>查看某时间段日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker logs -t --since=&quot;2018-02-08T13:23:37&quot; --until &quot;2018-02-09T12:23:37&quot; CONTAINER_ID</span><br></pre></td></tr></table></figure></p>
-<h1 id="限制Docker容器最大使用内存"><a href="#限制Docker容器最大使用内存" class="headerlink" title="限制Docker容器最大使用内存"></a>限制Docker容器最大使用内存</h1><p>在不设置的情况下，会使用主机所有的内存（大家共享，某个时刻这个容器用得多了，那个容器就用得少了）。如果我们想限制某个容器最大使用内存，可使用-m和–memory-swap参数</p>
-<ul>
-<li>-m：后边写限制内存数目，带单位，可以是k，m，G，例如-m 2G，则该容器最多能使用主机的2G内存</li>
-<li>–memory-swap：后边写限制内存数目，带单位，可以是k，m，G。注意这是内存+swap的值，假设我设了-m 2G，后边再加上–memory-swap 2G，那么这个容器不使用swap。</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 例如</span><br><span class="line">$ docker run --name=dict-web-docker -m 2G --memory-swap=2G -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure>
-<h1 id="实现Docker容器间通信"><a href="#实现Docker容器间通信" class="headerlink" title="实现Docker容器间通信"></a>实现Docker容器间通信</h1><p>例如我部署了一个Java WEB容器，一个数据库容器，Java WEB容器需要访问数据库容器。在使用Docker之前，要做到这件事挺容易，Java WEB容器直接写数据库地址即可，假如Java WEB服务与数据库在同一个服务器，可以直接写127.0.0.1 或者localhost。但是，使用Docker容器之后，容器内部有独立于主机的一套IP，即使Java WEB与数据库容器都在同一个主机上，在JAVA WEB容器内访问127.0.0.1是找不到数据库容器的。怎么办？网上能搜到一堆答案，不过由于对网络这块我不是很熟悉，有很多从“网桥”这个方向的解决方案我是完全看不懂，我能看懂并实际应用的只有下边两种</p>
-<h2 id="link方式"><a href="#link方式" class="headerlink" title="link方式"></a>link方式</h2><p>我们启动Docker容器的时候可以指定容器的名字，例如我启动一个MySQL的容器，指定其名字为mysql57<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql57 MYSQL_ROOT_PASSWORD=123456 -p 3308:3306 -d docker.io/mysql:5.7.23 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci</span><br></pre></td></tr></table></figure></p>
-<p>现在，我们启动Java WEB容器，并允许其访问到mysql57这个容器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run  --link mysql57:mysql57 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
-<p>容器内配置的数据源地址为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 用mysql57这个地址可以访问到mysql57容器，注意mysql57容器内部使用的是3306端口，但是映射到主机是3308端口，我们使用link的方式访问，应该使用该容器内部的端口：3306</span><br><span class="line">spring.datasource.url=jdbc:mysql://mysql57:3306/dict?......</span><br></pre></td></tr></table></figure></p>
-<h2 id="add-host方式"><a href="#add-host方式" class="headerlink" title="add-host方式"></a>add-host方式</h2><p>link方式用了一阵，很快我就发现了一些问题：</p>
-<ol>
-<li>容器必须按次序启动，例如我启动Java WEB容器的时候，添加了使用mysql57的link，那么在mysql57容器成功启动之前，我启动Java WEB容器会报错。再考虑极端一些的情况，假如两个容器需要相互访问，要怎么办呢？</li>
-<li>曾经遇到：A容器需要link到B容器，而B容器因为某些原因需要删除，然后重新打包镜像，运行容器，名字也是B。然后A总是说连不上B了，只能把A也删掉，重新建一个A容器</li>
-<li>如果需要相互通信的容器不在同一台主机上，要怎么做</li>
-</ol>
-<p>最无脑的办法是不用“link”，直接写死外网IP。因为容器内也是可以访问到主机的外网IP。但是，如果我们要做服务迁移呢？每迁移一次就改一大堆地址？挺麻烦的样子。然后我又想到了使用hostname，直接让容器内的hosts文件挂载到主机的hosts文件，但是docker启动的时候某些参数也会修改容器内部的hosts，我不知道是否会影响到主机的hosts。如何为容器添加hostname又不影响主机hosts呢？还真有方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 使用--add-host参数，也不用管哪个容器先启动了，也可以跨主机访问</span><br><span class="line">$ docker run  --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116  -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
-<p>这样，在容器内可以通过ctyun1这个域名访问10.10.0.234</p>
-<h3 id="留意防火墙"><a href="#留意防火墙" class="headerlink" title="留意防火墙"></a>留意防火墙</h3><p>最近服务器迁移时遇到的问题，新部署的docker容器，无法访问宿主机的ip，表现为：</p>
-<ol>
-<li>容器内部可以ping得通宿主机的ip</li>
-<li>容器内部curl宿主机的ip缺报错：No route to host</li>
-<li>容器内可以访问同一主机上的其他容器</li>
-</ol>
-<p>经查，居然是防火墙的问题（系统是CentOS 7.5），比方说，我有个java web的docker容器服务，要访问主机上的mysql数据库，端口号为3306，那么需要在防火墙开放开放指定端口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line">success</span><br><span class="line">$ sudo firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure></p>
-<h1 id="宿主机时间与Docker容器内时间不一致的问题"><a href="#宿主机时间与Docker容器内时间不一致的问题" class="headerlink" title="宿主机时间与Docker容器内时间不一致的问题"></a>宿主机时间与Docker容器内时间不一致的问题</h1><p>启动了Java WEB容器，看它打印的日志，发现比主机的时间慢了8个小时。上网搜了下发现docker容器默认用的是标准时间（伦敦那个时区），我们需要把主机上的时间同步到容器内，让容器内使用主机的时间，那么，启动Java WEB容器的命令需要改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run  -v /etc/localtime:/etc/localtime:ro --add-host ctyun1:10.10.0.234 --add-host ctyun2:10.10.0.79 --add-host ctyun3:10.10.0.116 -p 8084:8084 -d tisson/dict-web:latest</span><br></pre></td></tr></table></figure></p>
-<p>启动后观察打印的日志时间，还是慢了8小时。原来Java WEB还需要多一个步骤，Java的参数增加：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-Duser.timezone=GMT+8</span><br></pre></td></tr></table></figure></p>
-<p>因为我使用maven打包的一个springboot容器，我们加这个参数是加在dockerfile里边，Dockerfile内容如下（仅做参考）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from docker.io/openjdk:8u181</span><br><span class="line">VOLUME /tmp</span><br><span class="line">ADD dict-web-0.0.1-SNAPSHOT.jar app.jar</span><br><span class="line">RUN sh -c &apos;touch /app.jar&apos;</span><br><span class="line">ENV JAVA_OPTS=&quot;&quot;</span><br><span class="line">ENTRYPOINT [ &quot;sh&quot;, &quot;-c&quot;, &quot;java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -Duser.timezone=GMT+8 -jar /app.jar&quot; ]</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1634,7 +1613,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">38</span>
+                  <span class="site-state-item-count">41</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1647,7 +1626,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-count">33</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

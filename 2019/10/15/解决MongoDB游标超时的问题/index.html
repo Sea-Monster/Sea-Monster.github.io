@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Python,MongoDB," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="当我们用Python从MongoDB中查数据时，经常遇到游标。实际上不止是MongoDB，我们用MySQL之类，同样也经常用到游标，用游标会出现什么问题，又是如何解决呢？  使用游标可能遇到的问题我们可能这样写代码    1234567891011import pymongofrom urllib.parse import quote_plusuri = &amp;quot;mongodb://%s:%">
+<meta name="keywords" content="Python,MongoDB">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决MongoDB游标超时的问题">
+<meta property="og:url" content="http://yoursite.com/2019/10/15/解决MongoDB游标超时的问题/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="当我们用Python从MongoDB中查数据时，经常遇到游标。实际上不止是MongoDB，我们用MySQL之类，同样也经常用到游标，用游标会出现什么问题，又是如何解决呢？  使用游标可能遇到的问题我们可能这样写代码    1234567891011import pymongofrom urllib.parse import quote_plusuri = &amp;quot;mongodb://%s:%">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-10-15T03:31:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="解决MongoDB游标超时的问题">
+<meta name="twitter:description" content="当我们用Python从MongoDB中查数据时，经常遇到游标。实际上不止是MongoDB，我们用MySQL之类，同样也经常用到游标，用游标会出现什么问题，又是如何解决呢？  使用游标可能遇到的问题我们可能这样写代码    1234567891011import pymongofrom urllib.parse import quote_plusuri = &amp;quot;mongodb://%s:%">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/15/解决MongoDB游标超时的问题/"/>
+
+
+
+
+
+  <title>解决MongoDB游标超时的问题 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/15/解决MongoDB游标超时的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">解决MongoDB游标超时的问题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-15T11:31:16+08:00">
+                2019-10-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>当我们用Python从MongoDB中查数据时，经常遇到游标。实际上不止是MongoDB，我们用MySQL之类，同样也经常用到游标，用游标会出现什么问题，又是如何解决呢？</p>
+</blockquote>
+<h1 id="使用游标可能遇到的问题"><a href="#使用游标可能遇到的问题" class="headerlink" title="使用游标可能遇到的问题"></a>使用游标可能遇到的问题</h1><p>我们可能这样写代码<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">import pymongo</span><br><span class="line">from urllib.parse import quote_plus</span><br><span class="line"></span><br><span class="line">uri = &quot;mongodb://%s:%s@%s&quot; % (quote_plus(&apos;mongo-admin&apos;), quote_plus(&apos;tisson!1&apos;), &quot;aliyun:37071&quot;)</span><br><span class="line"></span><br><span class="line">client = MongoClient(uri)</span><br><span class="line"># crawler为“库名”，collection_1为Collection名，也可以理解为“表名”</span><br><span class="line">my_set = client.crawler.collection_1</span><br><span class="line">for item in my_set.find():</span><br><span class="line">    # 处理找到的数据</span><br><span class="line">    process_data(item)</span><br></pre></td></tr></table></figure></p>
+<p>短短几行代码，读取MongoDB中某个表的每一行数据，然后由<code>process _data</code>方法做处理，处理完后再读取下一行，逻辑清晰而简单，能有什么问题？<code>process _data(item)</code>不报错，这一段代码就完美无缺。<br>然而事实并非这样，代码可能会在<code>for item in my_set.find():</code>这一行中报错，而且不是一开始就报错，有可能跑了循环中的若干次后才报错，怎么回事呢？<br>原来<code>my_set.find()</code>返回的并不是数据库里的数据，而是一个游标（Cursor）对象，只有当你使用for循环开始迭代它的时候，游标才会真正去数据库。但是，如果每一次循环都连接数据库，那么网络连接会浪费大量的时间。所以pymongo会一次性获取100行，<code>my_set.find()</code>循环第一次时，它会连上MongoDB，读取一百条数据，缓存到内存中。于是循环的第2-100次，数据都是直接从内存中获取，不会连接数据库。当循环进行到第101次时，再一次连接数据库，获取第101-200行的内容。<br>这个逻辑非常有效的降低了网络I/O耗时，但是，MongoDB默认游标的超时时间是10分钟。10分钟之内，必需再次连接MongoDB读取内容刷新游标时间，否则，就会导致游标超时报错：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pymongo.errors.CursorNotFound: cursor id 40929404302 not found</span><br></pre></td></tr></table></figure></p>
+<p>也就是说，如果<code>process _data(item)</code>执行100次的时间超过10分钟，即使该方法没报错，那么等它跑完，需要重新连接数据库获取下100条记录的时候，由于游标超时，就会报错。</p>
+<h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>为了解决以上问题，我们有4种办法</p>
+<h2 id="修改MongoDB配置"><a href="#修改MongoDB配置" class="headerlink" title="修改MongoDB配置"></a>修改MongoDB配置</h2><p>修改MongoDB的配置，延长游标超时时间，并重启MongoDB。假如是生产环境的数据库，按理说不能随便重启，因此这个做法要慎重。</p>
+<h2 id="一次性读取所有数据"><a href="#一次性读取所有数据" class="headerlink" title="一次性读取所有数据"></a>一次性读取所有数据</h2><p>一次性把数据全部读取下来，再做处理：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rs_list = [r for r in my_set.find()]</span><br><span class="line">for r in rs_list:</span><br><span class="line">    process_data(r)</span><br></pre></td></tr></table></figure></p>
+<p>这种方案的弊端也很明显，如果数据量非常大，你不一定能全部放到内存里面。即使能够全部放到内存中，但是列表推导式遍历了所有数据，紧接着for循环又遍历一次，浪费了时间。不过，暂时在实际情况中，我较常使用这种处理办法，因为处理简单。</p>
+<h2 id="减少游标每次返回数据量"><a href="#减少游标每次返回数据量" class="headerlink" title="减少游标每次返回数据量"></a>减少游标每次返回数据量</h2><p>如果处理100条数据会超过10分钟的超时时间，那么我们减少游标每次返回的数据量，例如50条：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">for item in my_set.find().batch_size(50):</span><br><span class="line">    process_data(item)</span><br></pre></td></tr></table></figure></p>
+<p>但这种方案会增加数据库的连接次数，从而增加I/O耗时。</p>
+<h2 id="让Pymongo的游标永不超时"><a href="#让Pymongo的游标永不超时" class="headerlink" title="让Pymongo的游标永不超时"></a>让Pymongo的游标永不超时</h2><p>通过设定参数<code>no_cursor_timeout=True</code>，让游标永不超时，游标最后必须手动关闭：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cursor = my_set.find(no_cursor_timeout=True)</span><br><span class="line">for row in cursor:</span><br><span class="line">    process_data(row)</span><br><span class="line"># 一定要手动关闭游标</span><br><span class="line">cursor.close()</span><br></pre></td></tr></table></figure></p>
+<p>然而这个操作非常危险，因为如果你的Python程序因为某种原因意外停止了，这个游标就再也无法关闭了！除非重启MongoDB，否则这些游标会一直留在MongoDB上，占用资源。<br>因此，我们需要把这个做法稍作改良</p>
+<h3 id="使用try、catch、finally"><a href="#使用try、catch、finally" class="headerlink" title="使用try、catch、finally"></a>使用try、catch、finally</h3><p>最容易想到的做法，即使抛出异常，finally部分的代码依然会执行<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cursor = my_set.find(no_cursor_timeout=True)</span><br><span class="line">try:</span><br><span class="line">    for row in cursor:</span><br><span class="line">        process_data(row)</span><br><span class="line">except Exception:</span><br><span class="line">    # 处理异常</span><br><span class="line">    handle_exception()</span><br><span class="line">finally:</span><br><span class="line">    # 一定要手动关闭游标</span><br><span class="line">    cursor.close()</span><br></pre></td></tr></table></figure></p>
+<h3 id="使用上下文管理器"><a href="#使用上下文管理器" class="headerlink" title="使用上下文管理器"></a>使用上下文管理器</h3><p>try/catch比较难看，Python还提供了上下文管理器，例如文件的读取与写入我们就可以用上下文管理器：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">with my_set.find(no_cursor_timeout=True) as cursor:</span><br><span class="line">    for row in cursor:</span><br><span class="line">        process_data(row)</span><br></pre></td></tr></table></figure></p>
+<p>只要程序退出了with的缩进，游标自动就会关闭。如果程序中途报错，游标也会关闭。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/MongoDB/" rel="tag"># MongoDB</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/07/为基于Debian的Docker镜像更换镜像源/" rel="next" title="为基于Debian的Docker镜像更换镜像源">
+                <i class="fa fa-chevron-left"></i> 为基于Debian的Docker镜像更换镜像源
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/08/CentOS7下修改Docker工作目录/" rel="prev" title="CentOS7下修改Docker工作目录">
+                CentOS7下修改Docker工作目录 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用游标可能遇到的问题"><span class="nav-number">1.</span> <span class="nav-text">使用游标可能遇到的问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解决方法"><span class="nav-number">2.</span> <span class="nav-text">解决方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#修改MongoDB配置"><span class="nav-number">2.1.</span> <span class="nav-text">修改MongoDB配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一次性读取所有数据"><span class="nav-number">2.2.</span> <span class="nav-text">一次性读取所有数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#减少游标每次返回数据量"><span class="nav-number">2.3.</span> <span class="nav-text">减少游标每次返回数据量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#让Pymongo的游标永不超时"><span class="nav-number">2.4.</span> <span class="nav-text">让Pymongo的游标永不超时</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用try、catch、finally"><span class="nav-number">2.4.1.</span> <span class="nav-text">使用try、catch、finally</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用上下文管理器"><span class="nav-number">2.4.2.</span> <span class="nav-text">使用上下文管理器</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
