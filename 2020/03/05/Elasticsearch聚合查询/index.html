@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="纯实战,Elasticsearch," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Elasticsearch的一些稍微复杂一些的聚合查询，平时更多使用MySQL，更熟悉MySQL一些。因此我们以MySQL作为例子，由较熟悉的SQL语句转化为ES查询语句  MySQL表结构两个表：项目表t_project，客户表t_customer，多对一的关系    项目表t_project结构与示例数据如下：    id prj_id prj_name bid_price customer">
+<meta name="keywords" content="纯实战,Elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch聚合查询">
+<meta property="og:url" content="http://yoursite.com/2020/03/05/Elasticsearch聚合查询/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="Elasticsearch的一些稍微复杂一些的聚合查询，平时更多使用MySQL，更熟悉MySQL一些。因此我们以MySQL作为例子，由较熟悉的SQL语句转化为ES查询语句  MySQL表结构两个表：项目表t_project，客户表t_customer，多对一的关系    项目表t_project结构与示例数据如下：    id prj_id prj_name bid_price customer">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-05T11:49:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch聚合查询">
+<meta name="twitter:description" content="Elasticsearch的一些稍微复杂一些的聚合查询，平时更多使用MySQL，更熟悉MySQL一些。因此我们以MySQL作为例子，由较熟悉的SQL语句转化为ES查询语句  MySQL表结构两个表：项目表t_project，客户表t_customer，多对一的关系    项目表t_project结构与示例数据如下：    id prj_id prj_name bid_price customer">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/05/Elasticsearch聚合查询/"/>
+
+
+
+
+
+  <title>Elasticsearch聚合查询 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/05/Elasticsearch聚合查询/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Elasticsearch聚合查询</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-05T19:49:07+08:00">
+                2020-03-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Elasticsearch的一些稍微复杂一些的聚合查询，平时更多使用MySQL，更熟悉MySQL一些。因此我们以MySQL作为例子，由较熟悉的SQL语句转化为ES查询语句</p>
+</blockquote>
+<h1 id="MySQL表结构"><a href="#MySQL表结构" class="headerlink" title="MySQL表结构"></a>MySQL表结构</h1><p>两个表：项目表t_project，客户表t_customer，多对一的关系   </p>
+<h2 id="项目表t-project"><a href="#项目表t-project" class="headerlink" title="项目表t_project"></a>项目表t_project</h2><p>结构与示例数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>prj_id</th>
+<th>prj_name</th>
+<th>bid_price</th>
+<th>customer_id</th>
+<th>deal_time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>PRJ001</td>
+<td>项目1</td>
+<td>1000000</td>
+<td>1</td>
+<td>2020-01-05</td>
+</tr>
+<tr>
+<td>2</td>
+<td>PRJ002</td>
+<td>项目2</td>
+<td>2000000</td>
+<td>1</td>
+<td>2020-02-05</td>
+</tr>
+<tr>
+<td>3</td>
+<td>PRJ003</td>
+<td>项目3</td>
+<td>3500000</td>
+<td>2</td>
+<td>2020-02-19</td>
+</tr>
+</tbody>
+</table>
+<h2 id="客户表t-customer"><a href="#客户表t-customer" class="headerlink" title="客户表t_customer"></a>客户表t_customer</h2><p>结构与示例数据如下：</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>comp_name</th>
+<th>province</th>
+<th>city</th>
+<th>area</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>企业A</td>
+<td>广东省</td>
+<td>广州市</td>
+<td>越秀区</td>
+</tr>
+<tr>
+<td>2</td>
+<td>企业B</td>
+<td>广东省</td>
+<td>深圳市</td>
+<td>罗湖区</td>
+</tr>
+<tr>
+<td>3</td>
+<td>企业C</td>
+<td>四川省</td>
+<td>成都市</td>
+<td>武侯区</td>
+</tr>
+</tbody>
+</table>
+<h1 id="Elasticsearch索引结构"><a href="#Elasticsearch索引结构" class="headerlink" title="Elasticsearch索引结构"></a>Elasticsearch索引结构</h1><p>这里我们采用了nested的方式组织project和customer。每个project都嵌一个customer对象。所以，这里就只使用一个索引：project。（注意，可以看到这里customer对象只有comp_name，没有id，请不要深究，反正假定customer的id与comp_name都是一一对应）<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">&#123;	</span><br><span class="line">	&quot;id&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;long&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;prj_id&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;keyword&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;prj_name&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">            &quot;analyzer&quot;: &quot;ik_smart&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;deal_time&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;keyword&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;customer&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;nested&quot;,</span><br><span class="line">            &quot;properties&quot;: &#123;</span><br><span class="line">                &quot;comp_name&quot;: &#123;</span><br><span class="line">                  &quot;type&quot;: &quot;keyword&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">		&quot;province&quot;:&#123;</span><br><span class="line">                  &quot;type&quot;:&quot;keyword&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;city&quot;:&#123;</span><br><span class="line">                  &quot;type&quot;:&quot;keyword&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;area&quot;:&#123;</span><br><span class="line">                  &quot;type&quot;:&quot;keyword&quot;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;bid_price&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;scaled_float&quot;,</span><br><span class="line">            &quot;scaling_factor&quot;: 100</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="查询示例"><a href="#查询示例" class="headerlink" title="查询示例"></a>查询示例</h1><h2 id="例子1-统计项目数"><a href="#例子1-统计项目数" class="headerlink" title="例子1 统计项目数"></a>例子1 统计项目数</h2><p>统计每个客户对应项目数，返回项目前100多的客户。</p>
+<h3 id="MySQL查询语句"><a href="#MySQL查询语句" class="headerlink" title="MySQL查询语句"></a>MySQL查询语句</h3><p>这个比较简答，可以是：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select count(1) as cnt, comp_name from t_project inner join t_customer on t_project.customer_id=t_customer.id group by t_customer.comp_name order by cnt desc limit 100</span><br></pre></td></tr></table></figure></p>
+<h3 id="Elasticsearch查询语句"><a href="#Elasticsearch查询语句" class="headerlink" title="Elasticsearch查询语句"></a>Elasticsearch查询语句</h3><p>统计每个customer对应的文档数目，返回前100名的customer的name和它对应的文档数目，默认就是从大到小排列，语句如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">GET /project/_search</span><br><span class="line">&#123;</span><br><span class="line">  &quot;size&quot;: 0, </span><br><span class="line">  &quot;aggs&quot;: &#123;</span><br><span class="line">    &quot;customer&quot;: &#123;</span><br><span class="line">      &quot;nested&quot;: &#123;</span><br><span class="line">        &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;customer1&quot;: &#123;</span><br><span class="line">          &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;customer.name&quot;,</span><br><span class="line">            &quot;size&quot;: 100</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="额外的限制条件"><a href="#额外的限制条件" class="headerlink" title="额外的限制条件"></a>额外的限制条件</h4><p>假设我们想把企业A排除在外，统计每个customer对应的文档数目，返回前100名的customer的name和它对应的文档数目，语句如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">GET /project/_search</span><br><span class="line">&#123;</span><br><span class="line">  &quot;size&quot;: 0, </span><br><span class="line">  &quot;query&quot;: &#123;</span><br><span class="line">    &quot;bool&quot;: &#123;</span><br><span class="line">      &quot;must_not&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">          &quot;nested&quot;: &#123;</span><br><span class="line">            &quot;path&quot;: &quot;customer&quot;,</span><br><span class="line">            &quot;query&quot;: &#123;</span><br><span class="line">              &quot;match&quot;: &#123;</span><br><span class="line">                &quot;customer.name&quot;: &quot;企业A&quot;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, </span><br><span class="line">  &quot;aggs&quot;: &#123;</span><br><span class="line">    &quot;customer&quot;: &#123;</span><br><span class="line">      &quot;nested&quot;: &#123;</span><br><span class="line">        &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;customer1&quot;: &#123;</span><br><span class="line">          &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;customer.name&quot;,</span><br><span class="line">            &quot;size&quot;: 100</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="例子2-统计项目金额，并按子聚合结果进行排序"><a href="#例子2-统计项目金额，并按子聚合结果进行排序" class="headerlink" title="例子2 统计项目金额，并按子聚合结果进行排序"></a>例子2 统计项目金额，并按子聚合结果进行排序</h2><p>统计每个客户对应项目的金额总数（bid_price），返回总金额前100多的客户。</p>
+<h3 id="MySQL查询语句-1"><a href="#MySQL查询语句-1" class="headerlink" title="MySQL查询语句"></a>MySQL查询语句</h3><p>如下：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select sum(bid_price) as bid_price_sum, comp_name from t_project inner join t_customer on t_project.customer_id=t_customer.id group by t_customer.comp_name order by bid_price_sum desc limit 100</span><br></pre></td></tr></table></figure></p>
+<h3 id="Elasticsearch查询语句-1"><a href="#Elasticsearch查询语句-1" class="headerlink" title="Elasticsearch查询语句"></a>Elasticsearch查询语句</h3><p>这里就比较复杂了，因为分桶是nested对象里的属性，但统计的却是其外层的某个属性，我网上学习了很长时间，搜了很多文章，感觉没什么文章把什么分桶说得明明白白的，我也没办法说明白，只好举例：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;size&quot;:0,</span><br><span class="line">  &quot;aggs&quot;: &#123;</span><br><span class="line">    &quot;cust&quot;: &#123;</span><br><span class="line">      &quot;nested&quot;: &#123;</span><br><span class="line">        &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;cust1&quot;: &#123;</span><br><span class="line">          &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;customer.name&quot;,</span><br><span class="line">            &quot;size&quot;: 100,</span><br><span class="line">            &quot;order&quot;:&#123;</span><br><span class="line">            	&quot;money&gt;money1&quot;:&quot;desc&quot;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">          &quot;aggs&quot;: &#123;</span><br><span class="line">            &quot;money&quot;: &#123;</span><br><span class="line">              &quot;reverse_nested&quot;: &#123;&#125;, </span><br><span class="line">              &quot;aggs&quot;: &#123;</span><br><span class="line">                &quot;money1&quot;: &#123;</span><br><span class="line">                  &quot;sum&quot;: &#123;</span><br><span class="line">                    &quot;field&quot;: &quot;bid_price&quot;</span><br><span class="line">                  &#125;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125; </span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>重点留意这里，理解<code>money&gt;money1</code>的意思，对应哪里的名字：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&quot;order&quot;:&#123;</span><br><span class="line">	&quot;money&gt;money1&quot;:&quot;desc&quot;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure></p>
+<p>此外还有这句，把“路径跳回上一级”：<code>&quot;reverse_nested&quot;: {}</code></p>
+<h2 id="例子3"><a href="#例子3" class="headerlink" title="例子3"></a>例子3</h2><p>统计每个省份的项目数、项目金额总数，查询项目金额总数的前10个省份及对应的金额。</p>
+<h3 id="MySQL查询语句-2"><a href="#MySQL查询语句-2" class="headerlink" title="MySQL查询语句"></a>MySQL查询语句</h3><p>这里我使用子查询<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SELECT SUM(A.bid_price) as bid_price_sum, A.province from</span><br><span class="line">(</span><br><span class="line">SELECT t_project.bid_price, t_customer.province </span><br><span class="line">from t_project inner join t_customer on  t_project.customer_id=t_customer.id</span><br><span class="line">) A GROUP BY A.province</span><br><span class="line">ORDER BY bid_price_sum DESC limit 10</span><br></pre></td></tr></table></figure></p>
+<h3 id="Elasticsearch查询语句-2"><a href="#Elasticsearch查询语句-2" class="headerlink" title="Elasticsearch查询语句"></a>Elasticsearch查询语句</h3><p>与第2个例子道理基本一样：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;size&quot;:0,</span><br><span class="line">  &quot;aggs&quot;: &#123;</span><br><span class="line">    &quot;cust&quot;: &#123;</span><br><span class="line">      &quot;nested&quot;: &#123;</span><br><span class="line">        &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;cust1&quot;: &#123;</span><br><span class="line">          &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;customer.province&quot;,</span><br><span class="line">            &quot;size&quot;: 10,</span><br><span class="line">            &quot;order&quot;:&#123;</span><br><span class="line">            	&quot;money&gt;money1&quot;:&quot;desc&quot;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">          &quot;aggs&quot;: &#123;</span><br><span class="line">            &quot;money&quot;: &#123;</span><br><span class="line">              &quot;reverse_nested&quot;: &#123;&#125;, </span><br><span class="line">              &quot;aggs&quot;: &#123;</span><br><span class="line">                &quot;money1&quot;: &#123;</span><br><span class="line">                  &quot;sum&quot;: &#123;</span><br><span class="line">                    &quot;field&quot;: &quot;bid_price&quot;</span><br><span class="line">                  &#125;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125; </span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="例子4-分桶聚合后再做过滤"><a href="#例子4-分桶聚合后再做过滤" class="headerlink" title="例子4 分桶聚合后再做过滤"></a>例子4 分桶聚合后再做过滤</h2><p>统计每个省份的项目数、项目金额总数，查询项目金额总数的前10个省份及对应的金额，只显示总金额大于1千万的省份（相当于MySQL的having语句）</p>
+<h3 id="MySQL查询语句-3"><a href="#MySQL查询语句-3" class="headerlink" title="MySQL查询语句"></a>MySQL查询语句</h3><p>这里我使用子查询<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SELECT SUM(A.bid_price) as bid_price_sum, A.province from</span><br><span class="line">(</span><br><span class="line">SELECT t_project.bid_price, t_customer.province </span><br><span class="line">from t_project inner join t_customer on  t_project.customer_id=t_customer.id</span><br><span class="line">) A GROUP BY A.province HAVING bid_price_sum&gt;=10000000</span><br><span class="line">ORDER BY bid_price_sum DESC limit 10</span><br></pre></td></tr></table></figure></p>
+<h3 id="Elasticsearch查询语句-3"><a href="#Elasticsearch查询语句-3" class="headerlink" title="Elasticsearch查询语句"></a>Elasticsearch查询语句</h3><p>这里用到<code>bucket_selector</code>的语法：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>描述</th>
+<th>是否必填</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>script</td>
+<td>过滤条件</td>
+<td>是</td>
+<td>无</td>
+</tr>
+<tr>
+<td>buckets_path</td>
+<td>上层聚合的变量</td>
+<td>是</td>
+<td>无</td>
+</tr>
+<tr>
+<td>gap_policy</td>
+<td>当出现间隔时候的处理方式</td>
+<td>否</td>
+<td>skip</td>
+</tr>
+</tbody>
+</table>
+<p>此外要注意的是<strong>“elasticsearch中bucket_script聚合父级必须是多桶聚合”</strong>：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;size&quot;: 0,</span><br><span class="line">    &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;cust&quot;: &#123;</span><br><span class="line">            &quot;nested&quot;: &#123;</span><br><span class="line">                &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;aggs&quot;: &#123;</span><br><span class="line">                &quot;cust1&quot;: &#123;</span><br><span class="line">                    &quot;terms&quot;: &#123;</span><br><span class="line">                        &quot;field&quot;: &quot;customer.province&quot;,</span><br><span class="line">                        &quot;size&quot;: 10,</span><br><span class="line">                        &quot;order&quot;: &#123;</span><br><span class="line">                            &quot;money&gt;money1&quot;: &quot;desc&quot;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &quot;aggs&quot;: &#123;</span><br><span class="line">                        &quot;money&quot;: &#123;</span><br><span class="line">                            &quot;reverse_nested&quot;: &#123;&#125;,</span><br><span class="line">                            &quot;aggs&quot;: &#123;</span><br><span class="line">                                &quot;money1&quot;: &#123;</span><br><span class="line">                                    &quot;sum&quot;: &#123;</span><br><span class="line">                                        &quot;field&quot;: &quot;bid_price&quot;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;having1&quot;: &#123;</span><br><span class="line">                            &quot;bucket_selector&quot;: &#123;</span><br><span class="line">                                &quot;buckets_path&quot;: &#123;</span><br><span class="line">                                    &quot;having_money&quot;: &quot;money&gt;money1&quot;</span><br><span class="line">                                &#125;,</span><br><span class="line">                                &quot;script&quot;: &#123;</span><br><span class="line">                                    &quot;source&quot;: &quot;params.having_money&gt;10000000&quot;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到“having1”我放在了跟“money”同一级而不是跟“money1”同一级，否则，会报错：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;error&quot;: &#123;</span><br><span class="line">        &quot;root_cause&quot;: [],</span><br><span class="line">        &quot;type&quot;: &quot;search_phase_execution_exception&quot;,</span><br><span class="line">        &quot;reason&quot;: &quot;&quot;,</span><br><span class="line">        &quot;phase&quot;: &quot;fetch&quot;,</span><br><span class="line">        &quot;grouped&quot;: true,</span><br><span class="line">        &quot;failed_shards&quot;: [],</span><br><span class="line">        &quot;caused_by&quot;: &#123;</span><br><span class="line">            &quot;type&quot;: &quot;class_cast_exception&quot;,</span><br><span class="line">            &quot;reason&quot;: &quot;class org.elasticsearch.search.aggregations.bucket.nested.InternalReverseNested cannot be cast to class org.elasticsearch.search.aggregations.InternalMultiBucketAggregation (org.elasticsearch.search.aggregations.bucket.nested.InternalReverseNested and org.elasticsearch.search.aggregations.InternalMultiBucketAggregation are in unnamed module of loader &apos;app&apos;)&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;status&quot;: 503</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="Elasticsearch聚合查询的精准度问题"><a href="#Elasticsearch聚合查询的精准度问题" class="headerlink" title="Elasticsearch聚合查询的精准度问题"></a>Elasticsearch聚合查询的精准度问题</h1><p>Elasticsearch分布式系统采用近似统计算法，数据量、精准度、实时性3者只能同时满足其中2条。既然是近似算法，那么返回的Top N结果就不一定准确，因为数据分散在各个分片上，Coordinating Node无法获取数据全貌。解决方案有2种：</p>
+<h2 id="解决方案1：设置Primary-Shard为1"><a href="#解决方案1：设置Primary-Shard为1" class="headerlink" title="解决方案1：设置Primary Shard为1"></a>解决方案1：设置Primary Shard为1</h2><p>数据量不大时可以采用这种方法，创建索引时，把<code>number_of_shards</code>设置为1，那么数据就不会在各个节点上仅仅保存其中一部分，而是全数存储，那么统计时就可以在其节点上获取数据全貌，统计结果自然也就准确了。</p>
+<h2 id="解决方案2：设置shard-size参数"><a href="#解决方案2：设置shard-size参数" class="headerlink" title="解决方案2：设置shard_size参数"></a>解决方案2：设置shard_size参数</h2><p>数据量很大时，我们可以在查询时设置<code>shard_size</code>参数，以增加整体计算量降低响应时间的代价来提高精准度。</p>
+<ul>
+<li>shard size的默认大小为<code>size*1.5+10</code>   </li>
+</ul>
+<p>示例：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;size&quot;: 0, </span><br><span class="line">  &quot;aggs&quot;: &#123;</span><br><span class="line">    &quot;customer&quot;: &#123;</span><br><span class="line">      &quot;nested&quot;: &#123;</span><br><span class="line">        &quot;path&quot;: &quot;customer&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;aggs&quot;: &#123;</span><br><span class="line">        &quot;customer1&quot;: &#123;</span><br><span class="line">          &quot;terms&quot;: &#123;</span><br><span class="line">            &quot;field&quot;: &quot;customer.name&quot;,</span><br><span class="line">            &quot;size&quot;: 100,</span><br><span class="line">            &quot;shard_size&quot;: 1000,</span><br><span class="line">            &quot;show_term_doc_count_error&quot;: true,</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>参考：<br><a href="http://www.voidcn.com/article/p-dcdsbdhz-bod.html" title="ElasticSearch:桶过滤聚合(Bucket Selector Aggregation)" target="_blank" rel="noopener">http://www.voidcn.com/article/p-dcdsbdhz-bod.html</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/纯实战/" rel="tag"># 纯实战</a>
+          
+            <a href="/tags/Elasticsearch/" rel="tag"># Elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/05/查看一个运行Docker容器的docker-run启动参数/" rel="next" title="查看一个运行Docker容器的docker run启动参数">
+                <i class="fa fa-chevron-left"></i> 查看一个运行Docker容器的docker run启动参数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL表结构"><span class="nav-number">1.</span> <span class="nav-text">MySQL表结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#项目表t-project"><span class="nav-number">1.1.</span> <span class="nav-text">项目表t_project</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户表t-customer"><span class="nav-number">1.2.</span> <span class="nav-text">客户表t_customer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Elasticsearch索引结构"><span class="nav-number">2.</span> <span class="nav-text">Elasticsearch索引结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#查询示例"><span class="nav-number">3.</span> <span class="nav-text">查询示例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例子1-统计项目数"><span class="nav-number">3.1.</span> <span class="nav-text">例子1 统计项目数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL查询语句"><span class="nav-number">3.1.1.</span> <span class="nav-text">MySQL查询语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elasticsearch查询语句"><span class="nav-number">3.1.2.</span> <span class="nav-text">Elasticsearch查询语句</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#额外的限制条件"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">额外的限制条件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子2-统计项目金额，并按子聚合结果进行排序"><span class="nav-number">3.2.</span> <span class="nav-text">例子2 统计项目金额，并按子聚合结果进行排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL查询语句-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">MySQL查询语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elasticsearch查询语句-1"><span class="nav-number">3.2.2.</span> <span class="nav-text">Elasticsearch查询语句</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子3"><span class="nav-number">3.3.</span> <span class="nav-text">例子3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL查询语句-2"><span class="nav-number">3.3.1.</span> <span class="nav-text">MySQL查询语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elasticsearch查询语句-2"><span class="nav-number">3.3.2.</span> <span class="nav-text">Elasticsearch查询语句</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子4-分桶聚合后再做过滤"><span class="nav-number">3.4.</span> <span class="nav-text">例子4 分桶聚合后再做过滤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL查询语句-3"><span class="nav-number">3.4.1.</span> <span class="nav-text">MySQL查询语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Elasticsearch查询语句-3"><span class="nav-number">3.4.2.</span> <span class="nav-text">Elasticsearch查询语句</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Elasticsearch聚合查询的精准度问题"><span class="nav-number">4.</span> <span class="nav-text">Elasticsearch聚合查询的精准度问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案1：设置Primary-Shard为1"><span class="nav-number">4.1.</span> <span class="nav-text">解决方案1：设置Primary Shard为1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方案2：设置shard-size参数"><span class="nav-number">4.2.</span> <span class="nav-text">解决方案2：设置shard_size参数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="纯实战,Mac,OSX,网络," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近疫情严重，公司要求在家办公。远程办公自然少不了VPN。但是公司的VPN有些弱，连着就访问不了外网，难道我需要不停的对VPN打开关闭？方法是对网络添加路由，仅仅让某些ip地址（例如172开头，10开头）走VPN，其余走平常的网络。步骤如下：     1. VPN中“通过VPN连接发送所有流量”不能勾选。2. 查看VPN的“名称”123456789101112131415161718192021">
+<meta name="keywords" content="纯实战,Mac,OSX,网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac使用VPN一点心得">
+<meta property="og:url" content="http://yoursite.com/2020/02/04/Mac使用VPN一点心得/index.html">
+<meta property="og:site_name" content="量">
+<meta property="og:description" content="最近疫情严重，公司要求在家办公。远程办公自然少不了VPN。但是公司的VPN有些弱，连着就访问不了外网，难道我需要不停的对VPN打开关闭？方法是对网络添加路由，仅仅让某些ip地址（例如172开头，10开头）走VPN，其余走平常的网络。步骤如下：     1. VPN中“通过VPN连接发送所有流量”不能勾选。2. 查看VPN的“名称”123456789101112131415161718192021">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-02-04T13:09:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mac使用VPN一点心得">
+<meta name="twitter:description" content="最近疫情严重，公司要求在家办公。远程办公自然少不了VPN。但是公司的VPN有些弱，连着就访问不了外网，难道我需要不停的对VPN打开关闭？方法是对网络添加路由，仅仅让某些ip地址（例如172开头，10开头）走VPN，其余走平常的网络。步骤如下：     1. VPN中“通过VPN连接发送所有流量”不能勾选。2. 查看VPN的“名称”123456789101112131415161718192021">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/02/04/Mac使用VPN一点心得/"/>
+
+
+
+
+
+  <title>Mac使用VPN一点心得 | 量</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">量</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/04/Mac使用VPN一点心得/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Sea Monster">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="量">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Mac使用VPN一点心得</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-04T20:24:56+08:00">
+                2020-02-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>最近疫情严重，公司要求在家办公。远程办公自然少不了VPN。但是公司的VPN有些弱，连着就访问不了外网，难道我需要不停的对VPN打开关闭？<br>方法是对网络添加路由，仅仅让某些ip地址（例如172开头，10开头）走VPN，其余走平常的网络。步骤如下：   </p>
+</blockquote>
+<h2 id="1-VPN中“通过VPN连接发送所有流量”不能勾选。"><a href="#1-VPN中“通过VPN连接发送所有流量”不能勾选。" class="headerlink" title="1. VPN中“通过VPN连接发送所有流量”不能勾选。"></a>1. VPN中“通过VPN连接发送所有流量”不能勾选。</h2><h2 id="2-查看VPN的“名称”"><a href="#2-查看VPN的“名称”" class="headerlink" title="2. 查看VPN的“名称”"></a>2. 查看VPN的“名称”</h2><pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig</span><br><span class="line">lo0: flags=8049&lt;UP,LOOPBACK,RUNNING,MULTICAST&gt; mtu 16384</span><br><span class="line">    options=3&lt;RXCSUM,TXCSUM&gt;</span><br><span class="line">    inet6 ::1 prefixlen 128</span><br><span class="line">    inet 127.0.0.1 netmask 0xff000000</span><br><span class="line">    inet6 fe80::1%lo0 prefixlen 64 scopeid 0x1</span><br><span class="line">    nd6 options=1&lt;PERFORMNUD&gt;</span><br><span class="line">gif0: flags=8010&lt;POINTOPOINT,MULTICAST&gt; mtu 1280</span><br><span class="line">stf0: flags=0&lt;&gt; mtu 1280</span><br><span class="line">en0: flags=8863&lt;UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">    ether c4:b3:01:d4:0f:13</span><br><span class="line">    inet6 fe80::c6b3:1ff:fed4:f13%en0 prefixlen 64 scopeid 0x4</span><br><span class="line">    inet 192.168.0.103 netmask 0xffffff00 broadcast 192.168.0.255</span><br><span class="line">    nd6 options=1&lt;PERFORMNUD&gt;</span><br><span class="line">    media: autoselect</span><br><span class="line">    status: active</span><br><span class="line">en1: flags=963&lt;UP,BROADCAST,SMART,RUNNING,PROMISC,SIMPLEX&gt; mtu 1500</span><br><span class="line">    options=60&lt;TSO4,TSO6&gt;</span><br><span class="line">    ether 4a:00:07:96:39:f0</span><br><span class="line">    media: autoselect &lt;full-duplex&gt;</span><br><span class="line">    status: inactive</span><br><span class="line">en2: flags=963&lt;UP,BROADCAST,SMART,RUNNING,PROMISC,SIMPLEX&gt; mtu 1500</span><br><span class="line">    options=60&lt;TSO4,TSO6&gt;</span><br><span class="line">    ether 4a:00:07:96:39:f1</span><br><span class="line">    media: autoselect &lt;full-duplex&gt;</span><br><span class="line">    status: inactive</span><br><span class="line">p2p0: flags=8843&lt;UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST&gt; mtu 2304</span><br><span class="line">    ether 06:b3:01:d4:0f:13</span><br><span class="line">    media: autoselect</span><br><span class="line">    status: inactive</span><br><span class="line">bridge0: flags=8863&lt;UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">    options=63&lt;RXCSUM,TXCSUM,TSO4,TSO6&gt;</span><br><span class="line">    ether c6:b3:01:4d:e3:00</span><br><span class="line">    Configuration:</span><br><span class="line">        id 0:0:0:0:0:0 priority 0 hellotime 0 fwddelay 0</span><br><span class="line">        maxage 0 holdcnt 0 proto stp maxaddr 100 timeout 1200</span><br><span class="line">        root id 0:0:0:0:0:0 priority 0 ifcost 0 port 0</span><br><span class="line">        ipfilter disabled flags 0x2</span><br><span class="line">    member: en1 flags=3&lt;LEARNING,DISCOVER&gt;</span><br><span class="line">            ifmaxaddr 0 port 5 priority 0 path cost 0</span><br><span class="line">    member: en2 flags=3&lt;LEARNING,DISCOVER&gt;</span><br><span class="line">            ifmaxaddr 0 port 6 priority 0 path cost 0</span><br><span class="line">    nd6 options=1&lt;PERFORMNUD&gt;</span><br><span class="line">    media: &lt;unknown type&gt;</span><br><span class="line">    status: inactive</span><br><span class="line">awdl0: flags=8943&lt;UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST&gt; mtu 1484</span><br><span class="line">    ether 6e:41:77:57:bd:58</span><br><span class="line">    inet6 fe80::6c41:77ff:fe57:bd58%awdl0 prefixlen 64 scopeid 0x9</span><br><span class="line">    nd6 options=1&lt;PERFORMNUD&gt;</span><br><span class="line">    media: autoselect</span><br><span class="line">    status: active</span><br><span class="line">ppp0: flags=8051&lt;UP,POINTOPOINT,RUNNING,MULTICAST&gt; mtu 1280</span><br><span class="line">    inet 192.168.200.2 --&gt; 192.168.200.1 netmask 0xffffff00</span><br></pre></td></tr></table></figure>
+</code></pre><p>在这里，ppp0就是VPN对应的网络名称。</p>
+<h2 id="3-添加路由："><a href="#3-添加路由：" class="headerlink" title="3.  添加路由："></a>3.  添加路由：</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ sudo route -n add -net 172.16 -netmask 255.255.0.0 `ifconfig ppp0 | awk &apos;NR==2 &#123;print $2&#125;&apos;`</span><br><span class="line">add net 172.16: gateway 192.168.200.2</span><br><span class="line">$ sudo route -n add -net 10.202 -netmask 255.255.0.0 `ifconfig ppp0 | awk &apos;NR==2 &#123;print $2&#125;&apos;`</span><br><span class="line">add net 10.202: gateway 192.168.200.2</span><br></pre></td></tr></table></figure>
+<p>这样，只有访问172.16和10.202开头的ip地址时会走VPN。注意，当VPN重新打开时，我们需要重复步骤3：添加理由。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/纯实战/" rel="tag"># 纯实战</a>
+          
+            <a href="/tags/Mac/" rel="tag"># Mac</a>
+          
+            <a href="/tags/OSX/" rel="tag"># OSX</a>
+          
+            <a href="/tags/网络/" rel="tag"># 网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/08/pymysql获取新插入数据的id/" rel="next" title="pymysql获取新插入数据的id">
+                <i class="fa fa-chevron-left"></i> pymysql获取新插入数据的id
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/05/查看一个运行Docker容器的docker-run启动参数/" rel="prev" title="查看一个运行Docker容器的docker run启动参数">
+                查看一个运行Docker容器的docker run启动参数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Sea Monster</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">44</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-VPN中“通过VPN连接发送所有流量”不能勾选。"><span class="nav-number">1.</span> <span class="nav-text">1. VPN中“通过VPN连接发送所有流量”不能勾选。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-查看VPN的“名称”"><span class="nav-number">2.</span> <span class="nav-text">2. 查看VPN的“名称”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-添加路由："><span class="nav-number">3.</span> <span class="nav-text">3.  添加路由：</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Sea Monster</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
